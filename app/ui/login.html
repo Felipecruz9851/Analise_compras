@@ -4,24 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Análise de Compras</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-    <h2>Análise de Compras</h2>
+    <div class="login-container">
+        <h2>Análise de Compras</h2>
 
-    <label>Usuário:</label><br>
-    <input id="user"><br><br>
+        <div class="form-group">
+            <label>Usuário:</label>
+            <input id="user">
+        </div>
 
-    <label>Senha:</label><br>
-    <input id="pass" type="password"><br><br>
+        <div class="form-group">
+            <label>Senha:</label>
+            <input id="pass" type="password">
+        </div>
 
-    <label>Análise:</label><br>
-    <select id="analise"></select><br><br>
+        <div class="form-group">
+            <label>Análise:</label>
+            <select id="analise"></select>
+        </div>
 
-    <button onclick="executar()">Executar</button>
+        <button onclick="executar()">Executar</button>
 
-    <pre id="resultado"></pre>
+        <pre id="resultado"></pre>
+    </div>
 
     <script src="login.js"></script>
 

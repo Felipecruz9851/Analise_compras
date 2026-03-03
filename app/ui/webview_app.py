@@ -23,7 +23,10 @@ def start():
     api = Api()
 
     window = webview.create_window(
-        "Análise de Compras", "app/ui/login.html", js_api=api
+        "Análise de Compras",
+        "app/ui/login.html",
+        js_api=api,
+        maximized=True,
     )
 
-    webview.start(debug=True)
+    webview.start(debug=False)

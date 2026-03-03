@@ -22,12 +22,15 @@ def carregar_feriados(caminho=FERIADOS_TXT):
 
 FERIADOS_BRASIL = carregar_feriados()
 
-ANALISES = ["Compra para estoque",
-            "compra por necessidade",
-            "rev",
-            "lam"]
+ANALISES = [
+    "Compra para estoque",
+    "compra por necessidade",
+    "rev",
+    "lam",
+    "compra para estoque ignora necess.",
+]
 
 
 if __name__ == "__main__":
-  
+
     print(FERIADOS_BRASIL)

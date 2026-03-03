@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.log
+.env
+data/
+OP-Estoque.spec
+build/OP-Estoque/qt.conf
+/dist
+/build
+_venv
+/.git
+app/__pycache__
