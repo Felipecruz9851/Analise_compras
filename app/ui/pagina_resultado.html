@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Resultado da Análise</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      padding: 40px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th {
+      background: #3cb371;
+      padding: 10px;
+    }
+
+    td {
+      padding: 8px;
+      border: 1px solid #333;
+    }
+
+    tr:nth-child(even) {
+      background: #1e1e1e;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #3cb371;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Resultado da Análise</h2>
+
+  <div id="tabela-container"></div>
+
+  <button onclick="voltar()">Voltar</button>
+
+  <script>
+    function montarTabela(dados) {
+
+      if (!dados || dados.length === 0) {
+        document.getElementById("tabela-container").innerHTML = "Nenhum dado encontrado.";
+        return;
+      }
+
+      let html = "<table><thead><tr>";
+
+      Object.keys(dados[0]).forEach(col => {
+        html += `<th>${col}</th>`;
+      });
+
+      html += "</tr></thead><tbody>";
+
+      dados.forEach(linha => {
+        html += "<tr>";
+        Object.values(linha).forEach(valor => {
+          html += `<td>${valor ?? ""}</td>`;
+        });
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+
+      document.getElementById("tabela-container").innerHTML = html;
+    }
+
+    function voltar() {
+      window.location.href = "index.html";
+    }
+
+    window.onload = function () {
+      const dados = JSON.parse(localStorage.getItem("resultadoAnalise"));
+      montarTabela(dados);
+    };
+  </script>
+
+</body>
+
+</html>

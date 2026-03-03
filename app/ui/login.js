@@ -46,17 +46,33 @@ async function executar() {
         const resultado = await window.pywebview.api.rodar_analise(payload);
 
         const resultadoElem = document.getElementById("resultado");
-        if (resultadoElem) {
-            resultadoElem.textContent = JSON.stringify(resultado, null, 2);
-        }
 
-        // Wait 5 seconds before removing overlay
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        if (resultado && resultado.length > 0) {
 
-    } catch (error) {
-        const resultadoElem = document.getElementById("resultado");
-        if (resultadoElem) {
-            resultadoElem.textContent = "Erro ao executar: " + error.message;
+            let html = "<table border='1' style='border-collapse:collapse;width:100%'>";
+
+            // Cabeçalho
+            html += "<thead><tr>";
+            Object.keys(resultado[0]).forEach(coluna => {
+                html += `<th style="padding:8px;background:#2f2f2f;color:white">${coluna}</th>`;
+            });
+            html += "</tr></thead>";
+
+            // Corpo
+            html += "<tbody>";
+            resultado.forEach(linha => {
+                html += "<tr>";
+                Object.values(linha).forEach(valor => {
+                    html += `<td style="padding:8px">${valor ?? ""}</td>`;
+                });
+                html += "</tr>";
+            });
+            html += "</tbody></table>";
+
+            resultadoElem.innerHTML = html;
+
+        } else {
+            resultadoElem.textContent = "Nenhum dado retornado.";
         }
     } finally {
         // Remove loading overlay

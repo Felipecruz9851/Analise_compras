@@ -23,8 +23,8 @@ def carregar_feriados(caminho=FERIADOS_TXT):
 FERIADOS_BRASIL = carregar_feriados()
 
 ANALISES = [
-    "Compra para estoque",
     "compra por necessidade",
+    "Compra para estoque",
     "rev",
     "lam",
     "compra para estoque ignora necess.",

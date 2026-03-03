@@ -1,210 +1,152 @@
 import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import time
+from typing import List, Dict
+from pathlib import Path
+from datetime import datetime
 
 
-BASE_URL = "http://192.168.0.6"
+class Extractor:
 
-LOGIN_PAGE = f"{BASE_URL}/home/"
-LOGIN_POST = f"{BASE_URL}/home/login/"
+    BASE_URL = "http://192.168.0.6"
 
-ORDEM_URL = f"{BASE_URL}/pcp/atrasadas.php"
+    LOGIN_PAGE = f"{BASE_URL}/home/"
+    LOGIN_POST = f"{BASE_URL}/home/login/"
+    APOIO = f"{BASE_URL}/pcp/apoio_compras_pcp_lgx.php"
 
-# Valores padrão (podem ser sobrescritos)
-USUARIO = "felipe.cruz"
-SENHA = "#Gladoscruz.9851"
-LOCAL = "ESTOF UL"
-DATA_INICIO = "2000-01-01"
-DATA_FIM = "2060-12-31"
+    def __init__(self, username: str, password: str):
+        if not username or not password:
+            raise ValueError("Usuário e senha são obrigatórios")
 
+        self.username = username
+        self.password = password
+        self.session = requests.Session()
 
-def login(session: requests.Session, usuario: str, senha: str) -> None:
-    """Realiza login na aplicação"""
-    session.get(LOGIN_PAGE, timeout=10)
+    # ----------------------------
+    # LOGIN
+    # ----------------------------
 
-    response = session.post(
-        LOGIN_POST,
-        files={
-            "pagina_acessada": (None, f"{BASE_URL}/home/login/"),
-            "action": (None, "login"),
-            "usuario": (None, usuario),
-            "senha": (None, senha),
-            "logar": (None, "Acessar"),
-        },
-        headers={
-            "Referer": LOGIN_PAGE,
-            "Origin": BASE_URL,
-            "User-Agent": "Mozilla/5.0",
-        },
-        allow_redirects=True,
-        timeout=10,
-    )
+    def login(self) -> None:
+        """
+        Realiza login na aplicação e valida autenticação.
+        """
 
-    response.raise_for_status()
+        # Primeiro acessa a página inicial para capturar cookies iniciais
+        self.session.get(self.LOGIN_PAGE, timeout=10)
 
-    if "PHPSESSID" not in session.cookies:
-        raise RuntimeError("Login falhou: sessão não criada")
-        print("Login falhou: sessão não criada")
-
-
-def extrair_dados(username, password, analise):
-    """
-    Executa o pipeline de extração: login + execução de tarefas.
-
-    Args:
-        username: usuário para login
-        password: senha para login
-        analise: tipo de análise (sugestao, ruptura, excesso)
-
-    Returns:
-        Lista de dicionários com os dados extraídos
-    """
-    session = requests.Session()
-
-    # Realiza login
-    login(session, username, password)
-
-    # Gera tarefas
-    tarefas, _, _ = gerar_tarefas()
-
-    # Executa tarefas em paralelo
-    resultados = []
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        futures = []
-        for tarefa in tarefas:
-            future = executor.submit(executar_tarefa, session, tarefa)
-            futures.append(future)
-
-        for future in as_completed(futures):
-            try:
-                resultado = future.result()
-                if resultado:
-                    resultados.extend(resultado)
-            except Exception as e:
-                print(f"Erro ao executar tarefa: {e}")
-
-    # Retorna os dados extraídos
-    return resultados
-
-
-def gerar_tarefas(
-    usuario=None, senha=None, local=None, data_inicio=None, data_fim=None
-):
-    """
-    Gera a lista de tarefas com os parâmetros fornecidos.
-    Se não fornecidos, usa os valores padrão (hardcoded).
-    """
-    _usuario = usuario or USUARIO
-    _senha = senha or SENHA
-    _local = local or LOCAL
-    _data_inicio = data_inicio or DATA_INICIO
-    _data_fim = data_fim or DATA_FIM
-
-    tarefas = [
-        {
-            "nome": "ordem_acessorio",
-            "method": "POST",
-            "url": ORDEM_URL,
-            "data": {
-                "cod_empresa": "11",
-                "inicio": _data_inicio,
-                "fim": _data_fim,
-                "local[]": _local,
-                "ordem": "entrega,",
+        response = self.session.post(
+            self.LOGIN_POST,
+            data={
+                "pagina_acessada": f"{self.BASE_URL}/home/login/",
+                "action": "login",
+                "usuario": self.username,
+                "senha": self.password,
+                "logar": "Acessar",
             },
-            "timeout": (5, 600),
-        },
-    ]
+            headers={
+                "Referer": self.LOGIN_PAGE,
+                "Origin": self.BASE_URL,
+                "User-Agent": "Mozilla/5.0",
+            },
+            allow_redirects=True,
+            timeout=10,
+        )
 
-    return tarefas, _usuario, _senha
+        response.raise_for_status()
 
+        # Verifica se sessão foi criada
+        if "PHPSESSID" not in self.session.cookies:
+            raise RuntimeError("Login falhou: sessão não criada")
 
-def executar_tarefa(session: requests.Session, tarefa: dict):
-    """
-    Executa uma tarefa (requisição HTTP).
+        # Verifica se ainda está na página de login
+        if "login" in response.url.lower():
+            raise RuntimeError("Login falhou: credenciais inválidas")
 
-    Args:
-        session: sessão requests autenticada
-        tarefa: dicionário com os dados da tarefa
+    # ----------------------------
+    # GERAÇÃO DE TAREFAS
+    # ----------------------------
 
-    Returns:
-        Lista de dicionários com os dados extraídos
-    """
-    method = tarefa.get("method", "GET")
-    url = tarefa["url"]
-    data = tarefa.get("data", {})
-    timeout = tarefa.get("timeout", (10, 60))
+    def gerar_tarefas(self, analise: str) -> List[Dict]:
+        """
+        Retorna lista de tarefas baseadas na análise solicitada.
+        """
 
-    start_time = time.time()
+        if analise == "compra por necessidade":
+            familia = "FNC,CST,RV,VSN,CSD,VRG,NEC"
+        else:
+            raise ValueError(f"Análise não suportada: {analise}")
 
-    if method == "POST":
-        response = session.post(url, data=data, timeout=timeout)
-    else:
-        response = session.get(url, timeout=timeout)
+        tarefas = [
+            {
+                "nome": "apoio_compras",
+                "method": "POST",
+                "url": self.APOIO,
+                "data": {
+                    "cod_empresa": "11",
+                    "familia": familia,
+                    "grupo": "",
+                    "local": "",
+                    "ordem": "cod_item",
+                    "neces_aberto": "S",
+                },
+                "timeout": (5, 600),
+            }
+        ]
 
-    response.raise_for_status()
-    elapsed = time.time() - start_time
+        return tarefas
 
-    # Parse da resposta HTML (extrair tabela)
-    dados = parse_html_table(response.text)
+    # ----------------------------
+    # EXECUÇÃO DE TAREFA
+    # ----------------------------
 
-    print(f"{tarefa['nome']} concluída em {elapsed:.2f}s - {len(dados)} registros")
+    def executar_tarefa(self, tarefa: Dict) -> str:
+        """
+        Executa uma tarefa de scraping.
+        """
 
-    return dados
+        response = self.session.request(
+            method=tarefa["method"],
+            url=tarefa["url"],
+            data=tarefa.get("data"),
+            timeout=tarefa.get("timeout", 30),
+        )
 
+        response.raise_for_status()
+        return response.text
 
-def parse_html_table(html: str) -> list:
-    """
-    Parseia uma tabela HTML e retorna uma lista de dicionários.
+    def salvar_html(self, conteudo: str, nome_base: str) -> Path:
+        """
+        Salva HTML em arquivo organizado por data.
+        """
 
-    Args:
-        html: conteúdo HTML da página
+        pasta = Path("saida_html")
+        pasta.mkdir(exist_ok=True)
 
-    Returns:
-        Lista de dicionários com os dados da tabela
-    """
-    from bs4 import BeautifulSoup
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    soup = BeautifulSoup(html, "html.parser")
-    table = soup.find("table")
+        arquivo = pasta / f"{nome_base}_{timestamp}.html"
 
-    if not table:
-        return []
+        with open(arquivo, "w", encoding="utf-8") as f:
+            f.write(conteudo)
 
-    # Encontra os headers
-    headers = []
-    thead = table.find("thead")
-    if thead:
-        for th in thead.find_all("th"):
-            headers.append(th.get_text(strip=True).lower().replace(" ", "_"))
+        return arquivo
 
-    # Se não encontrou headers no thead, tenta no primeiro tr
-    if not headers:
-        first_tr = table.find("tr")
-        if first_tr:
-            for th in first_tr.find_all(["th", "td"]):
-                headers.append(th.get_text(strip=True).lower().replace(" ", "_"))
+    # ----------------------------
+    # PIPELINE COMPLETO
+    # ----------------------------
 
-    # Extrai as linhas
-    dados = []
-    tbody = table.find("tbody")
-    rows = tbody.find_all("tr") if tbody else table.find_all("tr")[1:]
+    def executar(self, analise: str):
+        """
+        login → gerar tarefas → executar tarefas → salvar html
+        """
 
-    for row in rows:
-        cells = row.find_all(["td", "th"])
-        if len(cells) == len(headers):
-            row_data = {}
-            for header, cell in zip(headers, cells):
-                row_data[header] = cell.get_text(strip=True)
-            dados.append(row_data)
+        self.login()
 
-    # Normaliza os dados para tipos numéricos
-    for row in dados:
-        for key, value in row.items():
-            # Tenta converter para número
-            try:
-                row[key] = float(value.replace(".", "").replace(",", "."))
-            except (ValueError, AttributeError):
-                pass
+        tarefas = self.gerar_tarefas(analise)
 
-    return dados
+        resultados = []
+
+        for tarefa in tarefas:
+            html = self.executar_tarefa(tarefa)
+
+            caminho = self.salvar_html(html, tarefa["nome"])
+
+        return html
