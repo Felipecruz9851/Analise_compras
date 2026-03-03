@@ -11,3 +11,4 @@ build/OP-Estoque/qt.conf
 _venv
 /.git
 app/__pycache__
+ui/__pycache__
