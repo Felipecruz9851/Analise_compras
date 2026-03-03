@@ -1,8 +1,10 @@
-fastapi
-uvicorn
-jinja2
+beautifulsoup4==4.14.3
+fastapi==0.128.0
+openpyxl==3.1.5
+pydantic==2.12.5
+pywebview==6.1
+uvicorn==0.40.0
+pandas==3.0.0
+playwright
 requests
-pandas
-pywebview
-python-dotenv
-requests
+
