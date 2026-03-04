@@ -1,75 +1,82 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+<link rel="stylesheet" href="styles.css">
 
 <head>
   <meta charset="UTF-8">
   <title>Resultado da Análise</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: white;
-      padding: 40px;
-    }
 
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-
-    th {
-      background: #3cb371;
-      padding: 10px;
-    }
-
-    td {
-      padding: 8px;
-      border: 1px solid #333;
-    }
-
-    tr:nth-child(even) {
-      background: #1e1e1e;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #3cb371;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
 </head>
 
-<body>
 
-  <h2>Resultado da Análise</h2>
 
-  <div id="tabela-container"></div>
+<body class="full-page">
 
-  <button onclick="voltar()">Voltar</button>
+  <header class="main-header">
+    <div class="header-left">
+      <button onclick="voltar()">Voltar</button>
+      <button onclick="recarregar()">Atualizar</button>
+    </div>
+
+    <div class="header-center">
+      <div class="filtro-global">
+        <label>Busca Global</label>
+        <input type="text" id="filtroGlobal" placeholder="Pesquisar na tabela...">
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="contador">
+        Registros: <span id="totalRegistros">0</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="table-container">
+      <div id="tabela-container"></div>
+    </div>
+  </main>
 
   <script>
-    function montarTabela(dados) {
+    let dadosOriginais = [];
+    let dadosAtuais = [];
 
+    function montarTabela(dados) {
       if (!dados || dados.length === 0) {
         document.getElementById("tabela-container").innerHTML = "Nenhum dado encontrado.";
         return;
       }
 
+      dadosOriginais = dados;
+      dadosAtuais = [...dados];
+
+      renderTabela(dadosAtuais);
+    }
+
+    function renderTabela(dados) {
       let html = "<table><thead><tr>";
 
-      Object.keys(dados[0]).forEach(col => {
-        html += `<th>${col}</th>`;
+      const colunas = Object.keys(dados[0]);
+
+      colunas.forEach(col => {
+        html += `
+      <th>
+        <div class="col-header">
+          <span>${col}</span>
+          <button class="sort-btn" onclick="ordenarColuna('${col}')">↕</button>
+          <input type="text" placeholder="Filtrar..." oninput="filtrarColuna('${col}', this.value)">
+        </div>
+      </th>
+    `;
       });
 
       html += "</tr></thead><tbody>";
 
       dados.forEach(linha => {
         html += "<tr>";
-        Object.values(linha).forEach(valor => {
-          html += `<td>${valor ?? ""}</td>`;
+        colunas.forEach(col => {
+          html += `<td>${linha[col] ?? ""}</td>`;
         });
         html += "</tr>";
       });
@@ -79,12 +86,29 @@
       document.getElementById("tabela-container").innerHTML = html;
     }
 
-    function voltar() {
-      window.location.href = "index.html";
+    function ordenarColuna(coluna) {
+      dadosAtuais.sort((a, b) => {
+        const valA = a[coluna] ?? "";
+        const valB = b[coluna] ?? "";
+        return valA.toString().localeCompare(valB.toString(), 'pt-BR', { numeric: true });
+      });
+
+      renderTabela(dadosAtuais);
+    }
+
+    function filtrarColuna(coluna, valor) {
+      dadosAtuais = dadosOriginais.filter(linha =>
+        (linha[coluna] ?? "").toString().toLowerCase().includes(valor.toLowerCase())
+      );
+
+      renderTabela(dadosAtuais);
     }
 
     window.onload = function () {
       const dados = JSON.parse(localStorage.getItem("resultadoAnalise"));
+
+      console.log("Dados recebidos:", dados);
+
       montarTabela(dados);
     };
   </script>

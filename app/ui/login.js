@@ -45,8 +45,8 @@ async function executar() {
 
         const resultado = await window.pywebview.api.rodar_analise(payload);
 
-        const resultadoElem = document.getElementById("resultado");
-
+        localStorage.setItem("resultadoAnalise", JSON.stringify(resultado));
+        window.location.href = "pagina_resultado.html";
         if (resultado && resultado.length > 0) {
 
             let html = "<table border='1' style='border-collapse:collapse;width:100%'>";

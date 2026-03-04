@@ -20,7 +20,8 @@ def start():
         "Análise de Compras",
         "app/ui/login.html",
         js_api=api,
-        fullscreen=False,
+        maximized=True,
+        resizable=True,
     )
 
-    webview.start()
+    webview.start(debug=True)
