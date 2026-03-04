@@ -475,7 +475,7 @@ body.full-page {
   -webkit-overflow-scrolling: touch;
   background: white;
   border-radius: var(--radius-md);
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 120px);
 
   /* Firefox */
   scrollbar-width: none;
@@ -539,12 +539,12 @@ body.full-page {
   vertical-align: middle;
 }
 
-/* Column header with sort button */
+/* Column header with sort button and filter */
 .col-header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  align-items: stretch;
+  gap: 6px;
 }
 
 .col-header-top {
@@ -552,8 +552,8 @@ body.full-page {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  width: 100%;
 }
+
 
 .sort-btn {
   padding: 2px 6px;

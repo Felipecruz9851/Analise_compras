@@ -67,7 +67,7 @@
 
       const colunas = Object.keys(dados[0]);
 
-      // Primeira linha do cabeçalho - nomes das colunas com botão de ordenação
+
       colunas.forEach(col => {
         const iconOrdenacao = ordenacaoAtual.coluna === col
           ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
@@ -75,32 +75,24 @@
         html += `
           <th>
             <div class="col-header">
-              <span>${col}</span>
-              <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+              <div class="col-header-top">
+                <span>${col}</span>
+                <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+              </div>
+              <input type="text" 
+                     id="filtro_${col}" 
+                     class="filtro-coluna" 
+                     placeholder="Filtrar..." 
+                     value="${filtrosColuna[col] || ''}"
+                     onclick="event.stopPropagation()"
+                     oninput="filtrarColuna('${col}', this.value)"
+                     onchange="filtrarColuna('${col}', this.value)">
             </div>
           </th>
         `;
       });
 
-      html += '</tr><tr>';
-
-      // Segunda linha do cabeçalho - filtros por coluna
-      colunas.forEach(col => {
-        html += `
-          <th>
-            <input type="text" 
-                   id="filtro_${col}" 
-                   class="filtro-coluna" 
-                   placeholder="Filtrar..." 
-                   value="${filtrosColuna[col] || ''}"
-                   oninput="filtrarColuna('${col}', this.value)"
-                   onchange="filtrarColuna('${col}', this.value)">
-          </th>
-        `;
-      });
-
       html += '</tr></thead><tbody>';
-
       dados.forEach(linha => {
         html += "<tr>";
         colunas.forEach(col => {
