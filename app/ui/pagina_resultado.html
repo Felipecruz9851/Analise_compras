@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <title>Resultado da Análise</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="full-page">
@@ -17,9 +18,6 @@
       <button onclick="alternarCorrespondenciaExata()" id="btnCorrespondenciaExata">Correspondência Exata</button>
     </div>
 
-    <div class="header-center">
-    </div>
-
     <div class="header-right">
       <div class="contador">
         Registros: <span id="totalRegistros">0</span>
@@ -30,10 +28,8 @@
   <main class="main-content">
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle" id="tabela-principal">
-        <thead id="tabela-cabecalho">
-        </thead>
-        <tbody id="tabela-corpo">
-        </tbody>
+        <thead id="tabela-cabecalho"></thead>
+        <tbody id="tabela-corpo"></tbody>
       </table>
     </div>
   </main>
@@ -46,14 +42,23 @@
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
     let colunasTabela = [];
+    let colunasMes = [];
 
-    function voltar() {
-      history.back();
+    function ehColunaMes(col) {
+      return /^\d{4}-\d{2}$/.test(col);
     }
 
-    function recarregar() {
-      location.reload();
+    function parseNumeroBR(valor) {
+      if (!valor) return 0;
+      return parseFloat(
+        valor.toString()
+          .replace(/\./g, '')
+          .replace(',', '.')
+      ) || 0;
     }
+
+    function voltar() { history.back(); }
+    function recarregar() { location.reload(); }
 
     function montarTabela(dados) {
       if (!dados || dados.length === 0) {
@@ -63,14 +68,17 @@
 
       dadosOriginais = dados;
       dadosAtuais = [...dados];
+
       colunasTabela = Object.keys(dados[0]);
+      colunasMes = colunasTabela.filter(ehColunaMes);
 
-      // Renderizar cabeçalho apenas uma vez
+      // Remove caso já exista
+      colunasTabela = colunasTabela.filter(c => c !== "Gráfico");
+
+      // Insere na terceira posição (índice 2)
+      colunasTabela.splice(2, 0, "Gráfico");
       renderizarCabecalho();
-
-      // Renderizar corpo da tabela
       renderizarCorpo(dadosAtuais);
-
       atualizarContador(dadosAtuais.length);
     }
 
@@ -78,27 +86,32 @@
       let html = '<tr>';
 
       colunasTabela.forEach(col => {
+        if (col === "Gráfico") {
+          html += `<th>Gráfico</th>`;
+          return;
+        }
+
         const iconOrdenacao = ordenacaoAtual.coluna === col
           ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
           : '↕';
+
         html += `
-          <th>
-            <div class="col-header">
-              <div class="col-header-top">
-                <span>${col}</span>
-                <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
-              </div>
-              <input type="text" 
-                     id="filtro_${col}" 
-                     class="filtro-coluna" 
-                     placeholder="Filtrar..." 
-                     value="${filtrosColuna[col] || ''}"
-                     onclick="event.stopPropagation()"
-                     oninput="filtrarColuna('${col}', this.value)"
-                     onchange="filtrarColuna('${col}', this.value)">
-            </div>
-          </th>
-        `;
+      <th>
+        <div class="col-header">
+          <div class="col-header-top">
+            <span>${col}</span>
+            <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+          </div>
+          <input type="text"
+                 id="filtro_${col}"
+                 class="filtro-coluna"
+                 placeholder="Filtrar..."
+                 value="${filtrosColuna[col] || ''}"
+                 onclick="event.stopPropagation()"
+                 oninput="filtrarColuna('${col}', this.value)">
+        </div>
+      </th>
+    `;
       });
 
       html += '</tr>';
@@ -107,24 +120,94 @@
 
     function renderizarCorpo(dados) {
       if (!dados || dados.length === 0) {
-        document.getElementById("tabela-corpo").innerHTML = "<tr><td colspan='" + colunasTabela.length + "'>Nenhum registro encontrado.</td></tr>";
+        document.getElementById("tabela-corpo").innerHTML =
+          "<tr><td colspan='" + colunasTabela.length + "'>Nenhum registro encontrado.</td></tr>";
         return;
       }
 
       let html = '';
-      dados.forEach(linha => {
+      let graficos = [];
+
+      dados.forEach((linha, index) => {
         html += "<tr>";
+
         colunasTabela.forEach(col => {
-          html += `<td>${linha[col] ?? ""}</td>`;
+
+          if (col === "Gráfico") {
+
+            const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
+            const canvasId = "graf_" + index + "_" + Math.random().toString(36).substring(2, 7);
+
+            html += `<td style="min-width:180px"><canvas id="${canvasId}" height="50"></canvas></td>`;
+
+            graficos.push({
+              id: canvasId,
+              valores: valores
+            });
+
+          } else {
+            html += `<td>${linha[col] ?? ""}</td>`;
+          }
+
         });
+
         html += "</tr>";
       });
 
       document.getElementById("tabela-corpo").innerHTML = html;
+
+      graficos.forEach(g => criarSparkline(g.id, g.valores));
+    }
+
+    function criarSparkline(canvasId, valores) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: colunasMes, // usa os meses reais
+          datasets: [{
+            data: valores,
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: function (context) {
+                  const valor = context.raw || 0;
+                  return "Consumo: " + valor.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  });
+                }
+              }
+            }
+          },
+          scales: {
+            x: { display: false },
+            y: { display: false }
+          }
+        }
+      });
     }
 
     function ordenarColuna(coluna) {
-      // Alterna direção se for a mesma coluna, ou começa ascendente
+      if (coluna === "Gráfico") return;
+
       if (ordenacaoAtual.coluna === coluna) {
         ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
       } else {
@@ -136,9 +219,8 @@
         const valA = a[coluna] ?? "";
         const valB = b[coluna] ?? "";
 
-        // Tenta converter para número se possível
-        const numA = parseFloat(valA.toString().replace(/[^\d,-]/g, '').replace(',', '.'));
-        const numB = parseFloat(valB.toString().replace(/[^\d,-]/g, '').replace(',', '.'));
+        const numA = parseNumeroBR(valA);
+        const numB = parseNumeroBR(valB);
 
         let resultado;
         if (!isNaN(numA) && !isNaN(numB)) {
@@ -150,46 +232,13 @@
         return ordenacaoAtual.direcao === 'asc' ? resultado : -resultado;
       });
 
-      // Atualiza ícone de ordenação no cabeçalho
       renderizarCabecalho();
       renderizarCorpo(dadosAtuais);
     }
 
     function filtrarColuna(coluna, valor) {
       filtrosColuna[coluna] = valor;
-      aplicarFiltros('filtro_' + coluna);
-    }
 
-    function atualizarContador(total) {
-      document.getElementById('totalRegistros').textContent = total;
-    }
-
-    function alternarCorrespondenciaExata() {
-      correspondenciaExata = !correspondenciaExata;
-      const btn = document.getElementById('btnCorrespondenciaExata');
-      if (correspondenciaExata) {
-        btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e4606d 100%)';
-      } else {
-        btn.style.background = '';
-      }
-      // Reaplica todos os filtros existentes
-      aplicarFiltros();
-    }
-
-    function inverterFiltros() {
-      filtrosInvertidos = !filtrosInvertidos;
-      const btn = document.getElementById('btnInverterFiltros');
-      if (filtrosInvertidos) {
-        btn.style.background = 'linear-gradient(135deg, #fd7e14 0%, #ffb366 100%)';
-      } else {
-        btn.style.background = '';
-      }
-      // Reaplica todos os filtros
-      aplicarFiltros();
-    }
-
-    function aplicarFiltros(elementoFoco = null) {
-      // Aplica filtros de coluna
       dadosAtuais = dadosOriginais.filter(linha => {
         let corresponde = true;
 
@@ -197,13 +246,10 @@
           if (filtrosColuna[col]) {
             const cellValue = (linha[col] ?? "").toString().toLowerCase();
             const filtroValor = filtrosColuna[col].toLowerCase();
-            let match;
 
-            if (correspondenciaExata) {
-              match = cellValue === filtroValor;
-            } else {
-              match = cellValue.includes(filtroValor);
-            }
+            const match = correspondenciaExata
+              ? cellValue === filtroValor
+              : cellValue.includes(filtroValor);
 
             if (!match) {
               corresponde = false;
@@ -212,34 +258,36 @@
           }
         }
 
-        if (filtrosInvertidos) {
-          return !corresponde;
-        }
-        return corresponde;
+        return filtrosInvertidos ? !corresponde : corresponde;
       });
 
       renderizarCorpo(dadosAtuais);
       atualizarContador(dadosAtuais.length);
-
-      // Restaurar foco no campo de filtro, se houver
-      if (elementoFoco) {
-        const input = document.getElementById(elementoFoco);
-        if (input) {
-          input.focus();
-          // Move cursor to end
-          const len = input.value.length;
-          input.setSelectionRange(len, len);
-        }
-      }
     }
 
-    // Função para carregar dados de exemplo para testes de layout
+    function atualizarContador(total) {
+      document.getElementById('totalRegistros').textContent = total;
+    }
+
+    function alternarCorrespondenciaExata() {
+      correspondenciaExata = !correspondenciaExata;
+      aplicarFiltros();
+    }
+
+    function inverterFiltros() {
+      filtrosInvertidos = !filtrosInvertidos;
+      aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+      filtrarColuna("", "");
+    }
+
     async function carregarExemplo() {
       try {
         const response = await fetch('exemplo.json');
         const data = await response.json();
         if (data.dados && data.dados.length > 0) {
-          console.log("Carregando dados de exemplo para testes...");
           return data.dados;
         }
       } catch (e) {
@@ -249,15 +297,14 @@
     }
 
     async function init() {
-      // Primeiro verifica se tem dados no localStorage
       let dados = null;
+
       const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
 
       if (dadosLocalStorage) {
         dados = JSON.parse(dadosLocalStorage);
       }
 
-      // Se não tem dados no localStorage, carrega o exemplo
       if (!dados || dados.length === 0) {
         dados = await carregarExemplo();
       }
@@ -266,8 +313,8 @@
     }
 
     window.onload = init;
-  </script>
 
+  </script>
 </body>
 
 </html>
