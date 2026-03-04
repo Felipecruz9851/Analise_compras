@@ -1,0 +1,72 @@
+{
+  "exemplo": true,
+  "descricao": "Arquivo de exemplo para testes de layout e configuração da tabela",
+  "dados": [
+    {
+      "Ordem": "OP001",
+      "Item": "PROD001",
+      "Descrição": "Produto Exemplo A",
+      "Pedido": "PED2023001",
+      "Representante": "João Silva",
+      "Saldo OP": 100,
+      "Programar": 50,
+      "Disp. P/ Produzir": 80,
+      "Data Abertura": "2023-10-01",
+      "Data Entrega": "2023-10-15",
+      "Completa": "Não"
+    },
+    {
+      "Ordem": "OP002",
+      "Item": "PROD002",
+      "Descrição": "Produto Exemplo B",
+      "Pedido": "PED2023002",
+      "Representante": "Maria Santos",
+      "Saldo OP": 200,
+      "Programar": 150,
+      "Disp. P/ Produzir": 180,
+      "Data Abertura": "2023-10-02",
+      "Data Entrega": "2023-10-16",
+      "Completa": "Sim"
+    },
+    {
+      "Ordem": "OP003",
+      "Item": "PROD003",
+      "Descrição": "Produto Exemplo C",
+      "Pedido": "PED2023003",
+      "Representante": "Pedro Oliveira",
+      "Saldo OP": 50,
+      "Programar": 25,
+      "Disp. P/ Produzir": 45,
+      "Data Abertura": "2023-10-03",
+      "Data Entrega": "2023-10-17",
+      "Completa": "Não"
+    },
+    {
+      "Ordem": "OP004",
+      "Item": "PROD004",
+      "Descrição": "Produto Exemplo D",
+      "Pedido": "PED2023004",
+      "Representante": "Ana Costa",
+      "Saldo OP": 300,
+      "Programar": 280,
+      "Disp. P/ Produzir": 290,
+      "Data Abertura": "2023-10-04",
+      "Data Entrega": "2023-10-18",
+      "Completa": "Sim"
+    },
+    {
+      "Ordem": "OP005",
+      "Item": "PROD005",
+      "Descrição": "Produto Exemplo E",
+      "Pedido": "PED2023005",
+      "Representante": "Carlos Souza",
+      "Saldo OP": 75,
+      "Programar": 60,
+      "Disp. P/ Produzir": 70,
+      "Data Abertura": "2023-10-05",
+      "Data Entrega": "2023-10-19",
+      "Completa": "Não"
+    }
+  ]
+}
+

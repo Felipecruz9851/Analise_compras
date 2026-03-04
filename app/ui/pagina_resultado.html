@@ -225,13 +225,40 @@
       document.getElementById('totalRegistros').textContent = total;
     }
 
-    window.onload = function () {
-      const dados = JSON.parse(localStorage.getItem("resultadoAnalise"));
+    // Função para carregar dados de exemplo para testes de layout
+    async function carregarExemplo() {
+      try {
+        const response = await fetch('exemplo.json');
+        const data = await response.json();
+        if (data.dados && data.dados.length > 0) {
+          console.log("Carregando dados de exemplo para testes...");
+          return data.dados;
+        }
+      } catch (e) {
+        console.log("Arquivo exemplo.json não encontrado");
+      }
+      return null;
+    }
+
+    async function init() {
+      // Primeiro verifica se tem dados no localStorage
+      let dados = null;
+      const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
+
+      if (dadosLocalStorage) {
+        dados = JSON.parse(dadosLocalStorage);
+      }
+
+      // Se não tem dados no localStorage, carrega o exemplo
+      if (!dados || dados.length === 0) {
+        dados = await carregarExemplo();
+      }
 
       console.log("Dados recebidos:", dados);
-
       montarTabela(dados);
-    };
+    }
+
+    window.onload = init;
   </script>
 
 </body>
