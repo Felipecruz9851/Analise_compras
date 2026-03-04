@@ -29,7 +29,12 @@
 
   <main class="main-content">
     <div class="table-responsive">
-      <div id="tabela-container"></div>
+      <table class="table table-bordered table-hover align-middle" id="tabela-principal">
+        <thead id="tabela-cabecalho">
+        </thead>
+        <tbody id="tabela-corpo">
+        </tbody>
+      </table>
     </div>
   </main>
 
@@ -40,6 +45,7 @@
     let filtrosColuna = {};
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
+    let colunasTabela = [];
 
     function voltar() {
       history.back();
@@ -51,29 +57,27 @@
 
     function montarTabela(dados) {
       if (!dados || dados.length === 0) {
-        document.getElementById("tabela-container").innerHTML = "Nenhum dado encontrado.";
+        document.getElementById("tabela-corpo").innerHTML = "<tr><td>Nenhum dado encontrado.</td></tr>";
         return;
       }
 
       dadosOriginais = dados;
       dadosAtuais = [...dados];
+      colunasTabela = Object.keys(dados[0]);
 
-      renderTabela(dadosAtuais);
+      // Renderizar cabeçalho apenas uma vez
+      renderizarCabecalho();
+
+      // Renderizar corpo da tabela
+      renderizarCorpo(dadosAtuais);
+
       atualizarContador(dadosAtuais.length);
     }
 
-    function renderTabela(dados) {
-      if (!dados || dados.length === 0) {
-        document.getElementById("tabela-container").innerHTML = "Nenhum registro encontrado.";
-        return;
-      }
+    function renderizarCabecalho() {
+      let html = '<tr>';
 
-      let html = '<table class="table table-bordered table-hover align-middle"><thead><tr>';
-
-      const colunas = Object.keys(dados[0]);
-
-
-      colunas.forEach(col => {
+      colunasTabela.forEach(col => {
         const iconOrdenacao = ordenacaoAtual.coluna === col
           ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
           : '↕';
@@ -97,18 +101,26 @@
         `;
       });
 
-      html += '</tr></thead><tbody>';
+      html += '</tr>';
+      document.getElementById("tabela-cabecalho").innerHTML = html;
+    }
+
+    function renderizarCorpo(dados) {
+      if (!dados || dados.length === 0) {
+        document.getElementById("tabela-corpo").innerHTML = "<tr><td colspan='" + colunasTabela.length + "'>Nenhum registro encontrado.</td></tr>";
+        return;
+      }
+
+      let html = '';
       dados.forEach(linha => {
         html += "<tr>";
-        colunas.forEach(col => {
+        colunasTabela.forEach(col => {
           html += `<td>${linha[col] ?? ""}</td>`;
         });
         html += "</tr>";
       });
 
-      html += "</tbody></table>";
-
-      document.getElementById("tabela-container").innerHTML = html;
+      document.getElementById("tabela-corpo").innerHTML = html;
     }
 
     function ordenarColuna(coluna) {
@@ -138,12 +150,14 @@
         return ordenacaoAtual.direcao === 'asc' ? resultado : -resultado;
       });
 
-      renderTabela(dadosAtuais);
+      // Atualiza ícone de ordenação no cabeçalho
+      renderizarCabecalho();
+      renderizarCorpo(dadosAtuais);
     }
 
     function filtrarColuna(coluna, valor) {
       filtrosColuna[coluna] = valor;
-      aplicarFiltros();
+      aplicarFiltros('filtro_' + coluna);
     }
 
     function atualizarContador(total) {
@@ -174,7 +188,7 @@
       aplicarFiltros();
     }
 
-    function aplicarFiltros() {
+    function aplicarFiltros(elementoFoco = null) {
       // Aplica filtros de coluna
       dadosAtuais = dadosOriginais.filter(linha => {
         let corresponde = true;
@@ -204,8 +218,19 @@
         return corresponde;
       });
 
-      renderTabela(dadosAtuais);
+      renderizarCorpo(dadosAtuais);
       atualizarContador(dadosAtuais.length);
+
+      // Restaurar foco no campo de filtro, se houver
+      if (elementoFoco) {
+        const input = document.getElementById(elementoFoco);
+        if (input) {
+          input.focus();
+          // Move cursor to end
+          const len = input.value.length;
+          input.setSelectionRange(len, len);
+        }
+      }
     }
 
     // Função para carregar dados de exemplo para testes de layout
