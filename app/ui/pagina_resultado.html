@@ -6,6 +6,7 @@
   <title>Resultado da Análise</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
 
 <body class="full-page">
@@ -62,21 +63,28 @@
 
     function montarTabela(dados) {
       if (!dados || dados.length === 0) {
-        document.getElementById("tabela-corpo").innerHTML = "<tr><td>Nenhum dado encontrado.</td></tr>";
+        document.getElementById("tabela-corpo").innerHTML =
+          "<tr><td>Nenhum dado encontrado.</td></tr>";
         return;
       }
 
       dadosOriginais = dados;
       dadosAtuais = [...dados];
 
-      colunasTabela = Object.keys(dados[0]);
-      colunasMes = colunasTabela.filter(ehColunaMes);
+      const todasColunas = Object.keys(dados[0]);
 
-      // Remove caso já exista
+      // Detecta colunas de mês
+      colunasMes = todasColunas.filter(ehColunaMes);
+
+      // Mantém apenas colunas NÃO mês
+      colunasTabela = todasColunas.filter(c => !ehColunaMes(c));
+
+      // Garante que "Gráfico" não exista duplicado
       colunasTabela = colunasTabela.filter(c => c !== "Gráfico");
 
-      // Insere na terceira posição (índice 2)
+      // Insere "Gráfico" como terceira coluna
       colunasTabela.splice(2, 0, "Gráfico");
+
       renderizarCabecalho();
       renderizarCorpo(dadosAtuais);
       atualizarContador(dadosAtuais.length);
@@ -118,6 +126,20 @@
       document.getElementById("tabela-cabecalho").innerHTML = html;
     }
 
+    function renderizarGraficosEmLotes(graficos, indice = 0) {
+      const lote = 5;
+
+      for (let i = indice; i < indice + lote && i < graficos.length; i++) {
+        criarSparkline(graficos[i].id, graficos[i].valores);
+      }
+
+      if (indice + lote < graficos.length) {
+        requestAnimationFrame(() => {
+          renderizarGraficosEmLotes(graficos, indice + lote);
+        });
+      }
+    }
+
     function renderizarCorpo(dados) {
       if (!dados || dados.length === 0) {
         document.getElementById("tabela-corpo").innerHTML =
@@ -138,7 +160,7 @@
             const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
             const canvasId = "graf_" + index + "_" + Math.random().toString(36).substring(2, 7);
 
-            html += `<td style="min-width:180px"><canvas id="${canvasId}" height="50"></canvas></td>`;
+            html += `<td style="min-width:180px"><canvas id="${canvasId}" height="160"></canvas></td>`;
 
             graficos.push({
               id: canvasId,
@@ -156,7 +178,7 @@
 
       document.getElementById("tabela-corpo").innerHTML = html;
 
-      graficos.forEach(g => criarSparkline(g.id, g.valores));
+      renderizarGraficosEmLotes(graficos);
     }
 
     function criarSparkline(canvasId, valores) {
@@ -166,42 +188,44 @@
       new Chart(ctx, {
         type: 'line',
         data: {
-          labels: colunasMes, // usa os meses reais
+          labels: colunasMes,
           datasets: [{
             data: valores,
             borderWidth: 2,
-            pointRadius: 0,
-            pointHoverRadius: 4,
+            pointRadius: 3,
             tension: 0.3
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
           plugins: {
             legend: { display: false },
-            tooltip: {
-              enabled: true,
-              callbacks: {
-                label: function (context) {
-                  const valor = context.raw || 0;
-                  return "Consumo: " + valor.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  });
-                }
+            tooltip: { enabled: false }, // desativa tooltip
+            datalabels: {
+              align: 'bottom',
+              anchor: 'end',
+              formatter: function (value) {
+                return value.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 2
+                });
+              },
+              font: {
+                size: 14,
+                weight: 'bold'
               }
             }
           },
           scales: {
-            x: { display: false },
-            y: { display: false }
+            x: { display: true },
+            y: {
+              display: false,
+              grace: '15%'   // adiciona espaço extra acima
+            }
           }
-        }
+        },
+        plugins: [ChartDataLabels]
       });
     }
 

@@ -1,6 +1,9 @@
 /* ============================= */
 /* DESIGN TOKENS */
 /* ============================= */
+* {
+  user-select: text !important;
+}
 
 :root {
   /* Cores base */

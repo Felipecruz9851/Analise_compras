@@ -1,5 +1,6 @@
 from app.services.extractor import Extractor
 from app.services.processor import extract_table
+from app.services.purchase_logic import calcular
 
 
 def executar_pipeline(username, password, analise):
@@ -13,6 +14,7 @@ def executar_pipeline(username, password, analise):
     df = extract_table(html_resultados)
     print("Tabela extraída com sucesso!")
     print(df.head())
+    df = calcular(analise, df)
     # depois você processa HTML aqui
     # transforma em dataframe
     # aplica lógica de compra
