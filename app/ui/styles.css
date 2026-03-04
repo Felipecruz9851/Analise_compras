@@ -277,6 +277,9 @@ body.full-page {
   display: block;
   padding: 0;
   background: var(--color-bg-main);
+  height: 100%;
+  overflow: hidden;
+
 }
 
 .page-header {
@@ -414,7 +417,7 @@ body.full-page {
 
 .main-content {
   margin-top: 90px;
-  padding: 20px 30px;
+  padding: 10px
 }
 
 .table-container {
@@ -468,7 +471,22 @@ body.full-page {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: white;
+  border-radius: var(--radius-md);
+  max-height: calc(100vh - 150px);
+
+  /* Firefox */
+  scrollbar-width: none;
+
+  /* IE/Edge antigo */
+  -ms-overflow-style: none;
+}
+
+/* Chrome, Edge Chromium, Safari */
+.table-responsive::-webkit-scrollbar {
+  display: none;
 }
 
 .table {
@@ -500,6 +518,16 @@ body.full-page {
   font-weight: 600;
   text-align: left;
   padding: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table thead tr:nth-child(2) th {
+  position: sticky;
+  top: 40px;
+  z-index: 9;
+  background-color: #fff;
 }
 
 .table thead tr:first-child th input {
