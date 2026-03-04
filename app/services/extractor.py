@@ -139,8 +139,10 @@ class Extractor:
         """
 
         self.login()
+        print("Login realizado com sucesso!")
 
         tarefas = self.gerar_tarefas(analise)
+        print("Tarefas geradas com sucesso!")
 
         resultados = []
 
@@ -148,5 +150,6 @@ class Extractor:
             html = self.executar_tarefa(tarefa)
 
             caminho = self.salvar_html(html, tarefa["nome"])
+        print("HTML salvo com sucesso!")
 
         return html

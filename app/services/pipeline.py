@@ -5,9 +5,13 @@ from app.services.processor import extract_table
 def executar_pipeline(username, password, analise):
 
     extractor = Extractor(username, password)
+    print("Extractor criado com sucesso!")
 
     html_resultados = extractor.executar(analise)
+    print("HTML gerado com sucesso!")
+
     df = extract_table(html_resultados)
+    print("Tabela extraída com sucesso!")
     print(df.head())
     # depois você processa HTML aqui
     # transforma em dataframe

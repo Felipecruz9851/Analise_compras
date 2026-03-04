@@ -1,5 +1,5 @@
 .venv/
-__pycache__/
+/__pycache__/
 *.pyc
 *.log
 .env
@@ -12,3 +12,4 @@ _venv
 /.git
 app/__pycache__
 ui/__pycache__
+saida_html
