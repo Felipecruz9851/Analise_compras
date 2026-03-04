@@ -103,8 +103,10 @@
           ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
           : '↕';
 
+        const classeDestaque = col === 'decis_compras' ? 'col-destaque-verde' : '';
+
         html += `
-      <th>
+      <th class="${classeDestaque}">
         <div class="col-header">
           <div class="col-header-top">
             <span>${col}</span>
@@ -168,7 +170,8 @@
             });
 
           } else {
-            html += `<td>${linha[col] ?? ""}</td>`;
+            const classeDestaque = col === 'decis_compras' ? 'col-destaque-verde' : '';
+            html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
           }
 
         });

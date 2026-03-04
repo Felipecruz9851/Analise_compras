@@ -601,3 +601,20 @@ body.full-page {
   border-color: #86b7fe;
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
 }
+
+/* Coluna com destaque verde */
+.col-destaque-verde {
+  background-color: #d4edda !important;
+  color: #155724;
+}
+
+.col-destaque-verde .col-header-top span {
+  font-weight: bold;
+}
+
+/* Células da coluna com destaque verde */
+table td.col-destaque-verde,
+table th.col-destaque-verde {
+  background-color: #d4edda !important;
+  color: #155724;
+}
