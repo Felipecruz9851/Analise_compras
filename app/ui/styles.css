@@ -428,6 +428,8 @@ body.full-page {
 .table-container table {
   width: 100%;
   border-collapse: collapse;
+  border: 12px solid var(--color-border);
+  background-color: whitesmoke;
 }
 
 .table-container thead {
@@ -441,13 +443,14 @@ body.full-page {
   font-weight: 600;
   padding: 10px;
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+
 }
 
 .table-container td {
   padding: 8px 10px;
   border-bottom: 1px solid #eee;
   white-space: nowrap;
+  background-color: whitesmoke;
 }
 
 .table-container tbody tr:hover {
@@ -508,10 +511,11 @@ body.full-page {
   vertical-align: middle;
 }
 
-/* Column header with sort button and filter */
+/* Column header with sort button */
 .col-header {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
 }
 
@@ -520,6 +524,7 @@ body.full-page {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
 }
 
 .sort-btn {
@@ -530,6 +535,7 @@ body.full-page {
   border-radius: 3px;
   background: #fff;
   color: #333;
+  width: 36px;
 }
 
 .sort-btn:hover {

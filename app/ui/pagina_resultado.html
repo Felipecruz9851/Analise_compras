@@ -74,7 +74,7 @@
           : '↕';
         html += `
           <th>
-            <div class="col-header-top">
+            <div class="col-header">
               <span>${col}</span>
               <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
             </div>
@@ -93,7 +93,8 @@
                    class="filtro-coluna" 
                    placeholder="Filtrar..." 
                    value="${filtrosColuna[col] || ''}"
-                   oninput="filtrarColuna('${col}', this.value)">
+                   oninput="filtrarColuna('${col}', this.value)"
+                   onchange="filtrarColuna('${col}', this.value)">
           </th>
         `;
       });
@@ -145,7 +146,24 @@
 
     function filtrarColuna(coluna, valor) {
       filtrosColuna[coluna] = valor;
-      aplicarFiltros();
+
+      // Filtra diretamente dos dados originais
+      dadosAtuais = dadosOriginais.filter(linha =>
+        (linha[coluna] ?? "").toString().toLowerCase().includes(valor.toLowerCase())
+      );
+
+      renderTabela(dadosAtuais);
+      atualizarContador(dadosAtuais.length);
+
+      // Restaura o foco no input
+      setTimeout(() => {
+        const inputEl = document.getElementById(`filtro_${coluna}`);
+        if (inputEl) {
+          inputEl.focus();
+          const len = inputEl.value.length;
+          inputEl.setSelectionRange(len, len);
+        }
+      }, 0);
     }
 
     function filtrarGlobal(valor) {
