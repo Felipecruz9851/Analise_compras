@@ -18,5 +18,6 @@ def executar_pipeline(username, password, analise):
     # depois você processa HTML aqui
     # transforma em dataframe
     # aplica lógica de compra
+    df = df.fillna("")
 
     return df.to_dict(orient="records")

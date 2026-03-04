@@ -27,10 +27,17 @@ def extract_table(html: str) -> pd.DataFrame:
         if row.find_all("td")
     ]
     df = pd.DataFrame(data, columns=header)
+    df.columns = (
+        df.columns.astype(str)
+        .str.strip()
+        .str.lower()
+        .str.replace(" ", "_")
+        .str.replace("\xa0", "", regex=False)
+    )
+    print(df.head())
+
     df = df.drop(columns=[data_ref])
-    print("TIPO:", type(dict_fam))
-    print("EXEMPLO:", list(dict_fam.items())[:3])
-    df["Família"] = df["Item"].map(dict_fam)
-    df = df.fillna("")
+
+    df["família"] = df["item"].map(dict_fam)
 
     return df
