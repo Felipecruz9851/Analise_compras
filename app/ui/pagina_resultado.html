@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<link rel="stylesheet" href="styles.css">
 
 <head>
   <meta charset="UTF-8">
   <title>Resultado da Análise</title>
-
+  <link rel="stylesheet" href="styles.css">
 </head>
-
-
 
 <body class="full-page">
 
@@ -21,7 +18,7 @@
     <div class="header-center">
       <div class="filtro-global">
         <label>Busca Global</label>
-        <input type="text" id="filtroGlobal" placeholder="Pesquisar na tabela...">
+        <input type="text" id="filtroGlobal" placeholder="Pesquisar na tabela..." oninput="filtrarGlobal(this.value)">
       </div>
     </div>
 
@@ -33,7 +30,7 @@
   </header>
 
   <main class="main-content">
-    <div class="table-container">
+    <div class="table-responsive">
       <div id="tabela-container"></div>
     </div>
   </main>
@@ -41,6 +38,16 @@
   <script>
     let dadosOriginais = [];
     let dadosAtuais = [];
+    let ordenacaoAtual = { coluna: null, direcao: 'asc' };
+    let filtrosColuna = {};
+
+    function voltar() {
+      history.back();
+    }
+
+    function recarregar() {
+      location.reload();
+    }
 
     function montarTabela(dados) {
       if (!dados || dados.length === 0) {
@@ -52,26 +59,46 @@
       dadosAtuais = [...dados];
 
       renderTabela(dadosAtuais);
+      atualizarContador(dadosAtuais.length);
     }
 
     function renderTabela(dados) {
-      let html = "<table><thead><tr>";
+      let html = '<table class="table table-bordered table-hover align-middle"><thead><tr>';
 
       const colunas = Object.keys(dados[0]);
 
+      // Primeira linha do cabeçalho - nomes das colunas com botão de ordenação
       colunas.forEach(col => {
+        const iconOrdenacao = ordenacaoAtual.coluna === col
+          ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
+          : '↕';
         html += `
-      <th>
-        <div class="col-header">
-          <span>${col}</span>
-          <button class="sort-btn" onclick="ordenarColuna('${col}')">↕</button>
-          <input type="text" placeholder="Filtrar..." oninput="filtrarColuna('${col}', this.value)">
-        </div>
-      </th>
-    `;
+          <th>
+            <div class="col-header-top">
+              <span>${col}</span>
+              <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+            </div>
+          </th>
+        `;
       });
 
-      html += "</tr></thead><tbody>";
+      html += '</tr><tr>';
+
+      // Segunda linha do cabeçalho - filtros por coluna
+      colunas.forEach(col => {
+        html += `
+          <th>
+            <input type="text" 
+                   id="filtro_${col}" 
+                   class="filtro-coluna" 
+                   placeholder="Filtrar..." 
+                   value="${filtrosColuna[col] || ''}"
+                   oninput="filtrarColuna('${col}', this.value)">
+          </th>
+        `;
+      });
+
+      html += '</tr></thead><tbody>';
 
       dados.forEach(linha => {
         html += "<tr>";
@@ -87,21 +114,97 @@
     }
 
     function ordenarColuna(coluna) {
+      // Alterna direção se for a mesma coluna, ou começa ascendente
+      if (ordenacaoAtual.coluna === coluna) {
+        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+      } else {
+        ordenacaoAtual.coluna = coluna;
+        ordenacaoAtual.direcao = 'asc';
+      }
+
       dadosAtuais.sort((a, b) => {
         const valA = a[coluna] ?? "";
         const valB = b[coluna] ?? "";
-        return valA.toString().localeCompare(valB.toString(), 'pt-BR', { numeric: true });
+
+        // Tenta converter para número se possível
+        const numA = parseFloat(valA.toString().replace(/[^\d,-]/g, '').replace(',', '.'));
+        const numB = parseFloat(valB.toString().replace(/[^\d,-]/g, '').replace(',', '.'));
+
+        let resultado;
+        if (!isNaN(numA) && !isNaN(numB)) {
+          resultado = numA - numB;
+        } else {
+          resultado = valA.toString().localeCompare(valB.toString(), 'pt-BR', { numeric: true });
+        }
+
+        return ordenacaoAtual.direcao === 'asc' ? resultado : -resultado;
       });
 
       renderTabela(dadosAtuais);
     }
 
     function filtrarColuna(coluna, valor) {
-      dadosAtuais = dadosOriginais.filter(linha =>
-        (linha[coluna] ?? "").toString().toLowerCase().includes(valor.toLowerCase())
-      );
+      filtrosColuna[coluna] = valor;
+      aplicarFiltros();
+    }
+
+    function filtrarGlobal(valor) {
+      if (!valor) {
+        // Se filtro global vazio, aplica apenas filtros de coluna
+        aplicarFiltros();
+        return;
+      }
+
+      const valorLower = valor.toLowerCase();
+
+      dadosAtuais = dadosOriginais.filter(linha => {
+        // Primeiro aplica filtros de coluna
+        for (const col in filtrosColuna) {
+          if (filtrosColuna[col]) {
+            const cellValue = (linha[col] ?? "").toString().toLowerCase();
+            if (!cellValue.includes(filtrosColuna[col].toLowerCase())) {
+              return false;
+            }
+          }
+        }
+
+        // Depois aplica filtro global em qualquer coluna
+        return Object.values(linha).some(val =>
+          (val ?? "").toString().toLowerCase().includes(valorLower)
+        );
+      });
 
       renderTabela(dadosAtuais);
+      atualizarContador(dadosAtuais.length);
+    }
+
+    function aplicarFiltros() {
+      // Aplica filtros de coluna
+      dadosAtuais = dadosOriginais.filter(linha => {
+        for (const col in filtrosColuna) {
+          if (filtrosColuna[col]) {
+            const cellValue = (linha[col] ?? "").toString().toLowerCase();
+            if (!cellValue.includes(filtrosColuna[col].toLowerCase())) {
+              return false;
+            }
+          }
+        }
+        return true;
+      });
+
+      // Aplica filtro global se existir
+      const filtroGlobal = document.getElementById('filtroGlobal');
+      if (filtroGlobal && filtroGlobal.value) {
+        filtrarGlobal(filtroGlobal.value);
+        return;
+      }
+
+      renderTabela(dadosAtuais);
+      atualizarContador(dadosAtuais.length);
+    }
+
+    function atualizarContador(total) {
+      document.getElementById('totalRegistros').textContent = total;
     }
 
     window.onload = function () {

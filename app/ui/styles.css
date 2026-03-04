@@ -457,3 +457,97 @@ body.full-page {
 .contador {
   font-weight: 600;
 }
+
+/* ============================= */
+/* TABLE STYLES (Bootstrap-like) */
+/* ============================= */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.075);
+}
+
+.align-middle th,
+.align-middle td {
+  vertical-align: middle;
+}
+
+.table thead tr:first-child th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px;
+}
+
+.table thead tr:first-child th input {
+  margin-top: 4px;
+}
+
+.table td {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+/* Column header with sort button and filter */
+.col-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.col-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sort-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  color: #333;
+}
+
+.sort-btn:hover {
+  background: #e9ecef;
+}
+
+/* Filter column input styles */
+.filtro-coluna {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.filtro-coluna:focus {
+  outline: none;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
