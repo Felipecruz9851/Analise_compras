@@ -13,13 +13,11 @@
     <div class="header-left">
       <button onclick="voltar()">Voltar</button>
       <button onclick="recarregar()">Atualizar</button>
+      <button onclick="inverterFiltros()" id="btnInverterFiltros">Inverter Filtros</button>
+      <button onclick="alternarCorrespondenciaExata()" id="btnCorrespondenciaExata">Correspondência Exata</button>
     </div>
 
     <div class="header-center">
-      <div class="filtro-global">
-        <label>Busca Global</label>
-        <input type="text" id="filtroGlobal" placeholder="Pesquisar na tabela..." oninput="filtrarGlobal(this.value)">
-      </div>
     </div>
 
     <div class="header-right">
@@ -40,6 +38,8 @@
     let dadosAtuais = [];
     let ordenacaoAtual = { coluna: null, direcao: 'asc' };
     let filtrosColuna = {};
+    let correspondenciaExata = false;
+    let filtrosInvertidos = false;
 
     function voltar() {
       history.back();
@@ -63,6 +63,11 @@
     }
 
     function renderTabela(dados) {
+      if (!dados || dados.length === 0) {
+        document.getElementById("tabela-container").innerHTML = "Nenhum registro encontrado.";
+        return;
+      }
+
       let html = '<table class="table table-bordered table-hover align-middle"><thead><tr>';
 
       const colunas = Object.keys(dados[0]);
@@ -138,83 +143,69 @@
 
     function filtrarColuna(coluna, valor) {
       filtrosColuna[coluna] = valor;
-
-      // Filtra diretamente dos dados originais
-      dadosAtuais = dadosOriginais.filter(linha =>
-        (linha[coluna] ?? "").toString().toLowerCase().includes(valor.toLowerCase())
-      );
-
-      renderTabela(dadosAtuais);
-      atualizarContador(dadosAtuais.length);
-
-      // Restaura o foco no input
-      setTimeout(() => {
-        const inputEl = document.getElementById(`filtro_${coluna}`);
-        if (inputEl) {
-          inputEl.focus();
-          const len = inputEl.value.length;
-          inputEl.setSelectionRange(len, len);
-        }
-      }, 0);
+      aplicarFiltros();
     }
 
-    function filtrarGlobal(valor) {
-      if (!valor) {
-        // Se filtro global vazio, aplica apenas filtros de coluna
-        aplicarFiltros();
-        return;
+    function atualizarContador(total) {
+      document.getElementById('totalRegistros').textContent = total;
+    }
+
+    function alternarCorrespondenciaExata() {
+      correspondenciaExata = !correspondenciaExata;
+      const btn = document.getElementById('btnCorrespondenciaExata');
+      if (correspondenciaExata) {
+        btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e4606d 100%)';
+      } else {
+        btn.style.background = '';
       }
+      // Reaplica todos os filtros existentes
+      aplicarFiltros();
+    }
 
-      const valorLower = valor.toLowerCase();
-
-      dadosAtuais = dadosOriginais.filter(linha => {
-        // Primeiro aplica filtros de coluna
-        for (const col in filtrosColuna) {
-          if (filtrosColuna[col]) {
-            const cellValue = (linha[col] ?? "").toString().toLowerCase();
-            if (!cellValue.includes(filtrosColuna[col].toLowerCase())) {
-              return false;
-            }
-          }
-        }
-
-        // Depois aplica filtro global em qualquer coluna
-        return Object.values(linha).some(val =>
-          (val ?? "").toString().toLowerCase().includes(valorLower)
-        );
-      });
-
-      renderTabela(dadosAtuais);
-      atualizarContador(dadosAtuais.length);
+    function inverterFiltros() {
+      filtrosInvertidos = !filtrosInvertidos;
+      const btn = document.getElementById('btnInverterFiltros');
+      if (filtrosInvertidos) {
+        btn.style.background = 'linear-gradient(135deg, #fd7e14 0%, #ffb366 100%)';
+      } else {
+        btn.style.background = '';
+      }
+      // Reaplica todos os filtros
+      aplicarFiltros();
     }
 
     function aplicarFiltros() {
       // Aplica filtros de coluna
       dadosAtuais = dadosOriginais.filter(linha => {
+        let corresponde = true;
+
         for (const col in filtrosColuna) {
           if (filtrosColuna[col]) {
             const cellValue = (linha[col] ?? "").toString().toLowerCase();
-            if (!cellValue.includes(filtrosColuna[col].toLowerCase())) {
-              return false;
+            const filtroValor = filtrosColuna[col].toLowerCase();
+            let match;
+
+            if (correspondenciaExata) {
+              match = cellValue === filtroValor;
+            } else {
+              match = cellValue.includes(filtroValor);
+            }
+
+            if (!match) {
+              corresponde = false;
+              break;
             }
           }
         }
-        return true;
-      });
 
-      // Aplica filtro global se existir
-      const filtroGlobal = document.getElementById('filtroGlobal');
-      if (filtroGlobal && filtroGlobal.value) {
-        filtrarGlobal(filtroGlobal.value);
-        return;
-      }
+        if (filtrosInvertidos) {
+          return !corresponde;
+        }
+        return corresponde;
+      });
 
       renderTabela(dadosAtuais);
       atualizarContador(dadosAtuais.length);
-    }
-
-    function atualizarContador(total) {
-      document.getElementById('totalRegistros').textContent = total;
     }
 
     // Função para carregar dados de exemplo para testes de layout
@@ -246,7 +237,6 @@
         dados = await carregarExemplo();
       }
 
-      console.log("Dados recebidos:", dados);
       montarTabela(dados);
     }
 

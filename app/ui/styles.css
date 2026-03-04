@@ -464,6 +464,19 @@ body.full-page {
   font-weight: 600;
 }
 
+/* Botões de filtro no header */
+.header-left button {
+  width: auto;
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-top: 0;
+}
+
+#btnInverterFiltros,
+#btnCorrespondenciaExata {
+  min-width: 140px;
+}
+
 /* ============================= */
 /* TABLE STYLES (Bootstrap-like) */
 /* ============================= */
