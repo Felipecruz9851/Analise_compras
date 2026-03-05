@@ -483,7 +483,8 @@ body.full-page {
 }
 
 #btnInverterFiltros,
-#btnCorrespondenciaExata {
+#btnCorrespondenciaExata,
+#btnBanner {
   min-width: 140px;
 }
 

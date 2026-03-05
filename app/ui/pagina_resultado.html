@@ -17,6 +17,7 @@
       <button onclick="recarregar()">Atualizar</button>
       <button onclick="inverterFiltros()" id="btnInverterFiltros">Inverter Filtros</button>
       <button onclick="alternarCorrespondenciaExata()" id="btnCorrespondenciaExata">Correspondência Exata</button>
+      <button onclick="alternarBanner()" id="btnBanner" title="Ocultar/Exibir Resumo por Família">◀ Resumo</button>
     </div>
 
     <div class="header-right">
@@ -396,6 +397,20 @@
       });
 
       document.getElementById('resumoFamilias').innerHTML = html;
+    }
+
+    // Função para alternar visibilidade do banner lateral
+    function alternarBanner() {
+      const banner = document.getElementById('sidebarBanner');
+      const btn = document.getElementById('btnBanner');
+
+      if (banner.style.display === 'none') {
+        banner.style.display = 'block';
+        btn.textContent = '◀ Resumo';
+      } else {
+        banner.style.display = 'none';
+        btn.textContent = '▶ Resumo';
+      }
     }
 
     window.onload = init;
