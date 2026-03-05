@@ -27,6 +27,12 @@
   </header>
 
   <main class="main-content">
+    <!-- Banner Lateral - Soma por Família -->
+    <div class="sidebar-banner" id="sidebarBanner">
+      <h3 class="sidebar-title">Valor Comprado por Família</h3>
+      <div id="resumoFamilias" class="resumo-familias"></div>
+    </div>
+
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle" id="tabela-principal">
         <thead id="tabela-cabecalho"></thead>
@@ -342,6 +348,54 @@
       }
 
       montarTabela(dados);
+
+      // Calcula e exibe a soma por família
+      calcularSomaPorFamilia(dados);
+    }
+
+    // Função para calcular soma de Valor Comprado por Família
+    function calcularSomaPorFamilia(dados) {
+      if (!dados || dados.length === 0) {
+        document.getElementById('resumoFamilias').innerHTML = '<p class="sem-dados">Nenhum dado disponível</p>';
+        return;
+      }
+
+      // Objeto para armazenar a soma por família
+      const somaPorFamilia = {};
+
+      dados.forEach(linha => {
+        const familia = linha['Família'] || 'Não definida';
+        const valorComprado = parseNumeroBR(linha['Valor Comprado']);
+
+        if (!somaPorFamilia[familia]) {
+          somaPorFamilia[familia] = 0;
+        }
+        somaPorFamilia[familia] += valorComprado;
+      });
+
+      // Ordena por valor (maior primeiro)
+      const familiasOrdenadas = Object.entries(somaPorFamilia)
+        .sort((a, b) => b[1] - a[1]);
+
+      // Calcula o total geral
+      const totalGeral = familiasOrdenadas.reduce((acc, [, valor]) => acc + valor, 0);
+
+      // Gera o HTML
+      let html = '<div class="familia-item familia-total">';
+      html += '<span class="familia-nome">TOTAL GERAL</span>';
+      html += '<span class="familia-valor">' + totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
+      html += '</div>';
+
+      familiasOrdenadas.forEach(([familia, valor]) => {
+        const percentual = totalGeral > 0 ? ((valor / totalGeral) * 100).toFixed(1) : 0;
+        html += '<div class="familia-item">';
+        html += '<span class="familia-nome">' + familia + '</span>';
+        html += '<span class="familia-valor">' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
+        html += '<span class="familia-percentual">' + percentual + '%</span>';
+        html += '</div>';
+      });
+
+      document.getElementById('resumoFamilias').innerHTML = html;
     }
 
     window.onload = init;
