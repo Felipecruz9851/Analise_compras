@@ -6,7 +6,10 @@ import numpy as np
 
 def compra_necessidade(df=None):
 
-    # Lista das colunas que deseja normalizar
+    for c in df.columns:
+        df[c] = df[c].str.replace(".", "")
+        df[c] = df[c].str.replace(",", ".")
+
     colunas_para_normalizar = [
         "Neces",
         "Estoque Padrão",
@@ -20,8 +23,7 @@ def compra_necessidade(df=None):
 
     # Aplicar a transformação em todas as colunas da lista
     for col in colunas_para_normalizar:
-        df[col] = df[col].str.replace(".", "")
-        df[col] = df[col].str.replace(",", ".")
+
         df[col] = df[col].astype(float)
 
     df["Falta"] = df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"] - df["Neces"]
