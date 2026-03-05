@@ -61,11 +61,24 @@
 
     function parseNumeroBR(valor) {
       if (!valor) return 0;
-      return parseFloat(
-        valor.toString()
-          .replace(/\./g, '')
-          .replace(',', '.')
-      ) || 0;
+
+      const str = valor.toString().trim();
+
+      // Check if it's Brazilian format (comma as decimal separator)
+      // Brazilian format: has comma, and either no dot or dot comes before comma
+      const lastCommaIndex = str.lastIndexOf(',');
+      const lastDotIndex = str.lastIndexOf('.');
+
+      // If there's a comma and it's after the last dot (or there's no dot), it's Brazilian format
+      if (lastCommaIndex > lastDotIndex) {
+        // Brazilian format: 1.234,56 or 1234,56
+        // Remove thousand separators (dots), then convert decimal separator (comma) to dot
+        return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+      }
+
+      // US/standard format: 1234.56 or 1234 (no comma, just dots)
+      // Or integer format: 47250
+      return parseFloat(str) || 0;
     }
 
     function voltar() { history.back(); }
