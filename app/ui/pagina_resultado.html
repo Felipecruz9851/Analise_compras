@@ -93,7 +93,15 @@
       const linha = dadosAtuais[indiceLinha];
       if (linha) {
         linha['Decis Compras'] = valorOriginal;
+
+        // Recalcular Valor Comprado: Decis Compras * Valor Unitário
+        const valorUnitario = parseNumeroBR(linha['Valor Unitário']);
+        const decisCompras = parseNumeroBR(valorOriginal);
+        const novoValorComprado = valorUnitario * decisCompras;
+        linha['Valor Comprado'] = novoValorComprado;
+
         renderizarCorpo(dadosAtuais);
+        calcularSomaPorFamilia(dadosAtuais);
       }
     }
 
