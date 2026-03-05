@@ -21,8 +21,8 @@
   --shadow-button-hover: 0 5px 20px rgba(0, 0, 0, 0.25);
 
   /* Bordas */
-  --radius-lg: 12px;
-  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-md: 14px;
 
   /* Espaçamento */
   --spacing-sm: 8px;
@@ -359,7 +359,7 @@ body.full-page {
 
 .table-wrapper td {
   padding: 8px 10px;
-  border-bottom: 1px solid #eee;
+
   white-space: nowrap;
 }
 
@@ -454,7 +454,7 @@ body.full-page {
 
 .table-container td {
   padding: 8px 10px;
-  border-bottom: 1px solid #eee;
+
   white-space: nowrap;
   background-color: whitesmoke;
 }
@@ -517,7 +517,7 @@ body.full-page {
 
 .table-bordered th,
 .table-bordered td {
-  border: 1px solid #dee2e6;
+  border: 2px solid #acacac;
 }
 
 .table-hover tbody tr:hover {
@@ -606,15 +606,16 @@ body.full-page {
 .col-destaque-verde {
   background-color: #d4edda !important;
   color: #155724;
-}
+  border: 1px solid #d4edda;
 
-.col-destaque-verde .col-header-top span {
-  font-weight: bold;
-}
+  .col-destaque-verde .col-header-top span {
+    font-weight: bold;
+  }
 
-/* Células da coluna com destaque verde */
-table td.col-destaque-verde,
-table th.col-destaque-verde {
-  background-color: #d4edda !important;
-  color: #155724;
+  /* Células da coluna com destaque verde */
+  table td.col-destaque-verde,
+  table th.col-destaque-verde {
+    background-color: #d4edda !important;
+    color: #155724;
+  }
 }

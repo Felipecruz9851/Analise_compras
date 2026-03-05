@@ -103,7 +103,7 @@
           ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
           : '↕';
 
-        const classeDestaque = col === 'decis_compras' ? 'col-destaque-verde' : '';
+        const classeDestaque = col === 'Decis Compras' ? 'col-destaque-verde' : '';
 
         html += `
       <th class="${classeDestaque}">
@@ -170,7 +170,7 @@
             });
 
           } else {
-            const classeDestaque = col === 'decis_compras' ? 'col-destaque-verde' : '';
+            const classeDestaque = col === 'Decis Compras' ? 'col-destaque-verde' : '';
             html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
           }
 
