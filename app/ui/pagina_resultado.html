@@ -52,6 +52,9 @@
     let colunasTabela = [];
     let colunasMes = [];
 
+    // Armazena os valores originais de cada célula editada
+    let valoresOriginais = {};
+
     function ehColunaMes(col) {
       return /^\d{4}-\d{2}$/.test(col);
     }
@@ -68,6 +71,19 @@
     function voltar() { history.back(); }
     function recarregar() { location.reload(); }
 
+    function criarBotaoRestaurar(indiceLinha, valorOriginal) {
+      const valorStr = String(valorOriginal ?? '');
+      return `<button class="btn-restaurar" onclick="restaurarValor(${indiceLinha}, '${valorStr.replace(/'/g, "\\'")}')" title="Restaurar valor original">↩</button>`;
+    }
+
+    function restaurarValor(indiceLinha, valorOriginal) {
+      const linha = dadosAtuais[indiceLinha];
+      if (linha) {
+        linha['Decis Compras'] = valorOriginal;
+        renderizarCorpo(dadosAtuais);
+      }
+    }
+
     function montarTabela(dados) {
       if (!dados || dados.length === 0) {
         document.getElementById("tabela-corpo").innerHTML =
@@ -77,6 +93,7 @@
 
       dadosOriginais = dados;
       dadosAtuais = [...dados];
+      valoresOriginais = {};
 
       const todasColunas = Object.keys(dados[0]);
 
@@ -180,8 +197,39 @@
               valores: valores
             });
 
+          } else if (col === 'Decis Compras') {
+            // Coluna editável "Decis Compras"
+            const valorAtual = String(linha[col] ?? "");
+            const valorOriginal = String(linha[col] ?? "");
+            const cellId = "cell_" + index;
+
+            // Salva o valor original se não existir
+            if (!valoresOriginais[index]) {
+              valoresOriginais[index] = {};
+            }
+            if (!valoresOriginais[index][col]) {
+              valoresOriginais[index][col] = valorOriginal;
+            }
+
+            // Compara como strings para evitar problemas de tipo
+            const foiEditado = String(valorAtual) !== String(valoresOriginais[index][col]);
+            const classeEditavel = 'cell-editable';
+            const classeEditado = foiEditado ? 'cell-edited' : '';
+
+            html += `
+              <td class="col-destaque-verde ${classeEditavel} ${classeEditado}" 
+                  data-index="${index}" 
+                  data-col="Decis Compras"
+                  data-original="${valorOriginal.replace(/"/g, '"').replace(/'/g, "&#39;")}"
+                  contenteditable="true"
+                  onblur="salvarEdicao(${index}, this)"
+                  onfocus="event.target.dataset.valorOriginal = '${valorOriginal.replace(/'/g, "\\'")}'">
+                <span class="cell-content">${valorAtual}</span>
+                ${foiEditado ? criarBotaoRestaurar(index, valoresOriginais[index]['Decis Compras']) : ''}
+              </td>`;
+
           } else {
-            const classeDestaque = col === 'Decis Compras' || col === 'Valor Comprado'
+            const classeDestaque = col === 'Valor Comprado'
               ? 'col-destaque-verde' : '';
             html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
           }
@@ -194,6 +242,26 @@
       document.getElementById("tabela-corpo").innerHTML = html;
 
       renderizarGraficosEmLotes(graficos);
+    }
+
+    function salvarEdicao(index, elemento) {
+      const colDecis = 'Decis Compras';
+      const novoValor = elemento.innerText.trim();
+      const valorOriginal = elemento.dataset.valorOriginal || valoresOriginais[index]?.[colDecis] || "";
+
+      if (dadosAtuais[index]) {
+        dadosAtuais[index][colDecis] = novoValor;
+
+        // Recalcular Valor Comprado: Decis Compras * Valor Unitário
+        const valorUnitario = parseNumeroBR(dadosAtuais[index]['Valor Unitário']);
+        const decisCompras = parseNumeroBR(novoValor);
+        const novoValorComprado = valorUnitario * decisCompras;
+        dadosAtuais[index]['Valor Comprado'] = novoValorComprado;
+
+        // Re-renderiza para atualizar a tabela e o banner
+        renderizarCorpo(dadosAtuais);
+        calcularSomaPorFamilia(dadosAtuais);
+      }
     }
 
     function criarSparkline(canvasId, valores) {
