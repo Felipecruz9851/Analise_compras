@@ -403,12 +403,15 @@
     function alternarBanner() {
       const banner = document.getElementById('sidebarBanner');
       const btn = document.getElementById('btnBanner');
+      const tabela = document.querySelector('.table-responsive');
 
-      if (banner.style.display === 'none') {
-        banner.style.display = 'block';
+      if (banner.classList.contains('hidden')) {
+        banner.classList.remove('hidden');
+        tabela.classList.remove('expanded');
         btn.textContent = '◀ Resumo';
       } else {
-        banner.style.display = 'none';
+        banner.classList.add('hidden');
+        tabela.classList.add('expanded');
         btn.textContent = '▶ Resumo';
       }
     }
