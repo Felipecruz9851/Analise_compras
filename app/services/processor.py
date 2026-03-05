@@ -31,7 +31,24 @@ def extract_table(html: str) -> pd.DataFrame:
     print(df.head())
 
     df = df.drop(columns=[data_ref])
-
-    df["Família"] = df["Item"].map(dict_fam)
-
     return df
+
+
+def juntar_tabelas(resultados):
+
+    dfs = []
+
+    for html, familia in resultados:
+
+        try:
+            df = extract_table(html)
+
+            df["Família"] = familia
+
+            if not df.empty:
+                dfs.append(df)
+
+        except Exception as e:
+            print("Falha ao extrair tabela:", e)
+
+    return pd.concat(dfs, ignore_index=True)

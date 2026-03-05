@@ -30,6 +30,10 @@ ANALISES = [
     "compra para estoque ignora necess.",
 ]
 
+FAMILIAS = {
+    "compra por necessidade": "FNC,CST,RV,VSN,CSD,VRG,NEC",
+}
+
 
 def carregar_familias() -> dict:
     caminho_csv = Path(__file__).with_name("familias.csv")

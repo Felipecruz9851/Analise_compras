@@ -103,7 +103,11 @@
           ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
           : '↕';
 
-        const classeDestaque = col === 'Decis Compras' ? 'col-destaque-verde' : '';
+        const classeDestaque =
+          col === 'Decis Compras' || col === 'Valor Comprado'
+            ? 'col-destaque-verde'
+            : '';
+
 
         html += `
       <th class="${classeDestaque}">
@@ -170,7 +174,8 @@
             });
 
           } else {
-            const classeDestaque = col === 'Decis Compras' ? 'col-destaque-verde' : '';
+            const classeDestaque = col === 'Decis Compras' || col === 'Valor Comprado'
+              ? 'col-destaque-verde' : '';
             html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
           }
 

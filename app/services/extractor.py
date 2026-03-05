@@ -2,6 +2,8 @@ import requests
 from typing import List, Dict
 from pathlib import Path
 from datetime import datetime
+from app.settings import FAMILIAS
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class Extractor:
@@ -65,31 +67,31 @@ class Extractor:
     # ----------------------------
 
     def gerar_tarefas(self, analise: str) -> List[Dict]:
-        """
-        Retorna lista de tarefas baseadas na análise solicitada.
-        """
 
-        if analise == "compra por necessidade":
-            familia = "FNC,CST,RV,VSN,CSD,VRG,NEC"
-        else:
+        if analise not in FAMILIAS:
             raise ValueError(f"Análise não suportada: {analise}")
 
-        tarefas = [
-            {
-                "nome": "apoio_compras",
-                "method": "POST",
-                "url": self.APOIO,
-                "data": {
-                    "cod_empresa": "11",
-                    "familia": familia,
-                    "grupo": "",
-                    "local": "",
-                    "ordem": "cod_item",
-                    "neces_aberto": "S",
-                },
-                "timeout": (5, 600),
-            }
-        ]
+        familias = FAMILIAS[analise].split(",")
+
+        tarefas = []
+
+        for familia in familias:
+            tarefas.append(
+                {
+                    "nome": f"apoio_compras_{familia}",
+                    "method": "POST",
+                    "url": self.APOIO,
+                    "data": {
+                        "cod_empresa": "11",
+                        "familia": familia,
+                        "grupo": "",
+                        "local": "",
+                        "ordem": "cod_item",
+                        "neces_aberto": "S",
+                    },
+                    "timeout": (5, 600),
+                }
+            )
 
         return tarefas
 
@@ -129,27 +131,41 @@ class Extractor:
 
         return arquivo
 
+    def worker(self, tarefa: Dict):
+
+        extractor = Extractor(self.username, self.password)
+        extractor.login()
+
+        html = extractor.executar_tarefa(tarefa)
+
+        familia = tarefa["data"]["familia"]
+
+        return html, familia
+
+    def executar_paralelo(self, tarefas):
+
+        resultados = []
+
+        with ThreadPoolExecutor(max_workers=len(tarefas)) as executor:
+
+            futures = [executor.submit(self.worker, tarefa) for tarefa in tarefas]
+
+            for future in as_completed(futures):
+                resultados.append(future.result())
+
+        return resultados
+
     # ----------------------------
     # PIPELINE COMPLETO
     # ----------------------------
 
     def executar(self, analise: str):
-        """
-        login → gerar tarefas → executar tarefas → salvar html
-        """
-
-        self.login()
-        print("Login realizado com sucesso!")
 
         tarefas = self.gerar_tarefas(analise)
-        print("Tarefas geradas com sucesso!")
 
-        resultados = []
+        resultados = self.executar_paralelo(tarefas)
 
-        for tarefa in tarefas:
-            html = self.executar_tarefa(tarefa)
+        for tarefa, (html, familia) in zip(tarefas, resultados):
+            self.salvar_html(html, tarefa["nome"])
 
-            caminho = self.salvar_html(html, tarefa["nome"])
-        print("HTML salvo com sucesso!")
-
-        return html
+        return resultados

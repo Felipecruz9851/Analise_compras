@@ -1,5 +1,5 @@
 from app.services.extractor import Extractor
-from app.services.processor import extract_table
+from app.services.processor import juntar_tabelas
 from app.services.purchase_logic import calcular
 
 
@@ -11,7 +11,7 @@ def executar_pipeline(username, password, analise):
     html_resultados = extractor.executar(analise)
     print("HTML gerado com sucesso!")
 
-    df = extract_table(html_resultados)
+    df = juntar_tabelas(html_resultados)
     print("Tabela extraída com sucesso!")
     print(df.head())
     df = calcular(analise, df)

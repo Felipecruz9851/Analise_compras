@@ -197,6 +197,7 @@ button:active {
   position: sticky;
   top: 0;
   z-index: 2;
+  border-bottom: 1px solid #000000;
 }
 
 .table-wrapper th,
@@ -204,10 +205,11 @@ button:active {
   padding: 10px 12px;
   text-align: left;
   white-space: nowrap;
+  border-bottom: 1px solid #000000;
 }
 
 .table-wrapper tbody tr {
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #000000;
   transition: var(--transition-fast);
 }
 
@@ -297,11 +299,13 @@ body.full-page {
   align-items: center;
   padding: 0 30px;
   z-index: 1000;
+
 }
 
 .page-header h2 {
   font-size: 20px;
   color: var(--color-text-main);
+
 }
 
 .page-content {
@@ -338,6 +342,7 @@ body.full-page {
   display: flex;
   flex-direction: column;
   gap: 6px;
+
 }
 
 .table-wrapper th button.sort-btn {
@@ -390,6 +395,7 @@ body.full-page {
   align-items: center;
   padding: 0 30px;
   z-index: 1000;
+
 }
 
 .header-left,
@@ -398,6 +404,7 @@ body.full-page {
   display: flex;
   align-items: center;
   gap: 15px;
+
 }
 
 .header-center {
@@ -561,6 +568,7 @@ body.full-page {
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
+
 }
 
 .col-header-top {
@@ -568,6 +576,7 @@ body.full-page {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+
 }
 
 
