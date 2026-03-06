@@ -28,7 +28,6 @@
   </header>
 
   <main class="main-content">
-    <!-- Banner Lateral - Soma por Família -->
     <div class="sidebar-banner" id="sidebarBanner">
       <h3 class="sidebar-title">Valor Comprado por Família</h3>
       <div id="resumoFamilias" class="resumo-familias"></div>
@@ -43,25 +42,29 @@
   </main>
 
   <script>
+    /* =============================
+       VARIÁVEIS DE ESTADO
+       ============================= */
     let charts = {};
     let renderToken = 0;
+    let renderAgendado = false;
 
-    let ignorarBlur = false;
     let dadosOriginais = [];
     let dadosAtuais = [];
+    let colunasTabela = [];
+    let colunasMes = [];
 
+    // Ordenação
     let ordenacaoAtual = { coluna: null, direcao: 'asc' };
 
+    // Filtros
     let filtrosColuna = {};
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
 
-    let colunasTabela = [];
-    let colunasMes = [];
-
-    // agora armazenado por ID da linha
-    let valoresOriginais = {};
-
+    /* =============================
+       UTILITÁRIOS
+       ============================= */
     function gerarRowId() {
       return crypto.randomUUID();
     }
@@ -72,288 +75,226 @@
 
     function parseNumeroBR(valor) {
       if (!valor) return 0;
-
       const str = valor.toString().trim();
-
       const lastCommaIndex = str.lastIndexOf(',');
       const lastDotIndex = str.lastIndexOf('.');
-
       if (lastCommaIndex > lastDotIndex) {
         return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
       }
-
       return parseFloat(str) || 0;
     }
 
-    function voltar() { history.back(); }
-    function recarregar() { location.reload(); }
-
-    function criarBotaoRestaurar(rowId, valorOriginal) {
-
-      const valorStr = String(valorOriginal ?? '');
-
-      return `
-<button
-class="btn-restaurar"
-contenteditable="false"
-onmousedown="eventoReset(event,'${rowId}','${valorStr.replace(/'/g, "\\'")}')"
->
-↩
-</button>
-`;
-    }
-    function eventoReset(e, rowId, valor) {
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      ignorarBlur = true;
-
-      restaurarValor(rowId, valor);
-
-    }
-    function normalizarValor(v) {
-      if (v == null) return "";
-
-      return v
-        .toString()
-        .replace(/\u00A0/g, " ")   // troca espaço não-quebrável
-        .trim();
+    /* =============================
+       NAVEGAÇÃO
+       ============================= */
+    function voltar() {
+      history.back();
     }
 
-    function restaurarValor(rowId) {
-
-      const linha = dadosAtuais.find(r => r.__rowId === rowId);
-      if (!linha) return;
-
-      linha['Decis Compras'] = linha.__original_decis;
-
-      atualizarValorComprado(linha);
-
-      renderizarTabelaSegura();
-
-      // redefine baseline do input
-      requestAnimationFrame(() => {
-        const input = document.querySelector(`[data-row="${rowId}"]`);
-        if (input) {
-          input.defaultValue = input.value;
-        }
-      });
+    function recarregar() {
+      location.reload();
     }
 
-    function atualizarValorComprado(linha) {
+    /* =============================
+       INICIALIZAÇÃO
+       ============================= */
+    async function init() {
+      let dados = null;
 
-      const valorUnitario = parseNumeroBR(linha['Valor Unitário']);
-      const decisCompras = parseNumeroBR(linha['Decis Compras']);
-
-      linha['Valor Comprado'] = valorUnitario * decisCompras;
-    }
-
-    function montarTabela(dados) {
-
-      if (!dados || dados.length === 0) {
-        document.getElementById("tabela-corpo").innerHTML =
-          "<tr><td>Nenhum dado encontrado.</td></tr>";
-        return;
+      const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
+      if (dadosLocalStorage) {
+        dados = JSON.parse(dadosLocalStorage);
       }
 
-      // cria id estável para cada linha
-      dadosOriginais = dados.map(d => ({
-        ...d,
+      if (!dados || dados.length === 0) {
+        dados = await carregarExemplo();
+      }
+
+      dadosAtuais = dados.map(r => ({
+        ...r,
+        'Decis Compras': Number(r['Decis Compras']) || 0,
+        __original_decis: Number(r['Decis Compras']) || 0,
         __rowId: gerarRowId()
       }));
 
-      dadosAtuais = [...dadosOriginais];
+      dadosOriginais = [...dadosAtuais];
 
-      valoresOriginais = {};
-
-      const todasColunas = Object.keys(dadosOriginais[0]).filter(c => c !== "__rowId");
-
-      colunasMes = todasColunas.filter(ehColunaMes);
-      colunasTabela = todasColunas.filter(c => !ehColunaMes(c));
-
-      colunasTabela = colunasTabela.filter(c => c !== "Gráfico");
-
-      colunasTabela.splice(2, 0, "Gráfico");
-
+      configurarColunas();
       renderizarCabecalho();
       renderizarCorpo(dadosAtuais);
       atualizarContador(dadosAtuais.length);
+      calcularSomaPorFamilia(dadosAtuais);
     }
 
-    function renderizarCabecalho() {
+    async function carregarExemplo() {
+      try {
+        const response = await fetch('exemplo.json');
+        const data = await response.json();
+        if (data.dados && data.dados.length > 0) {
+          return data.dados;
+        }
+      } catch (e) {
+        console.log("Arquivo exemplo.json não encontrado");
+      }
+      return null;
+    }
 
+    function configurarColunas() {
+      const todasColunas = Object.keys(dadosOriginais[0]).filter(c => c !== "__rowId");
+      colunasMes = todasColunas.filter(ehColunaMes);
+      colunasTabela = todasColunas.filter(c => !ehColunaMes(c) && c !== "Gráfico");
+      colunasTabela.splice(2, 0, "Gráfico");
+    }
+
+    /* =============================
+       RENDERIZAÇÃO
+       ============================= */
+    function renderizarCabecalho() {
       let html = '<tr>';
 
       colunasTabela.forEach(col => {
-
         if (col === "Gráfico") {
           html += `<th>Gráfico</th>`;
           return;
         }
 
-        const iconOrdenacao =
-          ordenacaoAtual.coluna === col
-            ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
-            : '↕';
+        const iconOrdenacao = ordenacaoAtual.coluna === col
+          ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
+          : '↕';
 
-        const classeDestaque =
-          col === 'Decis Compras' || col === 'Valor Comprado'
-            ? 'col-destaque-verde'
-            : '';
+        const classeDestaque = (col === 'Decis Compras' || col === 'Valor Comprado')
+          ? 'col-destaque-verde'
+          : '';
 
         html += `
 <th class="${classeDestaque}">
-<div class="col-header">
-
-<div class="col-header-top">
-<span>${col}</span>
-<button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
-</div>
-
-<input
-type="text"
-id="filtro_${col}"
-class="filtro-coluna"
-placeholder="Filtrar..."
-value="${filtrosColuna[col] || ''}"
-onclick="event.stopPropagation()"
-oninput="filtrarColuna('${col}',this.value)"
->
-
-</div>
-</th>
-`;
+  <div class="col-header">
+    <div class="col-header-top">
+      <span>${col}</span>
+      <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+    </div>
+    <input type="text" id="filtro_${col}" class="filtro-coluna" placeholder="Filtrar..."
+      value="${filtrosColuna[col] || ''}" onclick="event.stopPropagation()"
+      oninput="filtrarColuna('${col}',this.value)">
+  </div>
+</th>`;
       });
 
       html += '</tr>';
-
       document.getElementById("tabela-cabecalho").innerHTML = html;
     }
 
     function renderizarCorpo(dados) {
       renderToken++;
       const tokenAtual = renderToken;
-      if (!dados || dados.length === 0) {
 
+      if (!dados || dados.length === 0) {
         document.getElementById("tabela-corpo").innerHTML =
           `<tr><td colspan="${colunasTabela.length}">Nenhum registro encontrado.</td></tr>`;
-
         return;
       }
 
       let html = '';
       let graficos = [];
 
-      dados.forEach((linha, index) => {
-
+      dados.forEach(linha => {
         html += "<tr>";
-
         colunasTabela.forEach(col => {
-
           if (col === "Gráfico") {
-
             const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
-
             const canvasId = `graf_${linha.__rowId}`;
-
             html += `<td style="min-width:180px"><canvas id="${canvasId}" height="160"></canvas></td>`;
-
-            graficos.push({
-              id: canvasId,
-              valores
-            });
-
-          }
-
-          else if (col === 'Decis Compras') {
-
+            graficos.push({ id: canvasId, valores });
+          } else if (col === 'Decis Compras') {
             const rowId = linha.__rowId;
-
-            const valorAtual = normalizarValor(linha[col] ?? "");
-
-            if (!valoresOriginais[rowId]) {
-              valoresOriginais[rowId] = valorAtual;
-            }
-
-            const valorOriginal = normalizarValor(valoresOriginais[rowId]);
-
-            const foiEditado = valorAtual !== valorOriginal;
+            const valorAtual = linha[col] ?? "";
+            const foiEditado = String(valorAtual) !== String(linha.__original_decis);
 
             html += `
-<td
-class="col-destaque-verde cell-editable ${foiEditado ? 'cell-edited' : ''}"
-data-rowid="${rowId}"
-contenteditable="true"
-onblur="salvarEdicao('${rowId}',this)"
->
-
-<span class="cell-content">${valorAtual}</span>
-
-${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
-
-</td>
-`;
-
-          }
-
-          else {
-
-            const classeDestaque =
-              col === 'Valor Comprado'
-                ? 'col-destaque-verde'
-                : '';
-
+<td class="col-destaque-verde cell-editable ${foiEditado ? 'cell-edited' : ''}"
+  data-rowid="${rowId}" contenteditable="true" onblur="salvarEdicao('${rowId}',this)">
+  <span class="cell-content">${valorAtual}</span>
+  ${foiEditado ? criarBotaoRestaurar(rowId) : ''}
+</td>`;
+          } else {
+            const classeDestaque = col === 'Valor Comprado' ? 'col-destaque-verde' : '';
             html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
           }
-
         });
-
         html += "</tr>";
       });
 
       document.getElementById("tabela-corpo").innerHTML = html;
-
       renderizarGraficosEmLotes(graficos, 0, tokenAtual);
     }
 
-    function salvarEdicao(rowId, cell) {
+    function renderizarTabelaSegura() {
+      if (renderAgendado) return;
+      renderAgendado = true;
 
-      const linha = dadosAtuais.find(r => r.__rowId === rowId);
-      if (!linha) return;
-
-      const valorDigitado = Number(cell.innerText.trim()) || 0;
-      const valorAtual = Number(linha['Decis Compras']) || 0;
-
-      // se não mudou, ignora
-      if (valorDigitado === valorAtual) {
-        cell.innerText = valorAtual;
-        return;
-      }
-
-      // atualiza estado
-      linha['Decis Compras'] = valorDigitado;
-
-      atualizarValorComprado(linha);
-
-      renderizarTabelaSegura();
+      setTimeout(() => {
+        renderAgendado = false;
+        renderizarCorpo(dadosAtuais);
+        calcularSomaPorFamilia(dadosAtuais);
+      }, 0);
     }
 
-    function filtrarColuna(coluna, valor) {
+    function atualizarContador(total) {
+      document.getElementById('totalRegistros').textContent = total;
+    }
 
-      filtrosColuna[coluna] = valor;
+    /* =============================
+       ORDENAÇÃO
+       ============================= */
+    function ordenarColuna(coluna) {
+      if (ordenacaoAtual.coluna === coluna) {
+        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+      } else {
+        ordenacaoAtual.coluna = coluna;
+        ordenacaoAtual.direcao = 'asc';
+      }
+
+      dadosAtuais.sort((a, b) => {
+        let valorA = a[coluna];
+        let valorB = b[coluna];
+
+        if (valorA == null) valorA = '';
+        if (valorB == null) valorB = '';
+
+        const numA = parseNumeroBR(valorA);
+        const numB = parseNumeroBR(valorB);
+
+        if (!isNaN(numA) && !isNaN(numB) && valorA !== '' && valorB !== '') {
+          return ordenacaoAtual.direcao === 'asc' ? numA - numB : numB - numA;
+        }
+
+        valorA = valorA.toString().toLowerCase();
+        valorB = valorB.toString().toLowerCase();
+
+        if (valorA < valorB) return ordenacaoAtual.direcao === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenacaoAtual.direcao === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      renderizarCabecalho();
+      renderizarCorpo(dadosAtuais);
+    }
+
+    /* =============================
+       FILTROS
+       ============================= */
+    function filtrarColuna(coluna, valor) {
+      if (coluna) {
+        filtrosColuna[coluna] = valor;
+      }
 
       dadosAtuais = dadosOriginais.filter(linha => {
-
         let corresponde = true;
 
         for (const col in filtrosColuna) {
-
           if (filtrosColuna[col]) {
-
             const cellValue = (linha[col] ?? "").toString().toLowerCase();
             const filtroValor = filtrosColuna[col].toLowerCase();
-
             const match = correspondenciaExata
               ? cellValue === filtroValor
               : cellValue.includes(filtroValor);
@@ -368,46 +309,96 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
         return filtrosInvertidos ? !corresponde : corresponde;
       });
 
-      renderizarTabelaSegura(dadosAtuais);
-
+      renderizarTabelaSegura();
       atualizarContador(dadosAtuais.length);
       calcularSomaPorFamilia(dadosAtuais);
     }
 
-    function atualizarContador(total) {
-      document.getElementById('totalRegistros').textContent = total;
+    function inverterFiltros() {
+      filtrosInvertidos = !filtrosInvertidos;
+      const btn = document.getElementById('btnInverterFiltros');
+
+      if (filtrosInvertidos) {
+        btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e4606d 100%)';
+        btn.textContent = 'Filtros Invertidos';
+      } else {
+        btn.style.background = '';
+        btn.textContent = 'Inverter Filtros';
+      }
+
+      filtrarColuna('', '');
     }
 
-    function renderizarGraficosEmLotes(graficos, indice = 0, token) {
+    function alternarCorrespondenciaExata() {
+      correspondenciaExata = !correspondenciaExata;
+      const btn = document.getElementById('btnCorrespondenciaExata');
 
+      if (correspondenciaExata) {
+        btn.style.background = 'linear-gradient(135deg, #007bff 0%, #5a9fff 100%)';
+        btn.textContent = 'Exata: ON';
+      } else {
+        btn.style.background = '';
+        btn.textContent = 'Correspondência Exata';
+      }
+
+      filtrarColuna('', '');
+    }
+
+    /* =============================
+       EDIÇÃO DE CÉLULAS
+       ============================= */
+    function salvarEdicao(rowId, cell) {
+      const linha = dadosAtuais.find(r => r.__rowId === rowId);
+      if (!linha) return;
+
+      const valorDigitado = Number(cell.innerText.trim()) || 0;
+      const valorAtual = Number(linha['Decis Compras']) || 0;
+
+      if (valorDigitado === valorAtual) {
+        cell.innerText = valorAtual;
+        return;
+      }
+
+      linha['Decis Compras'] = valorDigitado;
+      linha['Valor Comprado'] = parseNumeroBR(linha['Valor Unitário']) * valorDigitado;
+
+      renderizarTabelaSegura();
+    }
+
+    function criarBotaoRestaurar(rowId) {
+      return `<button class="btn-restaurar" contenteditable="false" onmousedown="eventoReset(event,'${rowId}')">↩</button>`;
+    }
+
+    function eventoReset(e, rowId) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const linha = dadosAtuais.find(r => r.__rowId === rowId);
+      if (!linha) return;
+
+      linha['Decis Compras'] = linha.__original_decis;
+      linha['Valor Comprado'] = parseNumeroBR(linha['Valor Unitário']) * linha.__original_decis;
+
+      renderizarTabelaSegura();
+    }
+
+    /* =============================
+       GRÁFICOS
+       ============================= */
+    function renderizarGraficosEmLotes(graficos, indice = 0, token) {
       if (token !== renderToken) return;
 
       const lote = 5;
-
       for (let i = indice; i < indice + lote && i < graficos.length; i++) {
-
-        criarSparkline(
-          graficos[i].id,
-          graficos[i].valores
-        );
-
+        criarSparkline(graficos[i].id, graficos[i].valores);
       }
 
       if (indice + lote < graficos.length) {
-
-        requestAnimationFrame(() => {
-          renderizarGraficosEmLotes(
-            graficos,
-            indice + lote,
-            token
-          );
-        });
-
+        requestAnimationFrame(() => renderizarGraficosEmLotes(graficos, indice + lote, token));
       }
     }
 
     function criarSparkline(canvasId, valores) {
-
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
 
@@ -419,12 +410,7 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
         type: 'line',
         data: {
           labels: colunasMes,
-          datasets: [{
-            data: valores,
-            borderWidth: 2,
-            pointRadius: 3,
-            tension: 0.3
-          }]
+          datasets: [{ data: valores, borderWidth: 2, pointRadius: 3, tension: 0.3 }]
         },
         options: {
           responsive: true,
@@ -439,16 +425,16 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
               font: { size: 14, weight: 'bold' }
             }
           },
-          scales: {
-            x: { display: true },
-            y: { display: false, grace: '15%' }
-          }
+          scales: { x: { display: true }, y: { display: false, grace: '15%' } }
         },
         plugins: [ChartDataLabels]
       });
     }
-    function calcularSomaPorFamilia(dados) {
 
+    /* =============================
+       RESUMO POR FAMÍLIA
+       ============================= */
+    function calcularSomaPorFamilia(dados) {
       if (!dados || dados.length === 0) {
         document.getElementById('resumoFamilias').innerHTML =
           '<p class="sem-dados">Nenhum dado disponível</p>';
@@ -456,223 +442,38 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
       }
 
       const somaPorFamilia = {};
-
       dados.forEach(linha => {
-
         const familia = linha['Família'] || 'Não definida';
-
-        const valorComprado =
-          parseNumeroBR(linha['Valor Comprado']);
-
-        if (!somaPorFamilia[familia])
-          somaPorFamilia[familia] = 0;
-
+        const valorComprado = parseNumeroBR(linha['Valor Comprado']);
+        if (!somaPorFamilia[familia]) somaPorFamilia[familia] = 0;
         somaPorFamilia[familia] += valorComprado;
-
       });
 
-
-      const familiasOrdenadas =
-        Object.entries(somaPorFamilia)
-          .sort((a, b) => b[1] - a[1]);
-
-      const totalGeral =
-        familiasOrdenadas
-          .reduce((acc, [, valor]) => acc + valor, 0);
+      const familiasOrdenadas = Object.entries(somaPorFamilia).sort((a, b) => b[1] - a[1]);
+      const totalGeral = familiasOrdenadas.reduce((acc, [, valor]) => acc + valor, 0);
 
       let html = `
 <div class="familia-item familia-total">
-<span class="familia-nome">TOTAL GERAL</span>
-<span class="familia-valor">
-${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-</span>
-</div>
-`;
+  <span class="familia-nome">TOTAL GERAL</span>
+  <span class="familia-valor">${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+</div>`;
 
       familiasOrdenadas.forEach(([familia, valor]) => {
-
-        const percentual =
-          totalGeral > 0
-            ? ((valor / totalGeral) * 100).toFixed(1)
-            : 0;
-
+        const percentual = totalGeral > 0 ? ((valor / totalGeral) * 100).toFixed(1) : 0;
         html += `
 <div class="familia-item">
-<span class="familia-nome">${familia}</span>
-<span class="familia-valor">
-${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-</span>
-<span class="familia-percentual">${percentual}%</span>
-</div>
-`;
-
+  <span class="familia-nome">${familia}</span>
+  <span class="familia-valor">${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+  <span class="familia-percentual">${percentual}%</span>
+</div>`;
       });
 
       document.getElementById('resumoFamilias').innerHTML = html;
-
-    }
-    async function carregarExemplo() {
-
-      try {
-
-        const response =
-          await fetch('exemplo.json');
-
-        const data =
-          await response.json();
-
-        if (data.dados && data.dados.length > 0)
-          return data.dados;
-
-      }
-      catch (e) {
-        console.log("Arquivo exemplo.json não encontrado");
-      }
-
-      return null;
-
     }
 
-    let renderAgendado = false;
-
-    function renderizarTabelaSegura() {
-
-      if (renderAgendado) return;
-
-      renderAgendado = true;
-
-      setTimeout(() => {
-
-        renderAgendado = false;
-
-        renderizarCorpo(dadosAtuais);
-        calcularSomaPorFamilia(dadosAtuais);
-
-      }, 0);
-
-    }
-
-    async function init() {
-
-
-      let dados = null;
-
-      const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
-
-      if (dadosLocalStorage)
-        dados = JSON.parse(dadosLocalStorage);
-
-      if (!dados || dados.length === 0)
-        dados = await carregarExemplo();
-
-      // cria estado da aplicação
-      dadosAtuais = dados.map(r => {
-
-        const decis = Number(r['Decis Compras']) || 0;
-
-        return {
-          ...r,
-          'Decis Compras': decis,
-          __original_decis: decis,
-          __rowId: crypto.randomUUID()
-        };
-
-      });
-
-      montarTabela(dadosAtuais);
-
-      calcularSomaPorFamilia(dadosAtuais);
-    }
-
-    window.onload = init;
-
-    // =============================
-    // FUNÇÕES DE ORDENAÇÃO (SORT)
-    // =============================
-
-    function ordenarColuna(coluna) {
-      // Se clicar na mesma coluna, inverte a direção
-      if (ordenacaoAtual.coluna === coluna) {
-        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
-      } else {
-        ordenacaoAtual.coluna = coluna;
-        ordenacaoAtual.direcao = 'asc';
-      }
-
-      // Realiza a ordenação
-      dadosAtuais.sort((a, b) => {
-        let valorA = a[coluna];
-        let valorB = b[coluna];
-
-        // Trata valores nulos/undefined
-        if (valorA == null) valorA = '';
-        if (valorB == null) valorB = '';
-
-        // Verifica se é número
-        const numA = parseNumeroBR(valorA);
-        const numB = parseNumeroBR(valorB);
-
-        // Se ambos forem números válidos, ordena numericamente
-        if (!isNaN(numA) && !isNaN(numB) && valorA !== '' && valorB !== '') {
-          return ordenacaoAtual.direcao === 'asc' ? numA - numB : numB - numA;
-        }
-
-        // Caso contrário, ordena como string
-        valorA = valorA.toString().toLowerCase();
-        valorB = valorB.toString().toLowerCase();
-
-        if (valorA < valorB) return ordenacaoAtual.direcao === 'asc' ? -1 : 1;
-        if (valorA > valorB) return ordenacaoAtual.direcao === 'asc' ? 1 : -1;
-        return 0;
-      });
-
-      // Atualiza o cabeçalho para mostrar o ícone correto
-      renderizarCabecalho();
-
-      // Re-renderiza o corpo da tabela
-      renderizarCorpo(dadosAtuais);
-    }
-
-    // =============================
-    // FUNÇÕES DE FILTRO
-    // =============================
-
-    function inverterFiltros() {
-      filtrosInvertidos = !filtrosInvertidos;
-
-      const btn = document.getElementById('btnInverterFiltros');
-      if (filtrosInvertidos) {
-        btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e4606d 100%)';
-        btn.textContent = 'Filtros Invertidos';
-      } else {
-        btn.style.background = '';
-        btn.textContent = 'Inverter Filtros';
-      }
-
-      // Reaplica os filtros atuais
-      filtrarColuna('', '');
-    }
-
-    function alternarCorrespondenciaExata() {
-      correspondenciaExata = !correspondenciaExata;
-
-      const btn = document.getElementById('btnCorrespondenciaExata');
-      if (correspondenciaExata) {
-        btn.style.background = 'linear-gradient(135deg, #007bff 0%, #5a9fff 100%)';
-        btn.textContent = 'Exata: ON';
-      } else {
-        btn.style.background = '';
-        btn.textContent = 'Correspondência Exata';
-      }
-
-      // Reaplica os filtros atuais
-      filtrarColuna('', '');
-    }
-
-    // =============================
-    // FUNÇÕES DO BANNER (SIDEBAR)
-    // =============================
-
+    /* =============================
+       BANNER LATERAL
+       ============================= */
     function alternarBanner() {
       const banner = document.getElementById('sidebarBanner');
       const btn = document.getElementById('btnBanner');
@@ -688,6 +489,8 @@ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigit
       }
     }
 
+    // Inicializa a aplicação
+    window.onload = init;
   </script>
 </body>
 
