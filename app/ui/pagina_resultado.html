@@ -43,17 +43,28 @@
   </main>
 
   <script>
+    let charts = {};
+    let renderToken = 0;
+
+    let ignorarBlur = false;
     let dadosOriginais = [];
     let dadosAtuais = [];
+
     let ordenacaoAtual = { coluna: null, direcao: 'asc' };
+
     let filtrosColuna = {};
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
+
     let colunasTabela = [];
     let colunasMes = [];
 
-    // Armazena os valores originais de cada célula editada
+    // agora armazenado por ID da linha
     let valoresOriginais = {};
+
+    function gerarRowId() {
+      return crypto.randomUUID();
+    }
 
     function ehColunaMes(col) {
       return /^\d{4}-\d{2}$/.test(col);
@@ -64,70 +75,105 @@
 
       const str = valor.toString().trim();
 
-      // Check if it's Brazilian format (comma as decimal separator)
-      // Brazilian format: has comma, and either no dot or dot comes before comma
       const lastCommaIndex = str.lastIndexOf(',');
       const lastDotIndex = str.lastIndexOf('.');
 
-      // If there's a comma and it's after the last dot (or there's no dot), it's Brazilian format
       if (lastCommaIndex > lastDotIndex) {
-        // Brazilian format: 1.234,56 or 1234,56
-        // Remove thousand separators (dots), then convert decimal separator (comma) to dot
         return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
       }
 
-      // US/standard format: 1234.56 or 1234 (no comma, just dots)
-      // Or integer format: 47250
       return parseFloat(str) || 0;
     }
 
     function voltar() { history.back(); }
     function recarregar() { location.reload(); }
 
-    function criarBotaoRestaurar(indiceLinha, valorOriginal) {
+    function criarBotaoRestaurar(rowId, valorOriginal) {
+
       const valorStr = String(valorOriginal ?? '');
-      return `<button class="btn-restaurar" onclick="restaurarValor(${indiceLinha},'${valorStr.replace(/'/g, "\\'")}'),calcularSomaPorFamilia(${dadosAtuais})" title="Restaurar valor original">↩</button>`;
+
+      return `
+<button
+class="btn-restaurar"
+contenteditable="false"
+onmousedown="eventoReset(event,'${rowId}','${valorStr.replace(/'/g, "\\'")}')"
+>
+↩
+</button>
+`;
+    }
+    function eventoReset(e, rowId, valor) {
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      ignorarBlur = true;
+
+      restaurarValor(rowId, valor);
+
+    }
+    function normalizarValor(v) {
+      if (v == null) return "";
+
+      return v
+        .toString()
+        .replace(/\u00A0/g, " ")   // troca espaço não-quebrável
+        .trim();
     }
 
-    function restaurarValor(indiceLinha, valorOriginal) {
-      const linha = dadosAtuais[indiceLinha];
-      if (linha) {
-        linha['Decis Compras'] = valorOriginal;
+    function restaurarValor(rowId) {
 
-        // Recalcular Valor Comprado: Decis Compras * Valor Unitário
-        const valorUnitario = parseNumeroBR(linha['Valor Unitário']);
-        const decisCompras = parseNumeroBR(valorOriginal);
-        const novoValorComprado = valorUnitario * decisCompras;
-        linha['Valor Comprado'] = novoValorComprado;
-        calcularSomaPorFamilia(dadosAtuais);
-        renderizarCorpo(dadosAtuais);
+      const linha = dadosAtuais.find(r => r.__rowId === rowId);
+      if (!linha) return;
 
-      }
+      linha['Decis Compras'] = linha.__original_decis;
+
+      atualizarValorComprado(linha);
+
+      renderizarTabelaSegura();
+
+      // redefine baseline do input
+      requestAnimationFrame(() => {
+        const input = document.querySelector(`[data-row="${rowId}"]`);
+        if (input) {
+          input.defaultValue = input.value;
+        }
+      });
+    }
+
+    function atualizarValorComprado(linha) {
+
+      const valorUnitario = parseNumeroBR(linha['Valor Unitário']);
+      const decisCompras = parseNumeroBR(linha['Decis Compras']);
+
+      linha['Valor Comprado'] = valorUnitario * decisCompras;
     }
 
     function montarTabela(dados) {
+
       if (!dados || dados.length === 0) {
         document.getElementById("tabela-corpo").innerHTML =
           "<tr><td>Nenhum dado encontrado.</td></tr>";
         return;
       }
 
-      dadosOriginais = dados;
-      dadosAtuais = [...dados];
+      // cria id estável para cada linha
+      dadosOriginais = dados.map(d => ({
+        ...d,
+        __rowId: gerarRowId()
+      }));
+
+      dadosAtuais = [...dadosOriginais];
+
       valoresOriginais = {};
 
-      const todasColunas = Object.keys(dados[0]);
+      const todasColunas = Object.keys(dadosOriginais[0]).filter(c => c !== "__rowId");
 
-      // Detecta colunas de mês
       colunasMes = todasColunas.filter(ehColunaMes);
-
-      // Mantém apenas colunas NÃO mês
       colunasTabela = todasColunas.filter(c => !ehColunaMes(c));
 
-      // Garante que "Gráfico" não exista duplicado
       colunasTabela = colunasTabela.filter(c => c !== "Gráfico");
 
-      // Insere "Gráfico" como terceira coluna
       colunasTabela.splice(2, 0, "Gráfico");
 
       renderizarCabecalho();
@@ -136,65 +182,63 @@
     }
 
     function renderizarCabecalho() {
+
       let html = '<tr>';
 
       colunasTabela.forEach(col => {
+
         if (col === "Gráfico") {
           html += `<th>Gráfico</th>`;
           return;
         }
 
-        const iconOrdenacao = ordenacaoAtual.coluna === col
-          ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
-          : '↕';
+        const iconOrdenacao =
+          ordenacaoAtual.coluna === col
+            ? (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')
+            : '↕';
 
         const classeDestaque =
           col === 'Decis Compras' || col === 'Valor Comprado'
             ? 'col-destaque-verde'
             : '';
 
-
         html += `
-      <th class="${classeDestaque}">
-        <div class="col-header">
-          <div class="col-header-top">
-            <span>${col}</span>
-            <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
-          </div>
-          <input type="text"
-                 id="filtro_${col}"
-                 class="filtro-coluna"
-                 placeholder="Filtrar..."
-                 value="${filtrosColuna[col] || ''}"
-                 onclick="event.stopPropagation()"
-                 oninput="filtrarColuna('${col}', this.value)">
-        </div>
-      </th>
-    `;
+<th class="${classeDestaque}">
+<div class="col-header">
+
+<div class="col-header-top">
+<span>${col}</span>
+<button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+</div>
+
+<input
+type="text"
+id="filtro_${col}"
+class="filtro-coluna"
+placeholder="Filtrar..."
+value="${filtrosColuna[col] || ''}"
+onclick="event.stopPropagation()"
+oninput="filtrarColuna('${col}',this.value)"
+>
+
+</div>
+</th>
+`;
       });
 
       html += '</tr>';
+
       document.getElementById("tabela-cabecalho").innerHTML = html;
     }
 
-    function renderizarGraficosEmLotes(graficos, indice = 0) {
-      const lote = 5;
-
-      for (let i = indice; i < indice + lote && i < graficos.length; i++) {
-        criarSparkline(graficos[i].id, graficos[i].valores);
-      }
-
-      if (indice + lote < graficos.length) {
-        requestAnimationFrame(() => {
-          renderizarGraficosEmLotes(graficos, indice + lote);
-        });
-      }
-    }
-
     function renderizarCorpo(dados) {
+      renderToken++;
+      const tokenAtual = renderToken;
       if (!dados || dados.length === 0) {
+
         document.getElementById("tabela-corpo").innerHTML =
-          "<tr><td colspan='" + colunasTabela.length + "'>Nenhum registro encontrado.</td></tr>";
+          `<tr><td colspan="${colunasTabela.length}">Nenhum registro encontrado.</td></tr>`;
+
         return;
       }
 
@@ -202,6 +246,7 @@
       let graficos = [];
 
       dados.forEach((linha, index) => {
+
         html += "<tr>";
 
         colunasTabela.forEach(col => {
@@ -209,49 +254,56 @@
           if (col === "Gráfico") {
 
             const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
-            const canvasId = "graf_" + index + "_" + Math.random().toString(36).substring(2, 7);
+
+            const canvasId = `graf_${linha.__rowId}`;
 
             html += `<td style="min-width:180px"><canvas id="${canvasId}" height="160"></canvas></td>`;
 
             graficos.push({
               id: canvasId,
-              valores: valores
+              valores
             });
 
-          } else if (col === 'Decis Compras') {
-            // Coluna editável "Decis Compras"
-            const valorAtual = String(linha[col] ?? "");
-            const valorOriginal = String(linha[col] ?? "");
-            const cellId = "cell_" + index;
+          }
 
-            // Salva o valor original se não existir
-            if (!valoresOriginais[index]) {
-              valoresOriginais[index] = {};
-            }
-            if (!valoresOriginais[index][col]) {
-              valoresOriginais[index][col] = valorOriginal;
+          else if (col === 'Decis Compras') {
+
+            const rowId = linha.__rowId;
+
+            const valorAtual = normalizarValor(linha[col] ?? "");
+
+            if (!valoresOriginais[rowId]) {
+              valoresOriginais[rowId] = valorAtual;
             }
 
-            // Compara como strings para evitar problemas de tipo
-            const foiEditado = String(valorAtual) !== String(valoresOriginais[index][col]);
-            const classeEditavel = 'cell-editable';
-            const classeEditado = foiEditado ? 'cell-edited' : '';
+            const valorOriginal = normalizarValor(valoresOriginais[rowId]);
+
+            const foiEditado = valorAtual !== valorOriginal;
 
             html += `
-              <td class="col-destaque-verde ${classeEditavel} ${classeEditado}" 
-                  data-index="${index}" 
-                  data-col="Decis Compras"
-                  data-original="${valorOriginal.replace(/"/g, '"').replace(/'/g, "&#39;")}"
-                  contenteditable="true"
-                  onblur="salvarEdicao(${index}, this)"
-                  onfocus="event.target.dataset.valorOriginal = '${valorOriginal.replace(/'/g, "\\'")}'">
-                <span class="cell-content">${valorAtual}</span>
-                ${foiEditado ? criarBotaoRestaurar(index, valoresOriginais[index]['Decis Compras']) : ''}
-              </td>`;
+<td
+class="col-destaque-verde cell-editable ${foiEditado ? 'cell-edited' : ''}"
+data-rowid="${rowId}"
+contenteditable="true"
+onblur="salvarEdicao('${rowId}',this)"
+>
 
-          } else {
-            const classeDestaque = col === 'Valor Comprado'
-              ? 'col-destaque-verde' : '';
+<span class="cell-content">${valorAtual}</span>
+
+${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
+
+</td>
+`;
+
+          }
+
+          else {
+
+            const classeDestaque =
+              col === 'Valor Comprado'
+                ? 'col-destaque-verde'
+                : '';
+
             html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
           }
 
@@ -262,116 +314,43 @@
 
       document.getElementById("tabela-corpo").innerHTML = html;
 
-      renderizarGraficosEmLotes(graficos);
+      renderizarGraficosEmLotes(graficos, 0, tokenAtual);
     }
 
-    function salvarEdicao(index, elemento) {
-      const colDecis = 'Decis Compras';
-      const novoValor = elemento.innerText.trim();
-      const valorOriginal = elemento.dataset.valorOriginal || valoresOriginais[index]?.[colDecis] || "";
+    function salvarEdicao(rowId, cell) {
 
-      if (dadosAtuais[index]) {
-        dadosAtuais[index][colDecis] = novoValor;
+      const linha = dadosAtuais.find(r => r.__rowId === rowId);
+      if (!linha) return;
 
-        // Recalcular Valor Comprado: Decis Compras * Valor Unitário
-        const valorUnitario = parseNumeroBR(dadosAtuais[index]['Valor Unitário']);
-        const decisCompras = parseNumeroBR(novoValor);
-        const novoValorComprado = valorUnitario * decisCompras;
-        dadosAtuais[index]['Valor Comprado'] = novoValorComprado;
+      const valorDigitado = Number(cell.innerText.trim()) || 0;
+      const valorAtual = Number(linha['Decis Compras']) || 0;
 
-        // Re-renderiza para atualizar a tabela e o banner
-        renderizarCorpo(dadosAtuais);
-        calcularSomaPorFamilia(dadosAtuais);
-      }
-    }
-
-    function criarSparkline(canvasId, valores) {
-      const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: colunasMes,
-          datasets: [{
-            data: valores,
-            borderWidth: 2,
-            pointRadius: 3,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: false }, // desativa tooltip
-            datalabels: {
-              align: 'bottom',
-              anchor: 'end',
-              formatter: function (value) {
-                return value.toLocaleString('pt-BR', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 2
-                });
-              },
-              font: {
-                size: 14,
-                weight: 'bold'
-              }
-            }
-          },
-          scales: {
-            x: { display: true },
-            y: {
-              display: false,
-              grace: '15%'   // adiciona espaço extra acima
-            }
-          }
-        },
-        plugins: [ChartDataLabels]
-      });
-    }
-
-    function ordenarColuna(coluna) {
-      if (coluna === "Gráfico") return;
-
-      if (ordenacaoAtual.coluna === coluna) {
-        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
-      } else {
-        ordenacaoAtual.coluna = coluna;
-        ordenacaoAtual.direcao = 'asc';
+      // se não mudou, ignora
+      if (valorDigitado === valorAtual) {
+        cell.innerText = valorAtual;
+        return;
       }
 
-      dadosAtuais.sort((a, b) => {
-        const valA = a[coluna] ?? "";
-        const valB = b[coluna] ?? "";
+      // atualiza estado
+      linha['Decis Compras'] = valorDigitado;
 
-        const numA = parseNumeroBR(valA);
-        const numB = parseNumeroBR(valB);
+      atualizarValorComprado(linha);
 
-        let resultado;
-        if (!isNaN(numA) && !isNaN(numB)) {
-          resultado = numA - numB;
-        } else {
-          resultado = valA.toString().localeCompare(valB.toString(), 'pt-BR', { numeric: true });
-        }
-
-        return ordenacaoAtual.direcao === 'asc' ? resultado : -resultado;
-      });
-
-      renderizarCabecalho();
-      renderizarCorpo(dadosAtuais);
+      renderizarTabelaSegura();
     }
 
     function filtrarColuna(coluna, valor) {
+
       filtrosColuna[coluna] = valor;
 
       dadosAtuais = dadosOriginais.filter(linha => {
+
         let corresponde = true;
 
         for (const col in filtrosColuna) {
+
           if (filtrosColuna[col]) {
+
             const cellValue = (linha[col] ?? "").toString().toLowerCase();
             const filtroValor = filtrosColuna[col].toLowerCase();
 
@@ -389,144 +368,224 @@
         return filtrosInvertidos ? !corresponde : corresponde;
       });
 
-      renderizarCorpo(dadosAtuais);
-      calcularSomaPorFamilia(dadosAtuais);
+      renderizarTabelaSegura(dadosAtuais);
+
       atualizarContador(dadosAtuais.length);
+      calcularSomaPorFamilia(dadosAtuais);
     }
 
     function atualizarContador(total) {
       document.getElementById('totalRegistros').textContent = total;
     }
 
-    function alternarCorrespondenciaExata() {
-      correspondenciaExata = !correspondenciaExata;
-      aplicarFiltros();
+    function renderizarGraficosEmLotes(graficos, indice = 0, token) {
+
+      if (token !== renderToken) return;
+
+      const lote = 5;
+
+      for (let i = indice; i < indice + lote && i < graficos.length; i++) {
+
+        criarSparkline(
+          graficos[i].id,
+          graficos[i].valores
+        );
+
+      }
+
+      if (indice + lote < graficos.length) {
+
+        requestAnimationFrame(() => {
+          renderizarGraficosEmLotes(
+            graficos,
+            indice + lote,
+            token
+          );
+        });
+
+      }
     }
 
-    function inverterFiltros() {
-      filtrosInvertidos = !filtrosInvertidos;
-      aplicarFiltros();
-    }
+    function criarSparkline(canvasId, valores) {
 
-    function aplicarFiltros() {
-      filtrarColuna("", "");
-    }
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
 
+      if (charts[canvasId]) {
+        charts[canvasId].destroy();
+      }
+
+      charts[canvasId] = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: colunasMes,
+          datasets: [{
+            data: valores,
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false },
+            datalabels: {
+              align: 'bottom',
+              anchor: 'end',
+              formatter: v => v.toLocaleString('pt-BR'),
+              font: { size: 14, weight: 'bold' }
+            }
+          },
+          scales: {
+            x: { display: true },
+            y: { display: false, grace: '15%' }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }
+    function calcularSomaPorFamilia(dados) {
+
+      if (!dados || dados.length === 0) {
+        document.getElementById('resumoFamilias').innerHTML =
+          '<p class="sem-dados">Nenhum dado disponível</p>';
+        return;
+      }
+
+      const somaPorFamilia = {};
+
+      dados.forEach(linha => {
+
+        const familia = linha['Família'] || 'Não definida';
+
+        const valorComprado =
+          parseNumeroBR(linha['Valor Comprado']);
+
+        if (!somaPorFamilia[familia])
+          somaPorFamilia[familia] = 0;
+
+        somaPorFamilia[familia] += valorComprado;
+
+      });
+
+
+      const familiasOrdenadas =
+        Object.entries(somaPorFamilia)
+          .sort((a, b) => b[1] - a[1]);
+
+      const totalGeral =
+        familiasOrdenadas
+          .reduce((acc, [, valor]) => acc + valor, 0);
+
+      let html = `
+<div class="familia-item familia-total">
+<span class="familia-nome">TOTAL GERAL</span>
+<span class="familia-valor">
+${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+</span>
+</div>
+`;
+
+      familiasOrdenadas.forEach(([familia, valor]) => {
+
+        const percentual =
+          totalGeral > 0
+            ? ((valor / totalGeral) * 100).toFixed(1)
+            : 0;
+
+        html += `
+<div class="familia-item">
+<span class="familia-nome">${familia}</span>
+<span class="familia-valor">
+${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+</span>
+<span class="familia-percentual">${percentual}%</span>
+</div>
+`;
+
+      });
+
+      document.getElementById('resumoFamilias').innerHTML = html;
+
+    }
     async function carregarExemplo() {
+
       try {
-        const response = await fetch('exemplo.json');
-        const data = await response.json();
-        if (data.dados && data.dados.length > 0) {
+
+        const response =
+          await fetch('exemplo.json');
+
+        const data =
+          await response.json();
+
+        if (data.dados && data.dados.length > 0)
           return data.dados;
-        }
-      } catch (e) {
+
+      }
+      catch (e) {
         console.log("Arquivo exemplo.json não encontrado");
       }
+
       return null;
+
+    }
+
+    let renderAgendado = false;
+
+    function renderizarTabelaSegura() {
+
+      if (renderAgendado) return;
+
+      renderAgendado = true;
+
+      setTimeout(() => {
+
+        renderAgendado = false;
+
+        renderizarCorpo(dadosAtuais);
+        calcularSomaPorFamilia(dadosAtuais);
+
+      }, 0);
+
     }
 
     async function init() {
+
+
       let dados = null;
 
       const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
 
-      if (dadosLocalStorage) {
+      if (dadosLocalStorage)
         dados = JSON.parse(dadosLocalStorage);
-      }
 
-      if (!dados || dados.length === 0) {
+      if (!dados || dados.length === 0)
         dados = await carregarExemplo();
-      }
 
-      montarTabela(dados);
+      // cria estado da aplicação
+      dadosAtuais = dados.map(r => {
 
-      // Calcula e exibe a soma por família
-      calcularSomaPorFamilia(dados);
+        const decis = Number(r['Decis Compras']) || 0;
 
-      // Configura o observer para monitorar alterações na tabela
-      configurarObserverTabela();
-    }
+        return {
+          ...r,
+          'Decis Compras': decis,
+          __original_decis: decis,
+          __rowId: crypto.randomUUID()
+        };
 
-    // Função para calcular soma de Valor Comprado por Família
-    function calcularSomaPorFamilia(dados) {
-      if (!dados || dados.length === 0) {
-        document.getElementById('resumoFamilias').innerHTML = '<p class="sem-dados">Nenhum dado disponível</p>';
-        return;
-      }
-
-      // Objeto para armazenar a soma por família
-      const somaPorFamilia = {};
-
-      dados.forEach(linha => {
-        const familia = linha['Família'] || 'Não definida';
-        const valorComprado = parseNumeroBR(linha['Valor Comprado']);
-
-        if (!somaPorFamilia[familia]) {
-          somaPorFamilia[familia] = 0;
-        }
-        somaPorFamilia[familia] += valorComprado;
       });
 
-      // Ordena por valor (maior primeiro)
-      const familiasOrdenadas = Object.entries(somaPorFamilia)
-        .sort((a, b) => b[1] - a[1]);
+      montarTabela(dadosAtuais);
 
-      // Calcula o total geral
-      const totalGeral = familiasOrdenadas.reduce((acc, [, valor]) => acc + valor, 0);
-
-      // Gera o HTML
-      let html = '<div class="familia-item familia-total">';
-      html += '<span class="familia-nome">TOTAL GERAL</span>';
-      html += '<span class="familia-valor">' + totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
-      html += '</div>';
-
-      familiasOrdenadas.forEach(([familia, valor]) => {
-        const percentual = totalGeral > 0 ? ((valor / totalGeral) * 100).toFixed(1) : 0;
-        html += '<div class="familia-item">';
-        html += '<span class="familia-nome">' + familia + '</span>';
-        html += '<span class="familia-valor">' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
-        html += '<span class="familia-percentual">' + percentual + '%</span>';
-        html += '</div>';
-      });
-
-      document.getElementById('resumoFamilias').innerHTML = html;
-    }
-
-    // Função para alternar visibilidade do banner lateral
-    function alternarBanner() {
-      const banner = document.getElementById('sidebarBanner');
-      const btn = document.getElementById('btnBanner');
-      const tabela = document.querySelector('.table-responsive');
-
-      if (banner.classList.contains('hidden')) {
-        banner.classList.remove('hidden');
-        tabela.classList.remove('expanded');
-        btn.textContent = '◀ Resumo';
-      } else {
-        banner.classList.add('hidden');
-        tabela.classList.add('expanded');
-        btn.textContent = '▶ Resumo';
-      }
+      calcularSomaPorFamilia(dadosAtuais);
     }
 
     window.onload = init;
 
-    // Listener para monitorar alterações na tabela e atualizar o banner
-    function configurarObserverTabela() {
-      const tabelaCorpo = document.getElementById('tabela-corpo');
-
-      const observer = new MutationObserver((mutations) => {
-        // Atualiza o banner quando houver alterações na tabela
-        calcularSomaPorFamilia(dadosAtuais);
-      });
-
-      observer.observe(tabelaCorpo, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-        attributes: true
-      });
-    }
 
   </script>
 </body>
