@@ -27,7 +27,9 @@ def compra_necessidade(df=None):
         df[col] = df[col].astype(float)
 
     df["Falta"] = df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"] - df["Neces"]
-
+    df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
+        0, 1
+    )
     df["Decis Compras"] = np.where(
         df["Falta"] <= 0,
         0,
