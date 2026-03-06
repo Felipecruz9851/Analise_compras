@@ -43,6 +43,10 @@
   </main>
 
   <script>
+    let charts = {};
+    let renderToken = 0;
+
+    let ignorarBlur = false;
     let dadosOriginais = [];
     let dadosAtuais = [];
 
@@ -89,10 +93,24 @@
       const valorStr = String(valorOriginal ?? '');
 
       return `
-<button class="btn-restaurar"
-onclick="restaurarValor('${rowId}','${valorStr.replace(/'/g, "\\'")}')"
-title="Restaurar valor original">↩</button>
+<button
+class="btn-restaurar"
+contenteditable="false"
+onmousedown="eventoReset(event,'${rowId}','${valorStr.replace(/'/g, "\\'")}')"
+>
+↩
+</button>
 `;
+    }
+    function eventoReset(e, rowId, valor) {
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      ignorarBlur = true;
+
+      restaurarValor(rowId, valor);
+
     }
 
     function restaurarValor(rowId, valorOriginal) {
@@ -104,8 +122,7 @@ title="Restaurar valor original">↩</button>
 
       atualizarValorComprado(linha);
 
-      renderizarCorpo(dadosAtuais);
-      calcularSomaPorFamilia(dadosAtuais);
+      renderizarTabelaSegura();
     }
 
     function atualizarValorComprado(linha) {
@@ -199,7 +216,8 @@ oninput="filtrarColuna('${col}',this.value)"
     }
 
     function renderizarCorpo(dados) {
-
+      renderToken++;
+      const tokenAtual = renderToken;
       if (!dados || dados.length === 0) {
 
         document.getElementById("tabela-corpo").innerHTML =
@@ -280,23 +298,26 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
 
       document.getElementById("tabela-corpo").innerHTML = html;
 
-      renderizarGraficosEmLotes(graficos);
+      renderizarGraficosEmLotes(graficos, 0, tokenAtual);
     }
 
     function salvarEdicao(rowId, elemento) {
 
+      if (ignorarBlur) {
+        ignorarBlur = false;
+        return;
+      }
+
       const novoValor = elemento.innerText.trim();
 
       const linha = dadosAtuais.find(r => r.__rowId === rowId);
-
       if (!linha) return;
 
       linha['Decis Compras'] = novoValor;
 
       atualizarValorComprado(linha);
 
-      renderizarCorpo(dadosAtuais);
-      calcularSomaPorFamilia(dadosAtuais);
+      renderizarTabelaSegura();
     }
 
     function ordenarColuna(coluna) {
@@ -333,7 +354,7 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
       });
 
       renderizarCabecalho();
-      renderizarCorpo(dadosAtuais);
+      renderizarTabelaSegura(dadosAtuais);
     }
 
     function filtrarColuna(coluna, valor) {
@@ -365,7 +386,7 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
         return filtrosInvertidos ? !corresponde : corresponde;
       });
 
-      renderizarCorpo(dadosAtuais);
+      renderizarTabelaSegura(dadosAtuais);
 
       atualizarContador(dadosAtuais.length);
       calcularSomaPorFamilia(dadosAtuais);
@@ -375,7 +396,9 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
       document.getElementById('totalRegistros').textContent = total;
     }
 
-    function renderizarGraficosEmLotes(graficos, indice = 0) {
+    function renderizarGraficosEmLotes(graficos, indice = 0, token) {
+
+      if (token !== renderToken) return;
 
       const lote = 5;
 
@@ -393,21 +416,24 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
         requestAnimationFrame(() => {
           renderizarGraficosEmLotes(
             graficos,
-            indice + lote
+            indice + lote,
+            token
           );
         });
 
       }
-
     }
 
     function criarSparkline(canvasId, valores) {
 
-      const ctx = document.getElementById(canvasId);
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
 
-      if (!ctx) return;
+      if (charts[canvasId]) {
+        charts[canvasId].destroy();
+      }
 
-      new Chart(ctx, {
+      charts[canvasId] = new Chart(canvas, {
         type: 'line',
         data: {
           labels: colunasMes,
@@ -427,29 +453,17 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
             datalabels: {
               align: 'bottom',
               anchor: 'end',
-              formatter: function (value) {
-                return value.toLocaleString('pt-BR', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 2
-                });
-              },
-              font: {
-                size: 14,
-                weight: 'bold'
-              }
+              formatter: v => v.toLocaleString('pt-BR'),
+              font: { size: 14, weight: 'bold' }
             }
           },
           scales: {
             x: { display: true },
-            y: {
-              display: false,
-              grace: '15%'
-            }
+            y: { display: false, grace: '15%' }
           }
         },
         plugins: [ChartDataLabels]
       });
-
     }
     function calcularSomaPorFamilia(dados) {
 
@@ -536,6 +550,25 @@ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigit
 
     }
 
+    let renderAgendado = false;
+
+    function renderizarTabelaSegura() {
+
+      if (renderAgendado) return;
+
+      renderAgendado = true;
+
+      setTimeout(() => {
+
+        renderAgendado = false;
+
+        renderizarCorpo(dadosAtuais);
+        calcularSomaPorFamilia(dadosAtuais);
+
+      }, 0);
+
+    }
+
     async function init() {
 
       let dados = null;
@@ -556,6 +589,8 @@ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigit
     }
 
     window.onload = init;
+
+
   </script>
 </body>
 
