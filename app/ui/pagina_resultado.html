@@ -112,17 +112,33 @@ onmousedown="eventoReset(event,'${rowId}','${valorStr.replace(/'/g, "\\'")}')"
       restaurarValor(rowId, valor);
 
     }
+    function normalizarValor(v) {
+      if (v == null) return "";
 
-    function restaurarValor(rowId, valorOriginal) {
+      return v
+        .toString()
+        .replace(/\u00A0/g, " ")   // troca espaço não-quebrável
+        .trim();
+    }
+
+    function restaurarValor(rowId) {
 
       const linha = dadosAtuais.find(r => r.__rowId === rowId);
       if (!linha) return;
 
-      linha['Decis Compras'] = valorOriginal;
+      linha['Decis Compras'] = linha.__original_decis;
 
       atualizarValorComprado(linha);
 
       renderizarTabelaSegura();
+
+      // redefine baseline do input
+      requestAnimationFrame(() => {
+        const input = document.querySelector(`[data-row="${rowId}"]`);
+        if (input) {
+          input.defaultValue = input.value;
+        }
+      });
     }
 
     function atualizarValorComprado(linha) {
@@ -254,13 +270,13 @@ oninput="filtrarColuna('${col}',this.value)"
 
             const rowId = linha.__rowId;
 
-            const valorAtual = String(linha[col] ?? "");
+            const valorAtual = normalizarValor(linha[col] ?? "");
 
             if (!valoresOriginais[rowId]) {
               valoresOriginais[rowId] = valorAtual;
             }
 
-            const valorOriginal = valoresOriginais[rowId];
+            const valorOriginal = normalizarValor(valoresOriginais[rowId]);
 
             const foiEditado = valorAtual !== valorOriginal;
 
@@ -301,60 +317,26 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
       renderizarGraficosEmLotes(graficos, 0, tokenAtual);
     }
 
-    function salvarEdicao(rowId, elemento) {
-
-      if (ignorarBlur) {
-        ignorarBlur = false;
-        return;
-      }
-
-      const novoValor = elemento.innerText.trim();
+    function salvarEdicao(rowId, cell) {
 
       const linha = dadosAtuais.find(r => r.__rowId === rowId);
       if (!linha) return;
 
-      linha['Decis Compras'] = novoValor;
+      const valorDigitado = Number(cell.innerText.trim()) || 0;
+      const valorAtual = Number(linha['Decis Compras']) || 0;
+
+      // se não mudou, ignora
+      if (valorDigitado === valorAtual) {
+        cell.innerText = valorAtual;
+        return;
+      }
+
+      // atualiza estado
+      linha['Decis Compras'] = valorDigitado;
 
       atualizarValorComprado(linha);
 
       renderizarTabelaSegura();
-    }
-
-    function ordenarColuna(coluna) {
-
-      if (coluna === "Gráfico") return;
-
-      if (ordenacaoAtual.coluna === coluna) {
-        ordenacaoAtual.direcao =
-          ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
-      }
-      else {
-        ordenacaoAtual.coluna = coluna;
-        ordenacaoAtual.direcao = 'asc';
-      }
-
-      dadosAtuais.sort((a, b) => {
-
-        const valA = a[coluna] ?? "";
-        const valB = b[coluna] ?? "";
-
-        const numA = parseNumeroBR(valA);
-        const numB = parseNumeroBR(valB);
-
-        let resultado;
-
-        if (!isNaN(numA) && !isNaN(numB))
-          resultado = numA - numB;
-        else
-          resultado = valA.toString().localeCompare(valB.toString(), 'pt-BR', { numeric: true });
-
-        return ordenacaoAtual.direcao === 'asc'
-          ? resultado
-          : -resultado;
-      });
-
-      renderizarCabecalho();
-      renderizarTabelaSegura(dadosAtuais);
     }
 
     function filtrarColuna(coluna, valor) {
@@ -489,6 +471,7 @@ ${foiEditado ? criarBotaoRestaurar(rowId, valorOriginal) : ''}
 
       });
 
+
       const familiasOrdenadas =
         Object.entries(somaPorFamilia)
           .sort((a, b) => b[1] - a[1]);
@@ -571,10 +554,10 @@ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigit
 
     async function init() {
 
+
       let dados = null;
 
-      const dadosLocalStorage =
-        localStorage.getItem("resultadoAnalise");
+      const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
 
       if (dadosLocalStorage)
         dados = JSON.parse(dadosLocalStorage);
@@ -582,10 +565,23 @@ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigit
       if (!dados || dados.length === 0)
         dados = await carregarExemplo();
 
-      montarTabela(dados);
+      // cria estado da aplicação
+      dadosAtuais = dados.map(r => {
 
-      calcularSomaPorFamilia(dados);
+        const decis = Number(r['Decis Compras']) || 0;
 
+        return {
+          ...r,
+          'Decis Compras': decis,
+          __original_decis: decis,
+          __rowId: crypto.randomUUID()
+        };
+
+      });
+
+      montarTabela(dadosAtuais);
+
+      calcularSomaPorFamilia(dadosAtuais);
     }
 
     window.onload = init;
