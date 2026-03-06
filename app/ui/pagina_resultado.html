@@ -86,7 +86,7 @@
 
     function criarBotaoRestaurar(indiceLinha, valorOriginal) {
       const valorStr = String(valorOriginal ?? '');
-      return `<button class="btn-restaurar" onclick="restaurarValor(${indiceLinha}, '${valorStr.replace(/'/g, "\\'")}')" title="Restaurar valor original">↩</button>`;
+      return `<button class="btn-restaurar" onclick="restaurarValor(${indiceLinha},'${valorStr.replace(/'/g, "\\'")}'),calcularSomaPorFamilia(${dadosAtuais})" title="Restaurar valor original">↩</button>`;
     }
 
     function restaurarValor(indiceLinha, valorOriginal) {
@@ -99,9 +99,9 @@
         const decisCompras = parseNumeroBR(valorOriginal);
         const novoValorComprado = valorUnitario * decisCompras;
         linha['Valor Comprado'] = novoValorComprado;
-
-        renderizarCorpo(dadosAtuais);
         calcularSomaPorFamilia(dadosAtuais);
+        renderizarCorpo(dadosAtuais);
+
       }
     }
 
@@ -390,6 +390,7 @@
       });
 
       renderizarCorpo(dadosAtuais);
+      calcularSomaPorFamilia(dadosAtuais);
       atualizarContador(dadosAtuais.length);
     }
 
@@ -441,6 +442,9 @@
 
       // Calcula e exibe a soma por família
       calcularSomaPorFamilia(dados);
+
+      // Configura o observer para monitorar alterações na tabela
+      configurarObserverTabela();
     }
 
     // Função para calcular soma de Valor Comprado por Família
@@ -506,6 +510,23 @@
     }
 
     window.onload = init;
+
+    // Listener para monitorar alterações na tabela e atualizar o banner
+    function configurarObserverTabela() {
+      const tabelaCorpo = document.getElementById('tabela-corpo');
+
+      const observer = new MutationObserver((mutations) => {
+        // Atualiza o banner quando houver alterações na tabela
+        calcularSomaPorFamilia(dadosAtuais);
+      });
+
+      observer.observe(tabelaCorpo, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true
+      });
+    }
 
   </script>
 </body>
