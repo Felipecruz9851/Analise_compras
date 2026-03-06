@@ -586,6 +586,107 @@ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigit
 
     window.onload = init;
 
+    // =============================
+    // FUNÇÕES DE ORDENAÇÃO (SORT)
+    // =============================
+
+    function ordenarColuna(coluna) {
+      // Se clicar na mesma coluna, inverte a direção
+      if (ordenacaoAtual.coluna === coluna) {
+        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+      } else {
+        ordenacaoAtual.coluna = coluna;
+        ordenacaoAtual.direcao = 'asc';
+      }
+
+      // Realiza a ordenação
+      dadosAtuais.sort((a, b) => {
+        let valorA = a[coluna];
+        let valorB = b[coluna];
+
+        // Trata valores nulos/undefined
+        if (valorA == null) valorA = '';
+        if (valorB == null) valorB = '';
+
+        // Verifica se é número
+        const numA = parseNumeroBR(valorA);
+        const numB = parseNumeroBR(valorB);
+
+        // Se ambos forem números válidos, ordena numericamente
+        if (!isNaN(numA) && !isNaN(numB) && valorA !== '' && valorB !== '') {
+          return ordenacaoAtual.direcao === 'asc' ? numA - numB : numB - numA;
+        }
+
+        // Caso contrário, ordena como string
+        valorA = valorA.toString().toLowerCase();
+        valorB = valorB.toString().toLowerCase();
+
+        if (valorA < valorB) return ordenacaoAtual.direcao === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenacaoAtual.direcao === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      // Atualiza o cabeçalho para mostrar o ícone correto
+      renderizarCabecalho();
+
+      // Re-renderiza o corpo da tabela
+      renderizarCorpo(dadosAtuais);
+    }
+
+    // =============================
+    // FUNÇÕES DE FILTRO
+    // =============================
+
+    function inverterFiltros() {
+      filtrosInvertidos = !filtrosInvertidos;
+
+      const btn = document.getElementById('btnInverterFiltros');
+      if (filtrosInvertidos) {
+        btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e4606d 100%)';
+        btn.textContent = 'Filtros Invertidos';
+      } else {
+        btn.style.background = '';
+        btn.textContent = 'Inverter Filtros';
+      }
+
+      // Reaplica os filtros atuais
+      filtrarColuna('', '');
+    }
+
+    function alternarCorrespondenciaExata() {
+      correspondenciaExata = !correspondenciaExata;
+
+      const btn = document.getElementById('btnCorrespondenciaExata');
+      if (correspondenciaExata) {
+        btn.style.background = 'linear-gradient(135deg, #007bff 0%, #5a9fff 100%)';
+        btn.textContent = 'Exata: ON';
+      } else {
+        btn.style.background = '';
+        btn.textContent = 'Correspondência Exata';
+      }
+
+      // Reaplica os filtros atuais
+      filtrarColuna('', '');
+    }
+
+    // =============================
+    // FUNÇÕES DO BANNER (SIDEBAR)
+    // =============================
+
+    function alternarBanner() {
+      const banner = document.getElementById('sidebarBanner');
+      const btn = document.getElementById('btnBanner');
+
+      banner.classList.toggle('hidden');
+
+      if (banner.classList.contains('hidden')) {
+        btn.textContent = '▶ Resumo';
+        btn.title = 'Exibir Resumo por Família';
+      } else {
+        btn.textContent = '◀ Resumo';
+        btn.title = 'Ocultar Resumo por Família';
+      }
+    }
 
   </script>
 </body>
