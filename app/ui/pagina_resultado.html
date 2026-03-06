@@ -218,7 +218,10 @@
 </td>`;
           } else {
             const classeDestaque = col === 'Valor Comprado' ? 'col-destaque-verde' : '';
-            html += `<td class="${classeDestaque}">${linha[col] ?? ""}</td>`;
+            const valor = col === 'Valor Comprado'
+              ? parseNumeroBR(linha[col]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+              : linha[col] ?? "";
+            html += `<td class="${classeDestaque}">${valor}</td>`;
           }
         });
         html += "</tr>";
@@ -455,7 +458,7 @@
       let html = `
 <div class="familia-item familia-total">
   <span class="familia-nome">TOTAL GERAL</span>
-  <span class="familia-valor">${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+  <span class="familia-valor">${totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
 </div>`;
 
       familiasOrdenadas.forEach(([familia, valor]) => {
@@ -463,7 +466,7 @@
         html += `
 <div class="familia-item">
   <span class="familia-nome">${familia}</span>
-  <span class="familia-valor">${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+  <span class="familia-valor">${valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
   <span class="familia-percentual">${percentual}%</span>
 </div>`;
       });
