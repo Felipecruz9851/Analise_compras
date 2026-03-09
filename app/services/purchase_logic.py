@@ -26,7 +26,9 @@ def compra_necessidade(df=None):
 
         df[col] = df[col].astype(float)
 
-    df["Falta"] = df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"] - df["Neces"]
+    df["Falta"] = df["Neces"] - (
+        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
+    )
     df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
         0, 1
     )

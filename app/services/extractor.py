@@ -146,7 +146,7 @@ class Extractor:
 
         resultados = []
 
-        with ThreadPoolExecutor(max_workers=len(tarefas)) as executor:
+        with ThreadPoolExecutor(max_workers=10) as executor:
 
             futures = [executor.submit(self.worker, tarefa) for tarefa in tarefas]
 
