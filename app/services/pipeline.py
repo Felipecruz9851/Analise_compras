@@ -10,7 +10,7 @@ def executar_pipeline(username, password, analise):
     print("Extractor criado com sucesso!")
 
     html_resultados = extractor.executar(analise)
-    print("HTML gerado com sucesso!")
+    print("Dados coletados com sucesso!")
 
     dfs = juntar_tabelas(html_resultados)  # ← dicionário com "ordens"
     print("Dicionário dfs gerado com grupos:", list(dfs.keys()))

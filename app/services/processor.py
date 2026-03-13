@@ -1,33 +1,43 @@
 from pydoc import html
+from anyio import Path
 import pandas as pd
 import pandas as pd
 from bs4 import BeautifulSoup
 import time
 from app.settings import dict_fam
+import sys
+from pathlib import Path
 
 
 def extract_table(html: str) -> pd.DataFrame:
     data_ref = time.strftime("%Y-%m")
 
     soup = BeautifulSoup(html, "html.parser")
+
     table = soup.find("table", attrs={"border": "1"})
     if table is None:
         raise ValueError("Tabela de dados não encontrada")
 
     rows = table.find_all("tr")
-    if len(rows) < 2:
-        raise ValueError("Tabela sem linhas de dados")
 
-    header = [cell.get_text(strip=True) for cell in rows[0].find_all("td")]
+    header = [cell.get_text(strip=True) for cell in rows[0].find_all(["td", "th"])]
 
-    data = [
-        [cell.get_text(strip=True) for cell in row.find_all("td")]
-        for row in rows[1:]
-        if row.find_all("td")
-    ]
+    data = []
+    for row in rows[1:]:
+        cols = [c.get_text(strip=True) for c in row.find_all("td")]
+
+        # ignora linhas quebradas
+        if len(cols) != len(header):
+            continue
+
+        data.append(cols)
+
     df = pd.DataFrame(data, columns=header)
 
-    df = df.drop(columns=[data_ref])
+    # só remove se existir
+    if data_ref in df.columns:
+        df = df.drop(columns=[data_ref])
+
     return df
 
 
@@ -43,7 +53,8 @@ def juntar_tabelas(resultados):
             df["Família"] = familia
             grupos[grupo].append(df)
         except Exception as e:
-            print(f"Falha no grupo {grupo}: {e}")
+            print(f"Erro ao interpretar tabela: {e}")
+            Path("debug_html.html").write_text(html, encoding="utf-8")
 
     dfs = {}
     for grupo, lista_dfs in grupos.items():
@@ -53,5 +64,10 @@ def juntar_tabelas(resultados):
         else:
             dfs[grupo] = lista_dfs[0]
             print(f"Grupo '{grupo}': tabela única")
+    for nome, df in dfs.items():
+        try:
+            df.to_excel(f"{nome}.xlsx", index=False)
+        except Exception as e:
+            print(f"[ERRO] {nome} -> {type(e).__name__}: {e}")
 
     return dfs  # ← dicionário { "ordens": df }
