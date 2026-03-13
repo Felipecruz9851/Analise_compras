@@ -23,7 +23,6 @@ def compra_necessidade(df=None):
 
     # Aplicar a transformação em todas as colunas da lista
     for col in colunas_para_normalizar:
-
         df[col] = df[col].astype(float)
 
     df["Falta"] = df["Neces"] - (

@@ -8,7 +8,6 @@ from app.settings import dict_fam
 
 def extract_table(html: str) -> pd.DataFrame:
     data_ref = time.strftime("%Y-%m")
-    print(data_ref)
 
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table", attrs={"border": "1"})
@@ -28,14 +27,11 @@ def extract_table(html: str) -> pd.DataFrame:
     ]
     df = pd.DataFrame(data, columns=header)
 
-    print(df.head())
-
     df = df.drop(columns=[data_ref])
     return df
 
 
 def juntar_tabelas(resultados):
-
     dfs = []
 
     for html, familia in resultados:

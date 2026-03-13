@@ -13,7 +13,6 @@ def executar_pipeline(username, password, analise):
 
     df = juntar_tabelas(html_resultados)
     print("Tabela extraída com sucesso!")
-    print(df.head())
     df = calcular(analise, df)
     # depois você processa HTML aqui
     # transforma em dataframe

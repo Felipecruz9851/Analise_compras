@@ -139,7 +139,6 @@ class Extractor:
         html = extractor.executar_tarefa(tarefa)
 
         familia = tarefa["data"]["familia"]
-
         return html, familia
 
     def executar_paralelo(self, tarefas):
