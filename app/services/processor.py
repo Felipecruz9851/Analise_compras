@@ -5,8 +5,6 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import time
 from app.settings import dict_fam
-import sys
-from pathlib import Path
 
 
 def extract_table(html: str) -> pd.DataFrame:
@@ -54,7 +52,6 @@ def juntar_tabelas(resultados):
             grupos[grupo].append(df)
         except Exception as e:
             print(f"Erro ao interpretar tabela: {e}")
-            Path("debug_html.html").write_text(html, encoding="utf-8")
 
     dfs = {}
     for grupo, lista_dfs in grupos.items():

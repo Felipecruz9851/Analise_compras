@@ -4,6 +4,8 @@ from pathlib import Path
 from datetime import datetime
 from queue import Queue
 import threading
+import json
+from time import perf_counter
 
 from app.settings import FAMILIAS, LOCAIS
 
@@ -17,6 +19,8 @@ class Extractor:
     APOIO = f"{BASE_URL}/pcp/apoio_compras_pcp_lgx.php"
     ORDENS = f"{BASE_URL}/pcp/atrasadas.php"
 
+    ARQ_TEMPOS = Path("tempos_execucao.json")
+
     def __init__(self, username: str, password: str):
 
         if not username or not password:
@@ -27,13 +31,27 @@ class Extractor:
         self.session = requests.Session()
 
     # ----------------------------
+    # HISTÓRICO DE TEMPOS
+    # ----------------------------
+
+    def carregar_tempos(self):
+
+        if not self.ARQ_TEMPOS.exists():
+            return {}
+
+        with open(self.ARQ_TEMPOS, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def salvar_tempos(self, tempos):
+
+        with open(self.ARQ_TEMPOS, "w", encoding="utf-8") as f:
+            json.dump(tempos, f, indent=2)
+
+    # ----------------------------
     # LOGIN
     # ----------------------------
 
     def login(self) -> None:
-        """
-        Realiza login na aplicação e valida autenticação.
-        """
 
         self.session.get(self.LOGIN_PAGE, timeout=10)
 
@@ -157,13 +175,13 @@ class Extractor:
         self,
         fila: Queue,
         resultados: list,
+        tempos_execucao: dict,
         lock: threading.Lock,
         progresso: dict,
         total: int,
     ):
 
         extractor = Extractor(self.username, self.password)
-
         extractor.login()
 
         while True:
@@ -175,8 +193,13 @@ class Extractor:
 
             try:
 
+                inicio = perf_counter()
+
                 html = extractor.executar_tarefa(tarefa)
 
+                duracao = perf_counter() - inicio
+
+                nome = tarefa["nome"]
                 familia = tarefa["data"].get("familia")
                 grupo = tarefa.get("grupo")
 
@@ -184,9 +207,20 @@ class Extractor:
 
                     resultados.append((html, familia, grupo))
 
+                    # média móvel simples
+                    if nome in tempos_execucao:
+                        tempos_execucao[nome] = (
+                            tempos_execucao[nome] * 0.7 + duracao * 0.3
+                        )
+                    else:
+                        tempos_execucao[nome] = duracao
+
                     progresso["concluidas"] += 1
 
-                    print(f"Tarefas concluídas: {progresso['concluidas']} / {total}")
+                    print(
+                        f"{nome} concluída em {duracao:.2f}s "
+                        f"({progresso['concluidas']} / {total})"
+                    )
 
             finally:
                 fila.task_done()
@@ -203,8 +237,9 @@ class Extractor:
             fila.put(tarefa)
 
         resultados = []
-
         lock = threading.Lock()
+
+        tempos_execucao = self.carregar_tempos()
 
         progresso = {"concluidas": 0}
         total = len(tarefas)
@@ -215,7 +250,7 @@ class Extractor:
 
             t = threading.Thread(
                 target=self._worker,
-                args=(fila, resultados, lock, progresso, total),
+                args=(fila, resultados, tempos_execucao, lock, progresso, total),
             )
 
             t.start()
@@ -225,6 +260,8 @@ class Extractor:
 
         for t in threads:
             t.join()
+
+        self.salvar_tempos(tempos_execucao)
 
         return resultados
 
@@ -236,9 +273,20 @@ class Extractor:
 
         tarefas = self.gerar_tarefas(analise)
 
+        tempos = self.carregar_tempos()
+
+        # ordenar tarefas pelas mais lentas primeiro
+        tarefas.sort(key=lambda t: tempos.get(t["nome"], 0), reverse=True)
+
         resultados = self.executar_paralelo(tarefas)
 
         for html, familia, grupo in resultados:
-            self.salvar_html(html, f"apoio_compras_{familia}")
+
+            if familia:
+                nome = f"apoio_compras_{familia}"
+            else:
+                nome = grupo
+
+            self.salvar_html(html, nome)
 
         return resultados
