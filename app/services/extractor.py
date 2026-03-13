@@ -67,7 +67,6 @@ class Extractor:
     # ----------------------------
 
     def gerar_tarefas(self, analise: str) -> List[Dict]:
-
         if analise not in FAMILIAS:
             raise ValueError(f"Análise não suportada: {analise}")
 
@@ -90,9 +89,9 @@ class Extractor:
                         "neces_aberto": "S",
                     },
                     "timeout": (5, 600),
+                    "grupo": "apoio_compras",  # ← todas as tarefas vão para o mesmo grupo
                 }
             )
-
         return tarefas
 
     # ----------------------------
@@ -131,15 +130,16 @@ class Extractor:
 
         return arquivo
 
-    def worker(self, tarefa: Dict):
-
+    def worker(self, tarefa):
         extractor = Extractor(self.username, self.password)
         extractor.login()
 
         html = extractor.executar_tarefa(tarefa)
 
-        familia = tarefa["data"]["familia"]
-        return html, familia
+        familia = tarefa["data"].get("familia")
+        grupo = tarefa.get("grupo")
+
+        return html, familia, grupo
 
     def executar_paralelo(self, tarefas):
 
@@ -164,7 +164,8 @@ class Extractor:
 
         resultados = self.executar_paralelo(tarefas)
 
-        for tarefa, (html, familia) in zip(tarefas, resultados):
+        # Atualizado para receber os 3 valores (html, familia, grupo)
+        for tarefa, (html, familia, grupo) in zip(tarefas, resultados):
             self.salvar_html(html, tarefa["nome"])
 
         return resultados

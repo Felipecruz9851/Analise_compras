@@ -61,8 +61,20 @@ def compra_necessidade(df=None):
     return df
 
 
-def calcular(analise, df):
-    if analise == "compra por necessidade":
-        df = compra_necessidade(df)
+def calcular(analise, dfs):
+    """
+    Recebe o dicionário dfs = {"ordens": df}
+    e retorna UM ÚNICO DataFrame (para o pipeline gerar o JSON)
+    """
+    print(dfs.keys())
+    df = dfs.get(
+        "apoio_compras"
+    )  # ← exatamente como você pediu: df_ordens = dfs.get("ordens")
 
-    return df
+    if df is None:
+        raise ValueError("Grupo não encontrado no dicionário dfs")
+
+    if analise == "compra por necessidade":
+        df = compra_necessidade(df)  # ← aplica sua lógica
+
+    return df  # ← retorna DataFrame único

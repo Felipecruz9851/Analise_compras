@@ -32,19 +32,26 @@ def extract_table(html: str) -> pd.DataFrame:
 
 
 def juntar_tabelas(resultados):
-    dfs = []
+    from collections import defaultdict
+    import pandas as pd
 
-    for html, familia in resultados:
+    grupos = defaultdict(list)
 
+    for html, familia, grupo in resultados:
         try:
             df = extract_table(html)
-
             df["Família"] = familia
-
-            if not df.empty:
-                dfs.append(df)
-
+            grupos[grupo].append(df)
         except Exception as e:
-            print("Falha ao extrair tabela:", e)
+            print(f"Falha no grupo {grupo}: {e}")
 
-    return pd.concat(dfs, ignore_index=True)
+    dfs = {}
+    for grupo, lista_dfs in grupos.items():
+        if len(lista_dfs) > 1:
+            dfs[grupo] = pd.concat(lista_dfs, ignore_index=True)
+            print(f"Grupo '{grupo}': {len(lista_dfs)} tabelas unidas")
+        else:
+            dfs[grupo] = lista_dfs[0]
+            print(f"Grupo '{grupo}': tabela única")
+
+    return dfs  # ← dicionário { "ordens": df }

@@ -1,6 +1,7 @@
 from app.services.extractor import Extractor
 from app.services.processor import juntar_tabelas
 from app.services.purchase_logic import calcular
+import pandas as pd
 
 
 def executar_pipeline(username, password, analise):
@@ -11,12 +12,10 @@ def executar_pipeline(username, password, analise):
     html_resultados = extractor.executar(analise)
     print("HTML gerado com sucesso!")
 
-    df = juntar_tabelas(html_resultados)
-    print("Tabela extraída com sucesso!")
-    df = calcular(analise, df)
-    # depois você processa HTML aqui
-    # transforma em dataframe
-    # aplica lógica de compra
-    df = df.fillna("")
+    dfs = juntar_tabelas(html_resultados)  # ← dicionário com "ordens"
+    print("Dicionário dfs gerado com grupos:", list(dfs.keys()))
 
-    return df.to_dict(orient="records")
+    df = calcular(analise, dfs)  # ← calcular recebe dict e devolve df único
+
+    df = df.fillna("")
+    return df.to_dict(orient="records")  # ← JSON idêntico ao que era antes
