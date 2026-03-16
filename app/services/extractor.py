@@ -18,6 +18,7 @@ class Extractor:
     LOGIN_POST = f"{BASE_URL}/home/login/"
     APOIO = f"{BASE_URL}/pcp/apoio_compras_pcp_lgx.php"
     ORDENS = f"{BASE_URL}/pcp/atrasadas.php"
+    CONS = f"{BASE_URL}/pcp/consumo_alt.php"
 
     ARQ_TEMPOS = Path("tempos_execucao.json")
 
@@ -130,6 +131,23 @@ class Extractor:
                 }
             )
 
+        for local in LOCAIS:
+            tarefas.append(
+                {
+                    "nome": f"cons{local}",
+                    "method": "POST",
+                    "url": self.CONS,
+                    "data": {
+                        "cod_empresa": "11",
+                        "local[]": local,
+                        "dati": "2000-01-01",
+                        "datf": "2050-12-31",
+                    },
+                    "timeout": (5, 600),
+                    "grupo": "cons",
+                }
+            )
+
         return tarefas
 
     # ----------------------------
@@ -229,7 +247,7 @@ class Extractor:
     # EXECUÇÃO PARALELA
     # ----------------------------
 
-    def executar_paralelo(self, tarefas: List[Dict], max_workers: int = 15):
+    def executar_paralelo(self, tarefas: List[Dict], max_workers: int = 10):
 
         fila = Queue()
 

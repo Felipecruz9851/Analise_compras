@@ -13,3 +13,4 @@ _venv
 app/__pycache__
 ui/__pycache__
 saida_html
+snapshot*

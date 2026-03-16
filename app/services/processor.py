@@ -61,10 +61,11 @@ def juntar_tabelas(resultados):
         else:
             dfs[grupo] = lista_dfs[0]
             print(f"Grupo '{grupo}': tabela única")
-    for nome, df in dfs.items():
-        try:
-            df.to_excel(f"{nome}.xlsx", index=False)
-        except Exception as e:
-            print(f"[ERRO] {nome} -> {type(e).__name__}: {e}")
+    #####  Salva em Excel #####
+    # for nome, df in dfs.items():
+    #     try:
+    #         df.to_excel(f"{nome}.xlsx", index=False)
+    #     except Exception as e:
+    #         print(f"[ERRO] {nome} -> {type(e).__name__}: {e}")
 
     return dfs  # ← dicionário { "ordens": df }

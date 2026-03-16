@@ -7,7 +7,7 @@ import pandas as pd
 from time import perf_counter
 
 
-def executar_pipeline(username, password, analise):
+def coletar_dados(username, password, analise):
 
     inicio_total = perf_counter()
 
@@ -22,11 +22,14 @@ def executar_pipeline(username, password, analise):
     dfs = juntar_tabelas(html_resultados)
     print("Dicionário dfs gerado com grupos:", list(dfs.keys()))
 
+    return dfs
+
+
+def executar_pipeline(username, password, analise):
+
+    dfs = coletar_dados(username, password, analise)
+
     df = calcular(analise, dfs)
-
     df = df.fillna("")
-
-    duracao_total = perf_counter() - inicio_total
-    print(f"Pipeline completo executado em {duracao_total:.2f} segundos")
 
     return df.to_dict(orient="records")
