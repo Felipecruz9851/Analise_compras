@@ -12,6 +12,11 @@ class Api:
             payload["username"], payload["password"], payload["analise"]
         )
 
+    def filtrar_datas(self, payload):
+        # Implementation for filtering data by date range
+        print("I'm here")
+        pass
+
 
 def start():
     api = Api()

@@ -320,6 +320,6 @@ class Extractor:
             else:
                 nome = grupo
 
-            self.salvar_html(html, nome)
+            # self.salvar_html(html, nome)
 
         return resultados
