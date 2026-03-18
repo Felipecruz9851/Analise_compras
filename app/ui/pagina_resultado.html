@@ -21,6 +21,13 @@
     </div>
 
     <div class="header-right">
+      <div class="date-filter">
+        <label>Período:</label>
+        <input type="date" id="dataInicio">
+        <input type="date" id="dataFim">
+        <button onclick="aplicarFiltroData()">Aplicar</button>
+        <button onclick="limparFiltroData()" class="btn-limpar" title="Limpar">×</button>
+      </div>
       <div class="contador">
         Registros: <span id="totalRegistros">0</span>
       </div>
@@ -61,6 +68,10 @@
     let filtrosColuna = {};
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
+
+    // Filtros de data
+    let filtroDataInicio = '';
+    let filtroDataFim = '';
 
     /* =============================
        UTILITÁRIOS
@@ -345,6 +356,69 @@
       }
 
       filtrarColuna('', '');
+    }
+
+    /* =============================
+       FILTRO DE DATAS
+       ============================= */
+    async function aplicarFiltroData() {
+      const inicioInput = document.getElementById('dataInicio');
+      const fimInput = document.getElementById('dataFim');
+
+      filtroDataInicio = inicioInput.value;
+      filtroDataFim = fimInput.value;
+
+      if (!filtroDataInicio && !filtroDataFim) {
+        limparFiltroData();
+        return;
+      }
+
+      if (filtroDataInicio && filtroDataFim && filtroDataInicio > filtroDataFim) {
+        alert('Data início deve ser menor ou igual à data fim.');
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams();
+        if (filtroDataInicio) params.append('inicio', filtroDataInicio);
+        if (filtroDataFim) params.append('fim', filtroDataFim);
+
+        const response = await fetch(`/api/filtrar_datas?${params}`);
+
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (result.dados) {
+          dadosOriginais = result.dados.map(r => ({
+            ...r,
+            'Decis Compras': Number(r['Decis Compras']) || 0,
+            __original_decis: Number(r['Decis Compras']) || 0,
+            __rowId: r.__rowId || gerarRowId()
+          }));
+
+          dadosAtuais = [...dadosOriginais];
+          configurarColunas();
+          renderizarCabecalho();
+          filtrarColuna('', ''); // Reaplica filtros de coluna existentes
+        } else {
+          alert('Resposta da API inválida.');
+        }
+      } catch (error) {
+        console.error('Erro ao filtrar dados:', error);
+        alert('Erro ao aplicar filtro de datas. Verifique se o backend está rodando.');
+      }
+    }
+
+    function limparFiltroData() {
+      filtroDataInicio = '';
+      filtroDataFim = '';
+      document.getElementById('dataInicio').value = '';
+      document.getElementById('dataFim').value = '';
+
+      // Recarrega dados originais
+      init();
     }
 
     /* =============================
