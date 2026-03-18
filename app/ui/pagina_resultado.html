@@ -362,36 +362,34 @@
        FILTRO DE DATAS
        ============================= */
     async function aplicarFiltroData() {
-      const inicioInput = document.getElementById('dataInicio');
-      const fimInput = document.getElementById('dataFim');
-
-      filtroDataInicio = inicioInput.value;
-      filtroDataFim = fimInput.value;
-
-      if (!filtroDataInicio && !filtroDataFim) {
-        limparFiltroData();
-        return;
+      // Wait for pywebview to be ready
+      if (typeof window.pywebview === 'undefined') {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      if (filtroDataInicio && filtroDataFim && filtroDataInicio > filtroDataFim) {
-        alert('Data início deve ser menor ou igual à data fim.');
-        return;
-      }
+      const payload = {
+        dataInicio: document.getElementById('dataInicio').value,
+        dataFim: document.getElementById('dataFim').value
+      };
 
       try {
-        const params = new URLSearchParams();
-        if (filtroDataInicio) params.append('inicio', filtroDataInicio);
-        if (filtroDataFim) params.append('fim', filtroDataFim);
+        filtroDataInicio = payload.dataInicio;
+        filtroDataFim = payload.dataFim;
 
-        const response = await fetch(`/api/filtrar_datas?${params}`);
-
-        if (!response.ok) {
-          throw new Error(`Erro HTTP: ${response.status}`);
+        if (!filtroDataInicio && !filtroDataFim) {
+          limparFiltroData();
+          return;
         }
 
-        const result = await response.json();
-        if (result.dados) {
-          dadosOriginais = result.dados.map(r => ({
+        if (filtroDataInicio && filtroDataFim && filtroDataInicio > filtroDataFim) {
+          alert('Data início deve ser menor ou igual à data fim.');
+          return;
+        }
+
+        const resultado = await window.pywebview.api.filtrar_datas(payload);
+
+        if (resultado && resultado.dados) {
+          dadosOriginais = resultado.dados.map(r => ({
             ...r,
             'Decis Compras': Number(r['Decis Compras']) || 0,
             __original_decis: Number(r['Decis Compras']) || 0,
@@ -401,13 +399,15 @@
           dadosAtuais = [...dadosOriginais];
           configurarColunas();
           renderizarCabecalho();
-          filtrarColuna('', ''); // Reaplica filtros de coluna existentes
+          filtrarColuna('', ''); // Reaplica filtros de coluna
+          atualizarContador(dadosAtuais.length);
+          calcularSomaPorFamilia(dadosAtuais);
         } else {
-          alert('Resposta da API inválida.');
+          alert('Nenhum dado filtrado encontrado.');
         }
       } catch (error) {
-        console.error('Erro ao filtrar dados:', error);
-        alert('Erro ao aplicar filtro de datas. Verifique se o backend está rodando.');
+        console.error('Erro ao filtrar:', error);
+        alert('Erro no filtro de datas. Backend pywebview necessário.');
       }
     }
 
