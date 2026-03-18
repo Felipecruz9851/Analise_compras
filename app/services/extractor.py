@@ -19,6 +19,7 @@ class Extractor:
     APOIO = f"{BASE_URL}/pcp/apoio_compras_pcp_lgx.php"
     ORDENS = f"{BASE_URL}/pcp/atrasadas.php"
     CONS = f"{BASE_URL}/pcp/consumo_alt.php"
+    ESTOQUE = f"{BASE_URL}/pcp/estoque_lote.php"
 
     ARQ_TEMPOS = Path("tempos_execucao.json")
 
@@ -147,6 +148,20 @@ class Extractor:
                     "grupo": "cons",
                 }
             )
+        tarefas.append(
+            {
+                "nome": "estoque",
+                "method": "POST",
+                "url": self.ESTOQUE,
+                "data": {
+                    "cod_empresa": "11",
+                    "situacao": "L",
+                    "relatorio": "R",
+                },
+                "timeout": (5, 600),
+                "grupo": "estoque",
+            }
+        )
 
         return tarefas
 
@@ -247,7 +262,7 @@ class Extractor:
     # EXECUÇÃO PARALELA
     # ----------------------------
 
-    def executar_paralelo(self, tarefas: List[Dict], max_workers: int = 10):
+    def executar_paralelo(self, tarefas: List[Dict], max_workers: int = 15):
 
         fila = Queue()
 
