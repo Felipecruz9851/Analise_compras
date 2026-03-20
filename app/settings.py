@@ -103,6 +103,50 @@ def carregar_familias() -> dict:
 dict_fam = carregar_familias()
 
 
+# =====================================================================
+DIAS_FABRICA = [
+    {"local": "CADEIRAS", "tipo": "(N)", "dias": 4},
+    {"local": "CC FABRI01", "tipo": "(N)", "dias": 3},
+    {"local": "CC FABRI01", "tipo": "(LA)", "dias": 4},
+    {"local": "CC FABRI01", "tipo": "ESPECIAL", "dias": 4},
+    {"local": "CC FABRI01", "tipo": "", "dias": 3},
+    {"local": "ESTOF UL", "tipo": "", "dias": 9},
+    {"local": "CENTRO DE ACABAMENTO", "tipo": "", "dias": 7},
+    {"local": "ACESSORIOS", "tipo": "", "dias": 7},
+]
+
+# =====================================================================
+PRAZOS_EXPEDICAO = [
+    # valores únicos
+    {"tipo": "valores", "itens": [7, 9, 95, 202, 762, 724], "prazo": 3},
+    {"tipo": "valores", "itens": [201, 203, 241, 261], "prazo": 3},
+    {"tipo": "valores", "itens": [5000, 3000, 700], "prazo": 3},
+    {"tipo": "valores", "itens": [601, 602, 603], "prazo": 10},
+    # intervalos
+    {"tipo": "intervalo", "de": 50, "ate": 90, "prazo": 3},
+    {"tipo": "intervalo", "de": 1000, "ate": 1999, "prazo": 3},
+    {"tipo": "intervalo", "de": 2000, "ate": 2999, "prazo": 3},
+    {"tipo": "intervalo", "de": 3000, "ate": 3999, "prazo": 8},
+    {"tipo": "intervalo", "de": 4000, "ate": 5999, "prazo": 8},
+    {"tipo": "intervalo", "de": 6000, "ate": 6999, "prazo": 8},
+    {"tipo": "intervalo", "de": 7000, "ate": 7999, "prazo": 8},
+    {"tipo": "intervalo", "de": 9000, "ate": 9999, "prazo": 8},
+    {"tipo": "intervalo", "de": 300, "ate": 499, "prazo": 10},
+    {"tipo": "intervalo", "de": 8000, "ate": 8999, "prazo": 10},
+]
+
+
+def prazo_por_representante(rep: int) -> int | None:
+    for regra in PRAZOS_EXPEDICAO:
+        if regra["tipo"] == "valores" and rep in regra["itens"]:
+            return regra["prazo"]
+
+        if regra["tipo"] == "intervalo" and regra["de"] <= rep <= regra["ate"]:
+            return regra["prazo"]
+
+    return None  # ou um prazo padrão
+
+
 if __name__ == "__main__":
 
     print(FERIADOS_BRASIL)
