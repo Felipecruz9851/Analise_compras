@@ -180,13 +180,13 @@
         html += `
 <th class="${classeDestaque}">
   <div class="col-header">
-    <div class="col-header-top">
-      <span>${col}</span>
-      <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
-    </div>
-    <input type="text" id="filtro_${col}" class="filtro-coluna" placeholder="Filtrar..."
-      value="${filtrosColuna[col] || ''}" onclick="event.stopPropagation()"
-      oninput="filtrarColuna('${col}',this.value)">
+	<div class="col-header-top">
+	  <span>${col}</span>
+	  <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+	</div>
+	<input type="text" id="filtro_${col}" class="filtro-coluna" placeholder="Filtrar..."
+	  value="${filtrosColuna[col] || ''}" onclick="event.stopPropagation()"
+	  oninput="filtrarColuna('${col}',this.value)">
   </div>
 </th>`;
       });
