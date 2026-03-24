@@ -1,4 +1,6 @@
 import requests
+import pandas as pd
+from bs4 import BeautifulSoup
 from typing import List, Dict
 from pathlib import Path
 from datetime import datetime
@@ -8,6 +10,22 @@ import json
 from time import perf_counter
 
 from app.settings import FAMILIAS, LOCAIS
+
+
+def _extract_table(html: str) -> pd.DataFrame:
+    """Extrai tabela do HTML (parser html.parser é mais tolerante com HTML malformado)."""
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table", attrs={"border": "1"})
+    if table is None:
+        raise ValueError("Tabela de dados não encontrada")
+    rows = table.find_all("tr")
+    header = [cell.get_text(strip=True) for cell in rows[0].find_all(["td", "th"])]
+    data = [
+        [c.get_text(strip=True) for c in row.find_all("td")]
+        for row in rows[1:]
+        if len(row.find_all("td")) == len(header)
+    ]
+    return pd.DataFrame(data, columns=header)
 
 
 class Extractor:
@@ -244,10 +262,16 @@ class Extractor:
                 familia = tarefa["data"].get("familia")
                 grupo = tarefa.get("grupo")
 
+                # Extrair tabela direto no worker (evita guardar HTML na memória)
+                try:
+                    df = _extract_table(html)
+                    df["Família"] = familia
+                    with lock:
+                        resultados.append((df, grupo))
+                except Exception as e:
+                    print(f"Erro ao extrair tabela de {nome}: {e}")
+
                 with lock:
-
-                    resultados.append((html, familia, grupo))
-
                     # média móvel simples
                     if nome in tempos_execucao:
                         tempos_execucao[nome] = (
