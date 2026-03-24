@@ -15,11 +15,11 @@ def coletar_dados(username, password, analise):
     print("Extractor criado com sucesso!")
 
     html_resultados = extractor.executar(analise)
-
+    print("Paginas coletadas.")
     duracao_total = perf_counter() - inicio_total
     print(f"Coleta executada em {duracao_total:.2f} segundos")
-
     dfs = juntar_tabelas(html_resultados)
+    print("Dados tratados.")
     print("Dicionário dfs gerado com grupos:", list(dfs.keys()))
 
     return dfs
