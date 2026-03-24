@@ -1,9 +1,6 @@
-from pydoc import html
-from anyio import Path
+import re
 import pandas as pd
 from bs4 import BeautifulSoup
-import time
-from app.settings import dict_fam
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
 from threading import Lock
@@ -12,7 +9,6 @@ from typing import Dict
 
 
 def extract_table(html: str) -> pd.DataFrame:
-    data_ref = time.strftime("%Y-%m")
 
     soup = BeautifulSoup(html, "html.parser")
 
@@ -22,31 +18,28 @@ def extract_table(html: str) -> pd.DataFrame:
 
     rows = table.find_all("tr")
 
+    # Extrai cabeçalho
     header = [cell.get_text(strip=True) for cell in rows[0].find_all(["td", "th"])]
 
-    data = []
-    for row in rows[1:]:
-        cols = [c.get_text(strip=True) for c in row.find_all("td")]
-
-        # ignora linhas quebradas
-        if len(cols) != len(header):
-            continue
-
-        data.append(cols)
+    # Extrai dados de todas as linhas de uma vez
+    data = [
+        [c.get_text(strip=True) for c in row.find_all("td")]
+        for row in rows[1:]
+        if len(row.find_all("td")) == len(header)
+    ]
 
     df = pd.DataFrame(data, columns=header)
 
-    # só remove se existir
-    if data_ref in df.columns:
-        df = df.drop(columns=[data_ref])
+    # Excluir a coluna com a data mais recente (formato YYYY-MM)
+    colunas_data = [c for c in df.columns if re.match(r"^\d{4}-\d{2}$", c)]
+    if colunas_data:
+        coluna_mais_recente = sorted(colunas_data)[-1]
+        df = df.drop(columns=[coluna_mais_recente])
 
     return df
 
 
 def juntar_tabelas(resultados):
-    from collections import defaultdict
-    import pandas as pd
-
     grupos = defaultdict(list)
 
     for html, familia, grupo in resultados:
@@ -65,14 +58,8 @@ def juntar_tabelas(resultados):
         else:
             dfs[grupo] = lista_dfs[0]
             print(f"Grupo '{grupo}': tabela única")
-    #####  Salva em Excel #####
-    # for nome, df in dfs.items():
-    # 	 try:
-    # 		 df.to_excel(f"{nome}.xlsx", index=False)
-    # 	 except Exception as e:
-    # 		 print(f"[ERRO] {nome} -> {type(e).__name__}: {e}")
 
-    return dfs  # ← dicionário { "ordens": df }
+    return dfs
 
 
 def processar_stream(
@@ -108,7 +95,6 @@ def processar_stream(
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(worker) for _ in range(max_workers)]
-        # Aguardar todos tasks na queue (processamento termina quando fetch acaba)
         processing_queue.join()
 
     # Juntar grupos

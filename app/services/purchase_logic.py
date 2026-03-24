@@ -1,14 +1,12 @@
 import pandas as pd
-from bs4 import BeautifulSoup
-import time
 import numpy as np
 
 
 def compra_necessidade(df=None):
 
+    # Normalizar formatação numérica (BR -> US) para TODAS as colunas
     for c in df.columns:
-        df[c] = df[c].str.replace(".", "")
-        df[c] = df[c].str.replace(",", ".")
+        df[c] = df[c].str.replace(".", "").str.replace(",", ".")
 
     colunas_para_normalizar = [
         "Neces",
@@ -21,7 +19,6 @@ def compra_necessidade(df=None):
         "Valor Unitário",
     ]
 
-    # Aplicar a transformação em todas as colunas da lista
     for col in colunas_para_normalizar:
         df[col] = df[col].astype(float)
 
@@ -63,15 +60,18 @@ def compra_necessidade(df=None):
 
 def calcular(analise, dfs):
     """
-    Recebe o dicionário dfs = {"ordens": df}
+    Recebe o dicionário dfs = {"apoio_compras": df}
     e retorna UM ÚNICO DataFrame (para o pipeline gerar o JSON)
     """
     print(dfs.keys())
     apoio_compras = dfs.get("apoio_compras")
 
     if apoio_compras is None:
-        raise ValueError("Grupo não encontrado no dicionário dfs")
+        raise ValueError("Grupo 'apoio_compras' não encontrado no dicionário dfs")
 
     if analise == "compra por necessidade":
         analise_compra = compra_necessidade(apoio_compras)
-    return analise_compra  # ← retorna DataFrame único
+    else:
+        analise_compra = apoio_compras
+
+    return analise_compra

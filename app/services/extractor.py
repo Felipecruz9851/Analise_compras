@@ -31,6 +31,7 @@ class Extractor:
         self.username = username
         self.password = password
         self.session = requests.Session()
+        self._logged_in = False
 
     # ----------------------------
     # HISTÓRICO DE TEMPOS
@@ -54,6 +55,8 @@ class Extractor:
     # ----------------------------
 
     def login(self) -> None:
+        if self._logged_in:
+            return
 
         self.session.get(self.LOGIN_PAGE, timeout=10)
 
@@ -82,6 +85,8 @@ class Extractor:
 
         if "login" in response.url.lower():
             raise RuntimeError("Login falhou: credenciais inválidas")
+
+        self._logged_in = True
 
     # ----------------------------
     # GERAÇÃO DE TAREFAS
@@ -201,27 +206,30 @@ class Extractor:
         return arquivo
 
     # ----------------------------
-    # WORKER
+    # WORKER (cada worker faz seu próprio login)
     # ----------------------------
 
+    @staticmethod
     def _worker(
-        self,
         fila: Queue,
         resultados: list,
         tempos_execucao: dict,
         lock: threading.Lock,
         progresso: dict,
         total: int,
+        username: str,
+        password: str,
     ):
 
-        extractor = Extractor(self.username, self.password)
+        # Cada worker cria sua própria sessão e faz login (cookie único)
+        extractor = Extractor(username, password)
         extractor.login()
 
         while True:
 
             try:
                 tarefa = fila.get_nowait()
-            except:
+            except Exception:
                 break
 
             try:
@@ -255,6 +263,8 @@ class Extractor:
                         f"({progresso['concluidas']} / {total})"
                     )
 
+            except Exception as e:
+                print(f"Erro em tarefa {tarefa.get('nome', '?')}: {e}")
             finally:
                 fila.task_done()
 
@@ -283,7 +293,16 @@ class Extractor:
 
             t = threading.Thread(
                 target=self._worker,
-                args=(fila, resultados, tempos_execucao, lock, progresso, total),
+                args=(
+                    fila,
+                    resultados,
+                    tempos_execucao,
+                    lock,
+                    progresso,
+                    total,
+                    self.username,
+                    self.password,
+                ),
             )
 
             t.start()
@@ -312,14 +331,5 @@ class Extractor:
         tarefas.sort(key=lambda t: tempos.get(t["nome"], 0), reverse=True)
 
         resultados = self.executar_paralelo(tarefas)
-
-        for html, familia, grupo in resultados:
-
-            if familia:
-                nome = f"apoio_compras_{familia}"
-            else:
-                nome = grupo
-
-            # self.salvar_html(html, nome)
 
         return resultados
