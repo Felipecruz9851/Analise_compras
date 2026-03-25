@@ -881,20 +881,35 @@ body.full-page {
 }
 
 .cell-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 6px;
+}
+
+.btn-restaurar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff9800;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: 0.2s;
+}
+
+.btn-restaurar:hover {
+  background: #f57c00;
+  transform: scale(1.1);
 }
 
 .cell-content {
   flex: 1;
   outline: none;
-}
-
-.btn-restaurar {
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  font-size: 14px;
 }

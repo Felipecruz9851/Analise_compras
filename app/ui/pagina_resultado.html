@@ -73,8 +73,7 @@
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
 
-    // edição local
-    let edicoes = {};
+
 
     /* =============================
        UTILITÁRIOS
@@ -84,52 +83,97 @@
       return /^\d{4}-\d{2}$/.test(col);
     }
 
-    async function salvarEdicao(rowId, cell) {
-      const valor = Number(cell.innerText.trim()) || 0
+    function atualizarValorComprado(rowId, novoValor) {
+      const row = document.querySelector(`[data-rowid="${rowId}"]`).closest('tr')
 
-      edicoes[rowId] = valor
+      if (!row) return
 
-      await window.pywebview.api.call("salvar_edicao", {
-        rowId,
-        valor
-      })
+      const valorUnitarioCell = Array.from(row.children)
+        .find(td => td.innerText.includes('R$') && td.cellIndex !== undefined) // meio gambiarra, melhor usar índice fixo
 
-      aplicarEstiloEdicao(cell, rowId)
+      const valorCompradoCell = Array.from(row.children)
+        .find(td => td.classList.contains('col-destaque-verde') && !td.dataset.rowid)
+
+      if (!valorUnitarioCell || !valorCompradoCell) return
+
+      const valorUnitario = parseNumeroBR(valorUnitarioCell.innerText)
+
+      const total = valorUnitario * novoValor
+
+      valorCompradoCell.innerText =
+        total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
     }
 
-    function aplicarEstiloEdicao(cell, rowId) {
-      cell.classList.add("cell-edited")
-
-      if (!cell.querySelector(".btn-restaurar")) {
-        cell.insertAdjacentHTML("beforeend", criarBotaoRestaurar(rowId))
-      }
-    }
-
-    function criarBotaoRestaurar(rowId) {
-      return `<button class="btn-restaurar"
-    contenteditable="false"
-    onmousedown="eventoReset(event,'${rowId}')">↩</button>`;
-    }
 
     async function eventoReset(e, rowId) {
       e.preventDefault()
       e.stopPropagation()
 
-      delete edicoes[rowId]
+      const cell = document.querySelector(`[data-rowid="${rowId}"]`)
+      if (!cell) return
 
+      const content = cell.querySelector('.cell-content')
+      const original = content.dataset.original
+
+      // restaura valor visual
+      content.innerText = original
+
+      // remove estilo
+      cell.classList.remove("cell-edited")
+
+      const btn = cell.querySelector(".btn-restaurar")
+      if (btn) btn.remove()
+
+      // backend
       await window.pywebview.api.call("salvar_edicao", {
         rowId,
         valor: null
       })
 
-      // remove estilo visual
-      const cell = document.querySelector(`[data-rowid="${rowId}"]`)
-      if (cell) {
-        cell.classList.remove("cell-edited")
+      // recarrega tabela
+      resetarTabela()
+      await carregarMais()
+    }
 
-        const btn = cell.querySelector(".btn-restaurar")
-        if (btn) btn.remove()
+    function criarBotaoRestaurar(rowId) {
+      return `
+    <button class="btn-restaurar"
+      contenteditable="false"
+      onmousedown="eventoReset(event,'${rowId}')">
+      ↩
+    </button>
+  `
+    }
+
+
+    async function salvarEdicao(rowId, cell) {
+      const content = cell.querySelector('.cell-content')
+
+      const valorAtual = Number(content.innerText.trim()) || 0
+      const valorOriginal = Number(content.dataset.original) || 0
+
+      // salva no backend
+      await window.pywebview.api.call("salvar_edicao", {
+        rowId,
+        valor: valorAtual
+      })
+
+      // limpa estado visual antes
+      cell.classList.remove("cell-edited")
+      const btnExistente = cell.querySelector(".btn-restaurar")
+      if (btnExistente) btnExistente.remove()
+
+      // se mudou → aplica estilo + botão
+      if (valorAtual !== valorOriginal) {
+        cell.classList.add("cell-edited")
+
+        cell.querySelector(".cell-wrapper")
+          .insertAdjacentHTML("beforeend", criarBotaoRestaurar(rowId))
       }
+
+      // recarrega (pra atualizar Valor Comprado)
+      resetarTabela()
+      await carregarMais()
     }
 
     function parseNumeroBR(valor) {
@@ -213,6 +257,8 @@
         renderizarResumoFamilia(resp.resumo, resp.total_geral)
       }
 
+      edicoes = resp.edicoes || {}
+
       configurarColunas(resp.data);
       renderizarCabecalho();
 
@@ -264,6 +310,8 @@
         correspondenciaExata,
         filtrosInvertidos
       });
+
+      edicoes = resp.edicoes || {}
 
       if (!resp || !resp.data || resp.data.length === 0) {
         acabou = true;
@@ -338,6 +386,8 @@
           if (col === "Gráfico") {
             const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
             const canvasId = `graf_${rowId}`;
+            const foiEditado = edicoes[rowId] !== undefined
+            const valorFinal = foiEditado ? edicoes[rowId] : linha[col]
 
             html += `<td style="min-width:180px">
           <canvas id="${canvasId}" height="160"></canvas>
@@ -346,25 +396,26 @@
             graficos.push({ id: canvasId, valores });
 
           } else if (col === 'Decis Compras') {
-            const valorEditado = edicoes[rowId]
-            const valorFinal = valorEditado ?? linha[col]
-            const foiEditado = valorEditado !== undefined
+
+            const foiEditado = edicoes[rowId] !== undefined
+            const valorFinal = foiEditado ? edicoes[rowId] : linha[col]
 
             html += `
-<td class="col-destaque-verde ${foiEditado ? 'cell-edited' : ''}"
-    data-rowid="${rowId}">
+                    <td class="col-destaque-verde ${foiEditado ? 'cell-edited' : ''}"
+                        data-rowid="${rowId}">
 
-  <div class="cell-wrapper">
-    <span class="cell-content"
-      contenteditable="true"
-      onblur="salvarEdicao('${rowId}', this.closest('td'))">
-      ${valorFinal ?? ''}
-    </span>
+                      <div class="cell-wrapper">
+                        <span class="cell-content"
+                          contenteditable="true"
+                          data-original="${linha[col] ?? ''}"
+                          onblur="salvarEdicao('${rowId}', this.closest('td'))">
+                          ${valorFinal ?? ''}
+                        </span>
 
-    ${foiEditado ? criarBotaoRestaurar(rowId) : ''}
-  </div>
+                        ${foiEditado ? criarBotaoRestaurar(rowId) : ''}
+                      </div>
 
-</td>`
+                    </td>`
           } else {
             const classeDestaque = col === 'Valor Comprado'
               ? 'col-destaque-verde'
@@ -391,7 +442,7 @@
        EDIÇÃO
        ============================= */
 
-
+    let edicoes = {}
 
     /* =============================
        FILTRO

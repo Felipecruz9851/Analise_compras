@@ -129,6 +129,7 @@ class Api:
             "data": slice_df.to_dict("records"),
             "resumo": resumo,
             "total_geral": float(total_geral),
+            "edicoes": self._edicoes,
         }
 
     def salvar_edicao(self, payload):
