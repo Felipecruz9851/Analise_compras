@@ -43,7 +43,7 @@ async function executar() {
             analise: document.getElementById("analise").value
         };
 
-        const resultado = await window.pywebview.api.rodar_analise(payload);
+        const resultado = await window.pywebview.api.call("rodar_analise", payload);
 
         localStorage.setItem("resultadoAnalise", JSON.stringify(resultado));
         window.location.href = "pagina_resultado.html";
