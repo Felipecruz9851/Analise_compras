@@ -258,19 +258,19 @@ button:active {
 
 @keyframes fadeIn {
   from {
-	opacity: 0;
-	transform: translateY(10px);
+    opacity: 0;
+    transform: translateY(10px);
   }
 
   to {
-	opacity: 1;
-	transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes spin {
   to {
-	transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
@@ -329,8 +329,8 @@ body.full-page {
 
 .table-wrapper th {
   background: linear-gradient(135deg,
-	  var(--color-primary),
-	  var(--color-primary-light));
+      var(--color-primary),
+      var(--color-primary-light));
   color: white;
   position: sticky;
   top: 0;
@@ -686,14 +686,14 @@ body.full-page {
   border: 1px solid #d4edda;
 
   .col-destaque-verde .col-header-top span {
-	font-weight: bold;
+    font-weight: bold;
   }
 
   /* Células da coluna com destaque verde */
   table td.col-destaque-verde,
   table th.col-destaque-verde {
-	background-color: #d4edda !important;
-	color: #155724;
+    background-color: #d4edda !important;
+    color: #155724;
   }
 }
 
@@ -878,4 +878,23 @@ body.full-page {
 
 .btn-restaurar:active {
   transform: translateY(-50%) scale(0.95);
+}
+
+.cell-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cell-content {
+  flex: 1;
+  outline: none;
+}
+
+.btn-restaurar {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 14px;
 }

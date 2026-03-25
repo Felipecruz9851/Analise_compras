@@ -1,3 +1,4 @@
+import uuid
 from app.services.extractor import Extractor
 from app.services.processor import juntar_tabelas
 from app.services.purchase_logic import calcular
@@ -37,6 +38,11 @@ def executar_pipeline(username, password, analise):
 
     duracao = perf_counter() - inicio
     print(f"Pipeline executado em {duracao:.2f} segundos")
+    # insere a ID
+    if "__rowId" not in df.columns:
+        import uuid
+
+        df["__rowId"] = [str(uuid.uuid4()) for _ in range(len(df))]
 
     # Converter para lista de dicionários (otimizado)
     return df.to_dict(orient="records")

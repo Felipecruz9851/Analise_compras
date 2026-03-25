@@ -45,43 +45,91 @@
         <thead id="tabela-cabecalho"></thead>
         <tbody id="tabela-corpo"></tbody>
       </table>
+      <div id="scroll-sentinel"></div> <!-- ← aqui, dentro do container -->
     </div>
   </main>
 
   <script>
     /* =============================
-       VARIÁVEIS DE ESTADO
+       ESTADO GLOBAL
        ============================= */
+
     let charts = {};
     let renderToken = 0;
-    let renderAgendado = false;
 
-    let dadosOriginais = [];
-    let dadosAtuais = [];
     let colunasTabela = [];
     let colunasMes = [];
 
-    // Ordenação
-    let ordenacaoAtual = { coluna: null, direcao: 'asc' };
+    // backend-driven
+    let bufferDados = [];
+    let startIndex = 0;
+    let carregando = false;
+    let acabou = false;
+    const PAGE_SIZE = 50;
 
-    // Filtros
+    // UI state
+    let ordenacaoAtual = { coluna: null, direcao: 'asc' };
     let filtrosColuna = {};
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
 
-    // Filtros de data
-    let filtroDataInicio = '';
-    let filtroDataFim = '';
+    // edição local
+    let edicoes = {};
 
     /* =============================
        UTILITÁRIOS
        ============================= */
-    function gerarRowId() {
-      return crypto.randomUUID();
-    }
 
     function ehColunaMes(col) {
       return /^\d{4}-\d{2}$/.test(col);
+    }
+
+    async function salvarEdicao(rowId, cell) {
+      const valor = Number(cell.innerText.trim()) || 0
+
+      edicoes[rowId] = valor
+
+      await window.pywebview.api.call("salvar_edicao", {
+        rowId,
+        valor
+      })
+
+      aplicarEstiloEdicao(cell, rowId)
+    }
+
+    function aplicarEstiloEdicao(cell, rowId) {
+      cell.classList.add("cell-edited")
+
+      if (!cell.querySelector(".btn-restaurar")) {
+        cell.insertAdjacentHTML("beforeend", criarBotaoRestaurar(rowId))
+      }
+    }
+
+    function criarBotaoRestaurar(rowId) {
+      return `<button class="btn-restaurar"
+    contenteditable="false"
+    onmousedown="eventoReset(event,'${rowId}')">↩</button>`;
+    }
+
+    async function eventoReset(e, rowId) {
+      e.preventDefault()
+      e.stopPropagation()
+
+      delete edicoes[rowId]
+
+      await window.pywebview.api.call("salvar_edicao", {
+        rowId,
+        valor: null
+      })
+
+      // remove estilo visual
+      const cell = document.querySelector(`[data-rowid="${rowId}"]`)
+      if (cell) {
+        cell.classList.remove("cell-edited")
+
+        const btn = cell.querySelector(".btn-restaurar")
+        if (btn) btn.remove()
+      }
     }
 
     function parseNumeroBR(valor) {
@@ -96,70 +144,147 @@
     }
 
     /* =============================
-       NAVEGAÇÃO
+       INIT
        ============================= */
-    function voltar() {
-      history.back();
+
+    async function init() {
+      await carregarMaisInicial();
+      inicializarObserver();
     }
 
-    function recarregar() {
-      location.reload();
+    function inicializarObserver() {
+      const tableContainer = document.querySelector('.table-responsive');
+      const sentinel = document.getElementById('scroll-sentinel');
+
+      const observer = new IntersectionObserver(async entries => {
+        if (entries[0].isIntersecting && !carregando && !acabou) {
+          await carregarMais();
+          // se o sentinela ainda estiver visível após carregar, busca mais
+          // (acontece quando 50 linhas não preenchem o container)
+          if (!acabou && sentinel.getBoundingClientRect().top < tableContainer.getBoundingClientRect().bottom) {
+            await carregarMais();
+          }
+        }
+      }, {
+        root: tableContainer,
+        threshold: 0.1
+      });
+
+      observer.observe(sentinel);
     }
 
     /* =============================
-       INICIALIZAÇÃO
+       CONFIGURA COLUNAS DINAMICAMENTE
        ============================= */
-    async function init() {
-      let dados = null;
 
-      const dadosLocalStorage = localStorage.getItem("resultadoAnalise");
-      if (dadosLocalStorage) {
-        dados = JSON.parse(dadosLocalStorage);
-      }
+    function configurarColunas(dados) {
+      const todasColunas = Object.keys(dados[0]).filter(c => c !== "__rowId");
 
-      if (!dados || dados.length === 0) {
-        dados = await carregarExemplo();
-      }
-
-      dadosAtuais = dados.map(r => ({
-        ...r,
-        'Decis Compras': Number(r['Decis Compras']) || 0,
-        __original_decis: Number(r['Decis Compras']) || 0,
-        __rowId: gerarRowId()
-      }));
-
-      dadosOriginais = [...dadosAtuais];
-
-      configurarColunas();
-      renderizarCabecalho();
-      renderizarCorpo(dadosAtuais);
-      atualizarContador(dadosAtuais.length);
-      calcularSomaPorFamilia(dadosAtuais);
-    }
-
-    async function carregarExemplo() {
-      try {
-        const response = await fetch('exemplo.json');
-        const data = await response.json();
-        if (data.dados && data.dados.length > 0) {
-          return data.dados;
-        }
-      } catch (e) {
-        console.log("Arquivo exemplo.json não encontrado");
-      }
-      return null;
-    }
-
-    function configurarColunas() {
-      const todasColunas = Object.keys(dadosOriginais[0]).filter(c => c !== "__rowId");
       colunasMes = todasColunas.filter(ehColunaMes);
       colunasTabela = todasColunas.filter(c => !ehColunaMes(c) && c !== "Gráfico");
+
       colunasTabela.splice(2, 0, "Gráfico");
     }
 
     /* =============================
-       RENDERIZAÇÃO
+       RESET
        ============================= */
+
+    function resetarTabela() {
+      bufferDados = [];
+      startIndex = 0;
+      acabou = false;
+
+      document.getElementById("tabela-corpo").innerHTML = "";
+    }
+
+    /* =============================
+       CARREGAMENTO
+       ============================= */
+
+    async function carregarMaisInicial() {
+      const resp = await window.pywebview.api.call("obter_slice", {
+        start: 0,
+        size: PAGE_SIZE
+      });
+
+      if (!resp || !resp.data || resp.data.length === 0) return;
+      if (resp.resumo) {
+        renderizarResumoFamilia(resp.resumo, resp.total_geral)
+      }
+
+      configurarColunas(resp.data);
+      renderizarCabecalho();
+
+      appendNaTabela(resp.data);
+
+      bufferDados = resp.data;
+      startIndex = PAGE_SIZE;
+
+      atualizarContador(resp.total);
+    }
+
+    function renderizarResumoFamilia(resumo, totalGeral) {
+      let html = `
+          <div class="familia-item familia-total">
+            <span class="familia-nome">TOTAL GERAL</span>
+            <span class="familia-valor">
+              ${totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </span>
+          </div>`
+
+      Object.entries(resumo).forEach(([familia, valor]) => {
+        const percentual = totalGeral > 0
+          ? ((valor / totalGeral) * 100).toFixed(1)
+          : 0
+
+        html += `
+          <div class="familia-item">
+            <span class="familia-nome">${familia}</span>
+            <span class="familia-valor">
+              ${valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </span>
+            <span class="familia-percentual">${percentual}%</span>
+          </div>`
+      })
+
+      document.getElementById('resumoFamilias').innerHTML = html
+    }
+
+    async function carregarMais() {
+      if (carregando || acabou) return;
+
+      carregando = true;
+
+      const resp = await window.pywebview.api.call("obter_slice", {
+        start: startIndex,
+        size: PAGE_SIZE,
+        filtros: filtrosColuna,
+        ordenacao: ordenacaoAtual,
+        correspondenciaExata,
+        filtrosInvertidos
+      });
+
+      if (!resp || !resp.data || resp.data.length === 0) {
+        acabou = true;
+        carregando = false;
+        return;
+      }
+
+      appendNaTabela(resp.data);
+
+      bufferDados = bufferDados.concat(resp.data);
+      startIndex += PAGE_SIZE;
+
+      atualizarContador(resp.total);
+
+      carregando = false;
+    }
+
+    /* =============================
+       RENDER CABEÇALHO
+       ============================= */
+
     function renderizarCabecalho() {
       let html = '<tr>';
 
@@ -180,13 +305,14 @@
         html += `
 <th class="${classeDestaque}">
   <div class="col-header">
-	<div class="col-header-top">
-	  <span>${col}</span>
-	  <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
-	</div>
-	<input type="text" id="filtro_${col}" class="filtro-coluna" placeholder="Filtrar..."
-	  value="${filtrosColuna[col] || ''}" onclick="event.stopPropagation()"
-	  oninput="filtrarColuna('${col}',this.value)">
+    <div class="col-header-top">
+      <span>${col}</span>
+      <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+    </div>
+    <input type="text" class="filtro-coluna"
+      placeholder="Filtrar..."
+      value="${filtrosColuna[col] || ''}"
+      oninput="filtrarColuna('${col}', this.value)">
   </div>
 </th>`;
       });
@@ -195,283 +321,130 @@
       document.getElementById("tabela-cabecalho").innerHTML = html;
     }
 
-    function renderizarCorpo(dados) {
-      renderToken++;
-      const tokenAtual = renderToken;
+    /* =============================
+       APPEND (CORPO)
+       ============================= */
 
-      if (!dados || dados.length === 0) {
-        document.getElementById("tabela-corpo").innerHTML =
-          `<tr><td colspan="${colunasTabela.length}">Nenhum registro encontrado.</td></tr>`;
-        return;
-      }
-
+    function appendNaTabela(dados) {
       let html = '';
       let graficos = [];
 
       dados.forEach(linha => {
+        const rowId = linha.__rowId;
+
         html += "<tr>";
+
         colunasTabela.forEach(col => {
           if (col === "Gráfico") {
             const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
-            const canvasId = `graf_${linha.__rowId}`;
-            html += `<td style="min-width:180px"><canvas id="${canvasId}" height="160"></canvas></td>`;
+            const canvasId = `graf_${rowId}`;
+
+            html += `<td style="min-width:180px">
+          <canvas id="${canvasId}" height="160"></canvas>
+        </td>`;
+
             graficos.push({ id: canvasId, valores });
+
           } else if (col === 'Decis Compras') {
-            const rowId = linha.__rowId;
-            const valorAtual = linha[col] ?? "";
-            const foiEditado = String(valorAtual) !== String(linha.__original_decis);
+            const valorEditado = edicoes[rowId]
+            const valorFinal = valorEditado ?? linha[col]
+            const foiEditado = valorEditado !== undefined
 
             html += `
-<td class="col-destaque-verde cell-editable ${foiEditado ? 'cell-edited' : ''}"
-  data-rowid="${rowId}" contenteditable="true" onblur="salvarEdicao('${rowId}',this)">
-  <span class="cell-content">${valorAtual}</span>
-  ${foiEditado ? criarBotaoRestaurar(rowId) : ''}
-</td>`;
+<td class="col-destaque-verde ${foiEditado ? 'cell-edited' : ''}"
+    data-rowid="${rowId}">
+
+  <div class="cell-wrapper">
+    <span class="cell-content"
+      contenteditable="true"
+      onblur="salvarEdicao('${rowId}', this.closest('td'))">
+      ${valorFinal ?? ''}
+    </span>
+
+    ${foiEditado ? criarBotaoRestaurar(rowId) : ''}
+  </div>
+
+</td>`
           } else {
-            const classeDestaque = col === 'Valor Comprado' ? 'col-destaque-verde' : '';
+            const classeDestaque = col === 'Valor Comprado'
+              ? 'col-destaque-verde'
+              : '';
+
             const valor = col === 'Valor Comprado'
               ? parseNumeroBR(linha[col]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-              : linha[col] ?? "";
+              : linha[col] ?? '';
+
             html += `<td class="${classeDestaque}">${valor}</td>`;
           }
         });
+
         html += "</tr>";
       });
 
-      document.getElementById("tabela-corpo").innerHTML = html;
-      renderizarGraficosEmLotes(graficos, 0, tokenAtual);
+      document.getElementById("tabela-corpo")
+        .insertAdjacentHTML("beforeend", html);
+
+      renderizarGraficosEmLotes(graficos);
     }
 
-    function renderizarTabelaSegura() {
-      if (renderAgendado) return;
-      renderAgendado = true;
+    /* =============================
+       EDIÇÃO
+       ============================= */
 
-      setTimeout(() => {
-        renderAgendado = false;
-        renderizarCorpo(dadosAtuais);
-        calcularSomaPorFamilia(dadosAtuais);
-      }, 0);
-    }
 
-    function atualizarContador(total) {
-      document.getElementById('totalRegistros').textContent = total;
+
+    /* =============================
+       FILTRO
+       ============================= */
+
+    function filtrarColuna(coluna, valor) {
+      filtrosColuna[coluna] = valor;
+
+      resetarTabela();
+      carregarMais();
     }
 
     /* =============================
        ORDENAÇÃO
        ============================= */
+
     function ordenarColuna(coluna) {
       if (ordenacaoAtual.coluna === coluna) {
-        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+        ordenacaoAtual.direcao =
+          ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
       } else {
-        ordenacaoAtual.coluna = coluna;
-        ordenacaoAtual.direcao = 'asc';
+        ordenacaoAtual = { coluna, direcao: 'asc' };
       }
-
-      dadosAtuais.sort((a, b) => {
-        let valorA = a[coluna];
-        let valorB = b[coluna];
-
-        if (valorA == null) valorA = '';
-        if (valorB == null) valorB = '';
-
-        const numA = parseNumeroBR(valorA);
-        const numB = parseNumeroBR(valorB);
-
-        if (!isNaN(numA) && !isNaN(numB) && valorA !== '' && valorB !== '') {
-          return ordenacaoAtual.direcao === 'asc' ? numA - numB : numB - numA;
-        }
-
-        valorA = valorA.toString().toLowerCase();
-        valorB = valorB.toString().toLowerCase();
-
-        if (valorA < valorB) return ordenacaoAtual.direcao === 'asc' ? -1 : 1;
-        if (valorA > valorB) return ordenacaoAtual.direcao === 'asc' ? 1 : -1;
-        return 0;
-      });
 
       renderizarCabecalho();
-      renderizarCorpo(dadosAtuais);
+      resetarTabela();
+      carregarMais();
     }
 
     /* =============================
-       FILTROS
+       SCROLL INFINITO
        ============================= */
-    function filtrarColuna(coluna, valor) {
-      if (coluna) {
-        filtrosColuna[coluna] = valor;
-      }
 
-      dadosAtuais = dadosOriginais.filter(linha => {
-        let corresponde = true;
+    const tableContainer = document.querySelector('.table-responsive');
+    const sentinel = document.getElementById('scroll-sentinel');
 
-        for (const col in filtrosColuna) {
-          if (filtrosColuna[col]) {
-            const cellValue = (linha[col] ?? "").toString().toLowerCase();
-            const filtroValor = filtrosColuna[col].toLowerCase();
-            const match = correspondenciaExata
-              ? cellValue === filtroValor
-              : cellValue.includes(filtroValor);
 
-            if (!match) {
-              corresponde = false;
-              break;
-            }
-          }
-        }
-
-        return filtrosInvertidos ? !corresponde : corresponde;
-      });
-
-      renderizarTabelaSegura();
-      atualizarContador(dadosAtuais.length);
-      calcularSomaPorFamilia(dadosAtuais);
-    }
-
-    function inverterFiltros() {
-      filtrosInvertidos = !filtrosInvertidos;
-      const btn = document.getElementById('btnInverterFiltros');
-
-      if (filtrosInvertidos) {
-        btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e4606d 100%)';
-        btn.textContent = 'Filtros Invertidos';
-      } else {
-        btn.style.background = '';
-        btn.textContent = 'Inverter Filtros';
-      }
-
-      filtrarColuna('', '');
-    }
-
-    function alternarCorrespondenciaExata() {
-      correspondenciaExata = !correspondenciaExata;
-      const btn = document.getElementById('btnCorrespondenciaExata');
-
-      if (correspondenciaExata) {
-        btn.style.background = 'linear-gradient(135deg, #007bff 0%, #5a9fff 100%)';
-        btn.textContent = 'Exata: ON';
-      } else {
-        btn.style.background = '';
-        btn.textContent = 'Correspondência Exata';
-      }
-
-      filtrarColuna('', '');
-    }
 
     /* =============================
-       FILTRO DE DATAS
+       GRÁFICOS (mantido)
        ============================= */
-    async function aplicarFiltroData() {
-      // Wait for pywebview to be ready
-      if (typeof window.pywebview === 'undefined') {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
 
-      const payload = {
-        dataInicio: document.getElementById('dataInicio').value,
-        dataFim: document.getElementById('dataFim').value
-      };
-
-      try {
-        filtroDataInicio = payload.dataInicio;
-        filtroDataFim = payload.dataFim;
-
-        if (!filtroDataInicio && !filtroDataFim) {
-          limparFiltroData();
-          return;
-        }
-
-        if (filtroDataInicio && filtroDataFim && filtroDataInicio > filtroDataFim) {
-          alert('Data início deve ser menor ou igual à data fim.');
-          return;
-        }
-
-        const resultado = await window.pywebview.api.filtrar_datas(payload);
-
-        if (resultado && resultado.dados) {
-          dadosOriginais = resultado.dados.map(r => ({
-            ...r,
-            'Decis Compras': Number(r['Decis Compras']) || 0,
-            __original_decis: Number(r['Decis Compras']) || 0,
-            __rowId: r.__rowId || gerarRowId()
-          }));
-
-          dadosAtuais = [...dadosOriginais];
-          configurarColunas();
-          renderizarCabecalho();
-          filtrarColuna('', ''); // Reaplica filtros de coluna
-          atualizarContador(dadosAtuais.length);
-          calcularSomaPorFamilia(dadosAtuais);
-        } else {
-          alert('Nenhum dado filtrado encontrado.');
-        }
-      } catch (error) {
-        console.error('Erro ao filtrar:', error);
-        alert('Erro no filtro de datas. Backend pywebview necessário.');
-      }
-    }
-
-    function limparFiltroData() {
-      filtroDataInicio = '';
-      filtroDataFim = '';
-      document.getElementById('dataInicio').value = '';
-      document.getElementById('dataFim').value = '';
-
-      // Recarrega dados originais
-      init();
-    }
-
-    /* =============================
-       EDIÇÃO DE CÉLULAS
-       ============================= */
-    function salvarEdicao(rowId, cell) {
-      const linha = dadosAtuais.find(r => r.__rowId === rowId);
-      if (!linha) return;
-
-      const valorDigitado = Number(cell.innerText.trim()) || 0;
-      const valorAtual = Number(linha['Decis Compras']) || 0;
-
-      if (valorDigitado === valorAtual) {
-        cell.innerText = valorAtual;
-        return;
-      }
-
-      linha['Decis Compras'] = valorDigitado;
-      linha['Valor Comprado'] = parseNumeroBR(linha['Valor Unitário']) * valorDigitado;
-
-      renderizarTabelaSegura();
-    }
-
-    function criarBotaoRestaurar(rowId) {
-      return `<button class="btn-restaurar" contenteditable="false" onmousedown="eventoReset(event,'${rowId}')">↩</button>`;
-    }
-
-    function eventoReset(e, rowId) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const linha = dadosAtuais.find(r => r.__rowId === rowId);
-      if (!linha) return;
-
-      linha['Decis Compras'] = linha.__original_decis;
-      linha['Valor Comprado'] = parseNumeroBR(linha['Valor Unitário']) * linha.__original_decis;
-
-      renderizarTabelaSegura();
-    }
-
-    /* =============================
-       GRÁFICOS
-       ============================= */
-    function renderizarGraficosEmLotes(graficos, indice = 0, token) {
-      if (token !== renderToken) return;
-
+    function renderizarGraficosEmLotes(graficos, indice = 0) {
       const lote = 5;
+
       for (let i = indice; i < indice + lote && i < graficos.length; i++) {
         criarSparkline(graficos[i].id, graficos[i].valores);
       }
 
       if (indice + lote < graficos.length) {
-        requestAnimationFrame(() => renderizarGraficosEmLotes(graficos, indice + lote, token));
+        requestAnimationFrame(() =>
+          renderizarGraficosEmLotes(graficos, indice + lote)
+        );
       }
     }
 
@@ -487,87 +460,30 @@
         type: 'line',
         data: {
           labels: colunasMes,
-          datasets: [{ data: valores, borderWidth: 2, pointRadius: 3, tension: 0.3 }]
+          datasets: [{ data: valores, borderWidth: 2, pointRadius: 3 }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: false },
-            datalabels: {
-              align: 'bottom',
-              anchor: 'end',
-              formatter: v => v.toLocaleString('pt-BR'),
-              font: { size: 14, weight: 'bold' }
-            }
-          },
-          scales: { x: { display: true }, y: { display: false, grace: '15%' } }
-        },
-        plugins: [ChartDataLabels]
+          plugins: { legend: { display: false } },
+          scales: { x: { display: true }, y: { display: false } }
+        }
       });
     }
 
     /* =============================
-       RESUMO POR FAMÍLIA
+       CONTADOR
        ============================= */
-    function calcularSomaPorFamilia(dados) {
-      if (!dados || dados.length === 0) {
-        document.getElementById('resumoFamilias').innerHTML =
-          '<p class="sem-dados">Nenhum dado disponível</p>';
-        return;
-      }
 
-      const somaPorFamilia = {};
-      dados.forEach(linha => {
-        const familia = linha['Família'] || 'Não definida';
-        const valorComprado = parseNumeroBR(linha['Valor Comprado']);
-        if (!somaPorFamilia[familia]) somaPorFamilia[familia] = 0;
-        somaPorFamilia[familia] += valorComprado;
-      });
-
-      const familiasOrdenadas = Object.entries(somaPorFamilia).sort((a, b) => b[1] - a[1]);
-      const totalGeral = familiasOrdenadas.reduce((acc, [, valor]) => acc + valor, 0);
-
-      let html = `
-<div class="familia-item familia-total">
-  <span class="familia-nome">TOTAL GERAL</span>
-  <span class="familia-valor">${totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-</div>`;
-
-      familiasOrdenadas.forEach(([familia, valor]) => {
-        const percentual = totalGeral > 0 ? ((valor / totalGeral) * 100).toFixed(1) : 0;
-        html += `
-<div class="familia-item">
-  <span class="familia-nome">${familia}</span>
-  <span class="familia-valor">${valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-  <span class="familia-percentual">${percentual}%</span>
-</div>`;
-      });
-
-      document.getElementById('resumoFamilias').innerHTML = html;
+    function atualizarContador(total) {
+      document.getElementById('totalRegistros').textContent = total;
     }
 
     /* =============================
-       BANNER LATERAL
+       INICIALIZA
        ============================= */
-    function alternarBanner() {
-      const banner = document.getElementById('sidebarBanner');
-      const btn = document.getElementById('btnBanner');
 
-      banner.classList.toggle('hidden');
-
-      if (banner.classList.contains('hidden')) {
-        btn.textContent = '▶ Resumo';
-        btn.title = 'Exibir Resumo por Família';
-      } else {
-        btn.textContent = '◀ Resumo';
-        btn.title = 'Ocultar Resumo por Família';
-      }
-    }
-
-    // Inicializa a aplicação
-    window.onload = init;
+    window.addEventListener('pywebviewready', init)
   </script>
 </body>
 

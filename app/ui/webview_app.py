@@ -1,5 +1,6 @@
 import webview
 import threading
+import pandas as pd
 from app.services.pipeline import executar_pipeline
 from app import settings
 
@@ -7,9 +8,17 @@ from app import settings
 class Api:
     def __init__(self):
         self._lock = threading.Lock()
-        self._allowed_methods = {"listar_analises", "rodar_analise", "filtrar_datas"}
+        self._df_base = None
+        self._df_ativo = None
+        self._edicoes = {}
 
-    # 🔒 Gatekeeper
+        self._allowed_methods = {
+            "listar_analises",
+            "rodar_analise",
+            "obter_slice",
+            "salvar_edicao",
+        }
+
     def call(self, method, payload=None):
         if method not in self._allowed_methods:
             return {"erro": "Método não permitido"}
@@ -24,34 +33,118 @@ class Api:
         except Exception as e:
             return {"erro": str(e)}
 
-    # 📋 Métodos expostos (via whitelist)
-
     def listar_analises(self):
         return settings.ANALISES
 
     def rodar_analise(self, payload):
-        # 🧪 Validação básica
-        if not isinstance(payload, dict):
-            return {"erro": "payload inválido"}
-
-        required = ["username", "password", "analise"]
-        if not all(k in payload for k in required):
-            return {"erro": "faltando campos obrigatórios"}
-
-        # 🚫 Evita execução simultânea
         if self._lock.locked():
             return {"erro": "Processo já em execução"}
 
         with self._lock:
-            return executar_pipeline(
+            resultado = executar_pipeline(
                 payload["username"],
                 payload["password"],
                 payload["analise"],
             )
 
-    def filtrar_datas(self, payload):
-        print("I'm here")
-        pass
+            df = pd.DataFrame(resultado)
+
+            # garante ID único
+            if "__rowId" not in df.columns:
+                df["__rowId"] = range(len(df))
+
+            self._df_base = df
+            self._df_ativo = df.copy()
+
+            return {"status": "ok", "total": len(df)}
+
+    def obter_slice(self, payload):
+        if self._df_ativo is None:
+            return {"erro": "sem dados"}
+
+        df = self._df_ativo
+
+        start = payload.get("start", 0)
+        size = payload.get("size", 50)
+
+        filtros = payload.get("filtros", {})
+        ordenacao = payload.get("ordenacao", {})
+        correspondencia_exata = payload.get("correspondenciaExata", False)
+        filtros_invertidos = payload.get("filtrosInvertidos", False)
+
+        df_filtrado = df
+
+        # filtros
+        for col, val in filtros.items():
+            if val:
+                if correspondencia_exata:
+                    mask = df_filtrado[col].astype(str).str.lower() == val.lower()
+                else:
+                    mask = (
+                        df_filtrado[col]
+                        .astype(str)
+                        .str.lower()
+                        .str.contains(val.lower(), na=False)
+                    )
+
+                df_filtrado = (
+                    df_filtrado[~mask] if filtros_invertidos else df_filtrado[mask]
+                )
+
+        # ordenação
+        if ordenacao.get("coluna"):
+            df_filtrado = df_filtrado.sort_values(
+                by=ordenacao["coluna"],
+                ascending=ordenacao.get("direcao", "asc") == "asc",
+            )
+
+        total = len(df_filtrado)
+
+        slice_df = df_filtrado.iloc[start : start + size]
+
+        # resumo
+        soma_por_familia = (
+            df_filtrado.groupby("Família")["Valor Comprado"]
+            .sum()
+            .sort_values(ascending=False)
+        )
+        resumo = soma_por_familia.to_dict()
+        total_geral = soma_por_familia.sum()
+
+        slice_df = df_filtrado.iloc[start : start + size].copy()
+
+        # aplica edições no slice
+        for row_id, valor in self._edicoes.items():
+            mask = slice_df["__rowId"] == row_id
+            if mask.any():
+                slice_df.loc[mask, "Decis Compras"] = valor
+
+                if "Valor Unitário" in slice_df.columns:
+                    slice_df.loc[mask, "Valor Comprado"] = (
+                        slice_df.loc[mask, "Valor Unitário"] * valor
+                    )
+
+        return {
+            "total": total,
+            "data": slice_df.to_dict("records"),
+            "resumo": resumo,
+            "total_geral": float(total_geral),
+        }
+
+    def salvar_edicao(self, payload):
+        row_id = payload.get("rowId")
+        valor = payload.get("valor")
+
+        if row_id is None:
+            return {"erro": "rowId inválido"}
+
+        # remove edição (reset)
+        if valor is None:
+            self._edicoes.pop(row_id, None)
+        else:
+            self._edicoes[row_id] = valor
+
+        return {"status": "ok"}
 
 
 def start():
@@ -62,7 +155,6 @@ def start():
         "app/ui/login.html",
         js_api=api,
         maximized=True,
-        resizable=True,
     )
 
     webview.start(debug=True)
