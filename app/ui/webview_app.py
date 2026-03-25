@@ -74,7 +74,6 @@ class Api:
 
         df_filtrado = df
 
-        # filtros
         for col, val in filtros.items():
             if val:
                 if correspondencia_exata:
@@ -86,43 +85,43 @@ class Api:
                         .str.lower()
                         .str.contains(val.lower(), na=False)
                     )
-
                 df_filtrado = (
                     df_filtrado[~mask] if filtros_invertidos else df_filtrado[mask]
                 )
 
-        # ordenação
         if ordenacao.get("coluna"):
             df_filtrado = df_filtrado.sort_values(
                 by=ordenacao["coluna"],
                 ascending=ordenacao.get("direcao", "asc") == "asc",
             )
 
-        total = len(df_filtrado)
+        # ✅ define df_calc PRIMEIRO
+        df_calc = df_filtrado.copy()
 
-        slice_df = df_filtrado.iloc[start : start + size]
+        # ✅ aplica edições antes de tudo
+        if self._edicoes:
+            for row_id, valor in self._edicoes.items():
+                mask = df_calc["__rowId"] == row_id
+                if mask.any():
+                    df_calc.loc[mask, "Decis Compras"] = valor
+                    if "Valor Unitário" in df_calc.columns:
+                        df_calc.loc[mask, "Valor Comprado"] = (
+                            df_calc.loc[mask, "Valor Unitário"] * valor
+                        )
 
-        # resumo
+        total = len(df_calc)
+
+        # ✅ resumo sobre df_calc (já com edições aplicadas)
         soma_por_familia = (
-            df_filtrado.groupby("Família")["Valor Comprado"]
+            df_calc.groupby("Família")["Valor Comprado"]
             .sum()
             .sort_values(ascending=False)
         )
         resumo = soma_por_familia.to_dict()
         total_geral = soma_por_familia.sum()
 
-        slice_df = df_filtrado.iloc[start : start + size].copy()
-
-        # aplica edições no slice
-        for row_id, valor in self._edicoes.items():
-            mask = slice_df["__rowId"] == row_id
-            if mask.any():
-                slice_df.loc[mask, "Decis Compras"] = valor
-
-                if "Valor Unitário" in slice_df.columns:
-                    slice_df.loc[mask, "Valor Comprado"] = (
-                        slice_df.loc[mask, "Valor Unitário"] * valor
-                    )
+        # ✅ slice_df definido uma única vez
+        slice_df = df_calc.iloc[start : start + size]
 
         return {
             "total": total,

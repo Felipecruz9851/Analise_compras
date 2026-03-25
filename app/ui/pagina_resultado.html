@@ -248,9 +248,14 @@
 
     async function carregarMaisInicial() {
       const resp = await window.pywebview.api.call("obter_slice", {
-        start: 0,
-        size: PAGE_SIZE
+        start: startIndex,
+        size: PAGE_SIZE,
+        filtros: filtrosColuna,
+        ordenacao: ordenacaoAtual,
+        correspondenciaExata,
+        filtrosInvertidos
       });
+      console.log(resp)
 
       if (!resp || !resp.data || resp.data.length === 0) return;
       if (resp.resumo) {
@@ -299,7 +304,6 @@
 
     async function carregarMais() {
       if (carregando || acabou) return;
-
       carregando = true;
 
       const resp = await window.pywebview.api.call("obter_slice", {
@@ -311,21 +315,22 @@
         filtrosInvertidos
       });
 
-      edicoes = resp.edicoes || {}
-
       if (!resp || !resp.data || resp.data.length === 0) {
         acabou = true;
         carregando = false;
         return;
       }
 
-      appendNaTabela(resp.data);
+      // ✅ atualiza resumo sempre que vier no payload
+      if (resp.resumo && startIndex === 0) {
+        renderizarResumoFamilia(resp.resumo, resp.total_geral);
+      }
 
+      edicoes = resp.edicoes || {};
+      appendNaTabela(resp.data);
       bufferDados = bufferDados.concat(resp.data);
       startIndex += PAGE_SIZE;
-
       atualizarContador(resp.total);
-
       carregando = false;
     }
 
@@ -417,15 +422,18 @@
 
                     </td>`
           } else {
-            const classeDestaque = col === 'Valor Comprado'
-              ? 'col-destaque-verde'
-              : '';
-
+            const classeDestaque = col === 'Valor Comprado' ? 'col-destaque-verde' : '';
             const valor = col === 'Valor Comprado'
               ? parseNumeroBR(linha[col]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
               : linha[col] ?? '';
 
-            html += `<td class="${classeDestaque}">${valor}</td>`;
+            // ✅ trunca Descrição com tooltip
+            const conteudo = col === 'Descrição'
+              ? `<div class="descricao-clamp">${valor}</div>`
+              : valor;
+
+            const title = col === 'Descrição' ? `title="${valor}"` : '';
+            html += `<td class="${classeDestaque}" ${title}>${conteudo}</td>`;
           }
         });
 
@@ -498,8 +506,13 @@
         );
       }
     }
+    Chart.register(ChartDataLabels)
 
     function criarSparkline(canvasId, valores) {
+      const valoresPlot = valores.slice(0, -1)
+      const labelsPlot = colunasMes.slice(0, -1)
+      console.log(valores, colunasMes)
+
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
 
@@ -510,14 +523,38 @@
       charts[canvasId] = new Chart(canvas, {
         type: 'line',
         data: {
-          labels: colunasMes,
-          datasets: [{ data: valores, borderWidth: 2, pointRadius: 3 }]
+          labels: labelsPlot,
+          datasets: [{
+            data: valoresPlot,
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.3
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { x: { display: true }, y: { display: false } }
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              align: 'top',
+              anchor: 'end',
+              offset: 0,
+              color: '#1976d2',
+              formatter: (value) => {
+                return value.toLocaleString('pt-BR')
+              },
+              font: {
+                size: 16,
+                weight: 'bold',
+              }
+            }
+          },
+          scales: {
+            x: { display: true },
+            y: { display: false, grace: 10 }
+          }
         }
       });
     }

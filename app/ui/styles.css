@@ -913,3 +913,14 @@ body.full-page {
   flex: 1;
   outline: none;
 }
+
+.descricao-clamp {
+  max-width: 250px;
+  min-width: 250px;
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+}
