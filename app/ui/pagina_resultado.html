@@ -56,9 +56,12 @@
 
     let charts = {};
     let renderToken = 0;
-
     let colunasTabela = [];
     let colunasMes = [];
+    let filtroData = {
+      dataInicio: null,
+      dataFim: null
+    }
 
     // backend-driven
     let bufferDados = [];
@@ -253,7 +256,9 @@
         filtros: filtrosColuna,
         ordenacao: ordenacaoAtual,
         correspondenciaExata,
-        filtrosInvertidos
+        filtrosInvertidos,
+        data_ini: filtroData.dataInicio,
+        data_fim: filtroData.dataFim
       });
       console.log(resp)
 
@@ -312,7 +317,9 @@
         filtros: filtrosColuna,
         ordenacao: ordenacaoAtual,
         correspondenciaExata,
-        filtrosInvertidos
+        filtrosInvertidos,
+        data_ini: filtroData.dataInicio,
+        data_fim: filtroData.dataFim
       });
 
       if (!resp || !resp.data || resp.data.length === 0) {
@@ -566,6 +573,29 @@
     function atualizarContador(total) {
       document.getElementById('totalRegistros').textContent = total;
     }
+
+    /* =============================
+       Filtro Data
+       ============================= */
+    function aplicarFiltroData() {
+      filtroData.dataInicio = document.getElementById("dataInicio").value;
+      filtroData.dataFim = document.getElementById("dataFim").value;
+
+      resetarTabela();
+      carregarMais();
+    }
+
+    function limparFiltroData() {
+      filtroData.dataInicio = null;
+      filtroData.dataFim = null;
+
+      document.getElementById("dataInicio").value = "";
+      document.getElementById("dataFim").value = "";
+
+      resetarTabela();
+      carregarMais();
+    }
+
 
     /* =============================
        INICIALIZA
