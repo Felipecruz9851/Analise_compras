@@ -137,6 +137,25 @@ class Extractor:
                     "grupo": "apoio_compras",
                 }
             )
+        for familia in familias:
+            tarefas.append(
+                {
+                    "nome": f"apoio_compras_{familia}",
+                    "method": "POST",
+                    "url": self.APOIO,
+                    "data": {
+                        "cod_empresa": "11",
+                        "familia": familia,
+                        "grupo": "",
+                        "local": "",
+                        "ordem": "cod_item",
+                        "neces_aberto": "S",
+                        "inativ": "S",
+                    },
+                    "timeout": (5, 600),
+                    "grupo": "apoio_compras",
+                }
+            )
 
         for local in LOCAIS:
             tarefas.append(
@@ -296,7 +315,7 @@ class Extractor:
     # EXECUÇÃO PARALELA
     # ----------------------------
 
-    def executar_paralelo(self, tarefas: List[Dict], max_workers: int = 15):
+    def executar_paralelo(self, tarefas: List[Dict], max_workers: int = 20):
 
         fila = Queue()
 
