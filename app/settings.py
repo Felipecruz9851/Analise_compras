@@ -16,6 +16,7 @@ def carregar_feriados(caminho=FERIADOS_TXT):
                 continue
 
             feriados.append(date.fromisoformat(linha))
+    print(f"Feriados {feriados}")
 
     return feriados
 

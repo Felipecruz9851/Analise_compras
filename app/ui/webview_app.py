@@ -157,4 +157,4 @@ def start():
         maximized=True,
     )
 
-    webview.start(debug=True)
+    webview.start(debug=False)

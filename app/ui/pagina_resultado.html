@@ -595,6 +595,23 @@
       resetarTabela();
       carregarMais();
     }
+    /* =============================
+      BANNER LATERAL
+   ============================= */
+    function alternarBanner() {
+      const banner = document.getElementById('sidebarBanner');
+      const btn = document.getElementById('btnBanner');
+
+      banner.classList.toggle('hidden');
+
+      if (banner.classList.contains('hidden')) {
+        btn.textContent = '▶ Resumo';
+        btn.title = 'Exibir Resumo por Família';
+      } else {
+        btn.textContent = '◀ Resumo';
+        btn.title = 'Ocultar Resumo por Família';
+      }
+    }
 
 
     /* =============================

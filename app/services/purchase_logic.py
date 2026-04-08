@@ -1,9 +1,13 @@
 import pandas as pd
 import numpy as np
+from datetime import date, timedelta
+from app.settings import carregar_feriados
+from pandas.tseries.offsets import CustomBusinessDay
 
 
-def compra_necessidade(df=None):
-
+def compra_necessidade(dfs):
+    feriados = carregar_feriados
+    df = dfs.get("apoio_compras")
     # Normalizar formatação numérica (BR -> US) para TODAS as colunas
     for c in df.columns:
         df[c] = df[c].str.replace(".", "").str.replace(",", ".")
@@ -42,19 +46,59 @@ def compra_necessidade(df=None):
 
     df["Valor Comprado"] = df["Decis Compras"] * df["Valor Unitário"]
 
-    coluna = df.pop("Falta")
-    df.insert(10, "Falta", coluna)
-    coluna = df.pop("Decis Compras")
-    df.insert(11, "Decis Compras", coluna)
-    coluna = df.pop("Valor Comprado")
-    df.insert(12, "Valor Comprado", coluna)
-    coluna = df.pop("Lote Mínimo")
-    df.insert(13, "Lote Mínimo", coluna)
-    coluna = df.pop("Lote Econom")
-    df.insert(14, "Lote Econom", coluna)
+    ##### CALCULO de PRAZO FORNECEDOR ########
+    # garante tipo correto
+    df["Prazo Fornecedor"] = (
+        pd.to_numeric(df["Prazo Fornecedor"], errors="coerce").fillna(0).astype(int)
+    )
+
+    # transforma feriados em datetime
+    feriados = pd.to_datetime(feriados)
+
+    # define calendário com feriados
+    bd = CustomBusinessDay(holidays=feriados)
+
+    # hoje sem hora
+    hoje = pd.to_datetime("today").normalize()
+
+    # cálculo
+    df["Data OC"] = hoje + df["Prazo Fornecedor"] * bd
+    #####################################################
 
     df = df.drop(columns=["Ponto", "Dispon"])
+    colunas_desejadas = [
+        "Item",
+        "Descrição",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "Saldo Virtual",
+        "Decis Compras",
+        "Valor Comprado",
+        "Data OC",
+        "Lote Mínimo",
+        "Lote Econom",
+        "Neces",
+        "Estoque Padrão",
+        "Estoque Produção",
+        "Valor Unitário",
+        "OC",
+        "Valor Estoque",
+        "Média Diária",
+        "Observação",
+        "Última Data Entrada",
+        "Última Data Saída",
+        "Família",
+        "Falta",
+    ]
+    df["Data OC"] = df["Data OC"].dt.strftime("%d/%m/%Y")
+
+    # mantém só as que existem
+    df = df[[col for col in colunas_desejadas if col in df.columns]]
+
     df = df.round(2)
+    print(f"colunas a analisar \n ############ \n{df.columns} \n ###########")
     return df
 
 
@@ -64,14 +108,13 @@ def calcular(analise, dfs):
     e retorna UM ÚNICO DataFrame (para o pipeline gerar o JSON)
     """
     print(dfs.keys())
-    apoio_compras = dfs.get("apoio_compras")
 
-    if apoio_compras is None:
+    if dfs is None:
         raise ValueError("Grupo 'apoio_compras' não encontrado no dicionário dfs")
 
     if analise == "compra por necessidade":
-        analise_compra = compra_necessidade(apoio_compras)
+        analise_compra = compra_necessidade(dfs)
     else:
-        analise_compra = apoio_compras
+        raise "dados insuficientes"
 
     return analise_compra

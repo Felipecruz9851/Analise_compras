@@ -3,6 +3,7 @@ from app.services.extractor import Extractor
 from app.services.processor import juntar_tabelas
 from app.services.purchase_logic import calcular
 import pandas as pd
+import pickle
 
 from time import perf_counter
 
@@ -11,18 +12,29 @@ def coletar_dados(username, password, analise):
 
     inicio_total = perf_counter()
 
-    extractor = Extractor(username, password)
-    print("Extractor criado com sucesso!")
+    if username == "":
 
-    html_resultados = extractor.executar(analise)
-    print("Paginas coletadas.")
+        #### CARREGA SNAPSHOT #######
+        dfs = {}
+        with open("snapshot_dfs.pkl", "rb") as f:
+            dfs = pickle.load(f)
+        print("Carregado com sucesso")
+    #############################
 
-    duracao_total = perf_counter() - inicio_total
-    print(f"Coleta executada em {duracao_total:.2f} segundos")
+    else:
 
-    dfs = juntar_tabelas(html_resultados)
-    print("Dados tratados.")
-    print("Dicionário dfs gerado com grupos:", list(dfs.keys()))
+        extractor = Extractor(username, password)
+        print("Extractor criado com sucesso!")
+
+        html_resultados = extractor.executar(analise)
+        print("Paginas coletadas.")
+
+        duracao_total = perf_counter() - inicio_total
+        print(f"Coleta executada em {duracao_total:.2f} segundos")
+
+        dfs = juntar_tabelas(html_resultados)
+        print("Dados tratados.")
+        print("Dicionário dfs gerado com grupos:", list(dfs.keys()))
 
     return dfs
 
