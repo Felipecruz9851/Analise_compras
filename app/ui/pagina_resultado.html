@@ -260,7 +260,7 @@
         data_ini: filtroData.dataInicio,
         data_fim: filtroData.dataFim
       });
-      console.log(resp)
+
 
       if (!resp || !resp.data || resp.data.length === 0) return;
       if (resp.resumo) {
@@ -518,7 +518,6 @@
     function criarSparkline(canvasId, valores) {
       const valoresPlot = valores.slice(0, -1)
       const labelsPlot = colunasMes.slice(0, -1)
-      console.log(valores, colunasMes)
 
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;

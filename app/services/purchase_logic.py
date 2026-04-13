@@ -6,7 +6,7 @@ from pandas.tseries.offsets import CustomBusinessDay
 
 
 def compra_necessidade(dfs):
-    feriados = carregar_feriados
+    feriados = carregar_feriados()
     df = dfs.get("apoio_compras")
     # Normalizar formatação numérica (BR -> US) para TODAS as colunas
     for c in df.columns:
@@ -46,24 +46,24 @@ def compra_necessidade(dfs):
 
     df["Valor Comprado"] = df["Decis Compras"] * df["Valor Unitário"]
 
-    ##### CALCULO de PRAZO FORNECEDOR ########
-    # garante tipo correto
-    df["Prazo Fornecedor"] = (
-        pd.to_numeric(df["Prazo Fornecedor"], errors="coerce").fillna(0).astype(int)
+    # força conversão pra número (o que não virar número vira NaN)
+    df["Prazo Fornecedor"] = pd.to_numeric(df["Prazo Fornecedor"], errors="coerce")
+
+    # opcional: transforma NaN em 0 (ou outro valor que faça sentido)
+    df["Prazo Fornecedor"] = df["Prazo Fornecedor"].fillna(0).astype(int)
+
+    # cálculo da data
+    df["Data OC"] = pd.to_datetime("today").normalize() + pd.to_timedelta(
+        df["Prazo Fornecedor"], unit="D"
     )
 
-    # transforma feriados em datetime
-    feriados = pd.to_datetime(feriados)
+    # converte feriados corretamente
+    feriados_pd = pd.to_datetime(feriados)
 
-    # define calendário com feriados
-    bd = CustomBusinessDay(holidays=feriados)
+    bd = CustomBusinessDay(holidays=feriados_pd)
 
-    # hoje sem hora
-    hoje = pd.to_datetime("today").normalize()
-
-    # cálculo
-    df["Data OC"] = hoje + df["Prazo Fornecedor"] * bd
-    #####################################################
+    # ajuste pro próximo dia útil
+    df["Data OC"] = df["Data OC"] + 0 * bd
 
     df = df.drop(columns=["Ponto", "Dispon"])
     colunas_desejadas = [
@@ -98,7 +98,7 @@ def compra_necessidade(dfs):
     df = df[[col for col in colunas_desejadas if col in df.columns]]
 
     df = df.round(2)
-    print(f"colunas a analisar \n ############ \n{df.columns} \n ###########")
+
     return df
 
 
@@ -107,7 +107,6 @@ def calcular(analise, dfs):
     Recebe o dicionário dfs = {"apoio_compras": df}
     e retorna UM ÚNICO DataFrame (para o pipeline gerar o JSON)
     """
-    print(dfs.keys())
 
     if dfs is None:
         raise ValueError("Grupo 'apoio_compras' não encontrado no dicionário dfs")
