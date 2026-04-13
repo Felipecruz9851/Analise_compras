@@ -74,7 +74,20 @@ class Api:
         colunas_invertidas = payload.get("colunasInvertidas", {})
         colunas_exatas = payload.get("colunasExatas", {})
 
-        df_filtrado = df
+        df_trabalho = df.copy()
+
+        # ✅ APLICA EDIÇÕES PRIMEIRO, ANTES DE FILTRAR
+        if self._edicoes:
+            for row_id, valor in self._edicoes.items():
+                mask = df_trabalho["__rowId"] == row_id
+                if mask.any():
+                    df_trabalho.loc[mask, "Decis Compras"] = valor
+                    if "Valor Unitário" in df_trabalho.columns:
+                        df_trabalho.loc[mask, "Valor Comprado"] = (
+                            df_trabalho.loc[mask, "Valor Unitário"] * valor
+                        )
+
+        df_filtrado = df_trabalho
 
         for col, val in filtros.items():
             if val:
@@ -114,19 +127,8 @@ class Api:
                 ascending=ordenacao.get("direcao", "asc") == "asc",
             )
 
-        # ✅ define df_calc PRIMEIRO
+        # ✅ df_calc já tem as edições aplicadas
         df_calc = df_filtrado.copy()
-
-        # ✅ aplica edições antes de tudo
-        if self._edicoes:
-            for row_id, valor in self._edicoes.items():
-                mask = df_calc["__rowId"] == row_id
-                if mask.any():
-                    df_calc.loc[mask, "Decis Compras"] = valor
-                    if "Valor Unitário" in df_calc.columns:
-                        df_calc.loc[mask, "Valor Comprado"] = (
-                            df_calc.loc[mask, "Valor Unitário"] * valor
-                        )
 
         total = len(df_calc)
 
