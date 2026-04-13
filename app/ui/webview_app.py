@@ -69,15 +69,32 @@ class Api:
 
         filtros = payload.get("filtros", {})
         ordenacao = payload.get("ordenacao", {})
-        correspondencia_exata = payload.get("correspondenciaExata", False)
-        filtros_invertidos = payload.get("filtrosInvertidos", False)
+        correspondencia_exata_global = payload.get("correspondenciaExata", False)
+        filtros_invertidos_global = payload.get("filtrosInvertidos", False)
+        colunas_invertidas = payload.get("colunasInvertidas", {})
+        colunas_exatas = payload.get("colunasExatas", {})
 
         df_filtrado = df
 
         for col, val in filtros.items():
             if val:
-                if correspondencia_exata:
-                    mask = df_filtrado[col].astype(str).str.lower() == val.lower()
+                # Verifica se essa coluna tem correspondencia exata ativada individualmente
+                exata = colunas_exatas.get(col, correspondencia_exata_global)
+
+                if exata:
+                    # Verifica se valor é numérico para comparar como numero e não string
+                    if str(val).strip().lstrip("-").replace(".", "", 1).isdigit():
+                        # Comparacao numerica exata para evitar 10 == 100
+                        try:
+                            val_num = float(str(val).replace(",", "."))
+                            mask = df_filtrado[col].astype(float) == val_num
+                        except:
+                            # Se falhar conversao usa string
+                            mask = (
+                                df_filtrado[col].astype(str).str.lower() == val.lower()
+                            )
+                    else:
+                        mask = df_filtrado[col].astype(str).str.lower() == val.lower()
                 else:
                     mask = (
                         df_filtrado[col]
@@ -85,9 +102,11 @@ class Api:
                         .str.lower()
                         .str.contains(val.lower(), na=False)
                     )
-                df_filtrado = (
-                    df_filtrado[~mask] if filtros_invertidos else df_filtrado[mask]
-                )
+
+                # Verifica se essa coluna esta invertida individualmente
+                invertido = colunas_invertidas.get(col, filtros_invertidos_global)
+
+                df_filtrado = df_filtrado[~mask] if invertido else df_filtrado[mask]
 
         if ordenacao.get("coluna"):
             df_filtrado = df_filtrado.sort_values(

@@ -75,6 +75,8 @@
     let filtrosColuna = {};
     let correspondenciaExata = false;
     let filtrosInvertidos = false;
+    let colunasInvertidas = {};
+    let colunasExatas = {};
 
 
 
@@ -257,6 +259,8 @@
         ordenacao: ordenacaoAtual,
         correspondenciaExata,
         filtrosInvertidos,
+        colunasInvertidas,
+        colunasExatas,
         data_ini: filtroData.dataInicio,
         data_fim: filtroData.dataFim
       });
@@ -318,6 +322,8 @@
         ordenacao: ordenacaoAtual,
         correspondenciaExata,
         filtrosInvertidos,
+        colunasInvertidas,
+        colunasExatas,
         data_ini: filtroData.dataInicio,
         data_fim: filtroData.dataFim
       });
@@ -362,12 +368,17 @@
           ? 'col-destaque-verde'
           : '';
 
+        const isInvertido = colunasInvertidas[col] || false;
+        const isExato = colunasExatas[col] || false;
+
         html += `
 <th class="${classeDestaque}">
   <div class="col-header">
     <div class="col-header-top">
       <span>${col}</span>
-      <button class="sort-btn" onclick="ordenarColuna('${col}')">${iconOrdenacao}</button>
+      <button class="sort-btn" onclick="ordenarColuna('${col}')" title="Ordenar">${iconOrdenacao}</button>
+      <button class="filter-btn ${isInvertido ? 'active' : ''}" onclick="inverterFiltroColuna('${col}')" title="Inverter Filtro">⟲</button>
+      <button class="filter-btn ${isExato ? 'active' : ''}" onclick="alternarCorrespondenciaExataColuna('${col}')" title="Correspondência Exata">=</button>
     </div>
     <input type="text" class="filtro-coluna"
       placeholder="Filtrar..."
@@ -466,6 +477,20 @@
     function filtrarColuna(coluna, valor) {
       filtrosColuna[coluna] = valor;
 
+      resetarTabela();
+      carregarMais();
+    }
+
+    function inverterFiltroColuna(coluna) {
+      colunasInvertidas[coluna] = !colunasInvertidas[coluna];
+      renderizarCabecalho();
+      resetarTabela();
+      carregarMais();
+    }
+
+    function alternarCorrespondenciaExataColuna(coluna) {
+      colunasExatas[coluna] = !colunasExatas[coluna];
+      renderizarCabecalho();
       resetarTabela();
       carregarMais();
     }
