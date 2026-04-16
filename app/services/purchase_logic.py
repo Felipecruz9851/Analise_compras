@@ -63,7 +63,10 @@ def compra_necessidade(dfs):
     bd = CustomBusinessDay(holidays=feriados_pd)
 
     # ajuste pro próximo dia útil
-    df["Data OC"] = df["Data OC"] + 0 * bd
+    df["Data OC"] = df["Data OC"].where(
+        (df["Data OC"].dt.weekday < 5) & (~df["Data OC"].isin(feriados_pd)),
+        df["Data OC"] + bd,
+    )
 
     df = df.drop(columns=["Ponto", "Dispon"])
     colunas_desejadas = [
