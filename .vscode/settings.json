@@ -2,6 +2,8 @@
 	"python.defaultInterpreterPath": "c:\\AMBIENTES\\COMPRAS\\.venv\\Scripts\\python.exe",
 	"python.analysis.extraPaths": [
 		"c:/Users/engli/OneDrive/Área de Trabalho/Analise_compras"
-	]
+	],
+	"python.analysis.autoImportCompletions": true,
+	"python.analysis.typeCheckingMode": "off"
 }
 
