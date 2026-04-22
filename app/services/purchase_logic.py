@@ -1,16 +1,27 @@
 import pandas as pd
 import numpy as np
 from datetime import date, timedelta
+from app.services.processor import calc_data
 from app.settings import carregar_feriados
 from pandas.tseries.offsets import CustomBusinessDay
 
 
 def compra_necessidade(dfs):
+    import pandas as pd
+    import numpy as np
+    from pandas.tseries.offsets import CustomBusinessDay
+
     feriados = carregar_feriados()
-    df = dfs.get("apoio_compras")
-    # Normalizar formatação numérica (BR -> US) para TODAS as colunas
+    df = dfs.get("apoio_compras").copy()
+
+    # --- NORMALIZAÇÃO ---
     for c in df.columns:
-        df[c] = df[c].str.replace(".", "").str.replace(",", ".")
+        if df[c].dtype == object:
+            df[c] = (
+                df[c]
+                .str.replace(".", "", regex=False)
+                .str.replace(",", ".", regex=False)
+            )
 
     colunas_para_normalizar = [
         "Neces",
@@ -24,14 +35,17 @@ def compra_necessidade(dfs):
     ]
 
     for col in colunas_para_normalizar:
-        df[col] = df[col].astype(float)
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
         df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
     )
+
     df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
         0, 1
     )
+
     df["Decis Compras"] = np.where(
         df["Falta"] <= 0,
         0,
@@ -46,29 +60,107 @@ def compra_necessidade(dfs):
 
     df["Valor Comprado"] = df["Decis Compras"] * df["Valor Unitário"]
 
-    # força conversão pra número (o que não virar número vira NaN)
-    df["Prazo Fornecedor"] = pd.to_numeric(df["Prazo Fornecedor"], errors="coerce")
+    # --- DATA OC ---
+    df["Prazo Fornecedor"] = (
+        pd.to_numeric(df["Prazo Fornecedor"], errors="coerce").fillna(0).astype(int)
+    )
 
-    # opcional: transforma NaN em 0 (ou outro valor que faça sentido)
-    df["Prazo Fornecedor"] = df["Prazo Fornecedor"].fillna(0).astype(int)
-
-    # cálculo da data
     df["Data OC"] = pd.to_datetime("today").normalize() + pd.to_timedelta(
         df["Prazo Fornecedor"], unit="D"
     )
 
-    # converte feriados corretamente
     feriados_pd = pd.to_datetime(feriados)
-
     bd = CustomBusinessDay(holidays=feriados_pd)
 
-    # ajuste pro próximo dia útil
     df["Data OC"] = df["Data OC"].where(
         (df["Data OC"].dt.weekday < 5) & (~df["Data OC"].isin(feriados_pd)),
         df["Data OC"] + bd,
     )
 
-    df = df.drop(columns=["Ponto", "Dispon"])
+    # =========================
+    # 🔥 RATEIO CORRETO (SEM DUPLICAR CONSUMO)
+    # =========================
+
+    df_consumo = calc_data(dfs).copy()
+    # =========================
+    # TRATAMENTO DE VARIOS ITENS PRODUZIDOS NO MESMO ITEM FINAL (RAIZ)
+    # =========================
+
+    chaves = ["Item", "raiz_Item Final", "raiz_Pedido"]
+
+    df_consumo = df_consumo.groupby(chaves, as_index=False).agg(
+        {
+            "Consumo": "sum",
+            **{
+                col: "first"
+                for col in df_consumo.columns
+                if col not in chaves + ["Consumo"]
+            },
+        }
+    )
+
+    ###########################
+
+    # 🔑 cria estrutura mutável de consumo (estado compartilhado)
+    consumo_dict = {
+        item: grupo.sort_values("Ordem Cons", ascending=False).to_dict("records")
+        for item, grupo in df_consumo.groupby("Item")
+    }
+
+    resultado = []
+
+    for _, row_base in df.iterrows():
+        item = row_base["Item"]
+        saldo = row_base["Decis Compras"]
+
+        consumos = consumo_dict.get(item, [])
+
+        for cons in consumos:
+            if saldo <= 0:
+                break
+
+            disponivel = cons.get("Consumo", 0)
+
+            if pd.isna(disponivel) or disponivel <= 0:
+                continue
+
+            usado = min(saldo, disponivel)
+
+            # 🔥 ABATE o consumo (isso resolve a duplicação)
+            cons["Consumo"] -= usado
+
+            nova = row_base.to_dict()
+            nova["Decis Compras"] = usado
+            nova["Compra Neces."] = row_base["Decis Compras"]
+
+            nova["raiz_Item Final"] = cons.get("raiz_Item Final")
+            nova["raiz_Pedido"] = cons.get("raiz_Pedido")
+
+            # 🔧 corrige valor proporcional
+            nova["Valor Comprado"] = usado * row_base["Valor Unitário"]
+
+            resultado.append(nova)
+
+            saldo -= usado
+
+        # sobra sem consumo
+        if saldo > 0:
+            nova = row_base.to_dict()
+            nova["Compra Neces."] = saldo
+            nova["raiz_Item Final"] = None
+            nova["raiz_Pedido"] = None
+            nova["Valor Comprado"] = saldo * row_base["Valor Unitário"]
+
+            resultado.append(nova)
+
+    df = pd.DataFrame(resultado)
+
+    # =========================
+    # 🔚 FINAL
+    # =========================
+
+    df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
+
     colunas_desejadas = [
         "Item",
         "Descrição",
@@ -76,9 +168,12 @@ def compra_necessidade(dfs):
         "2026-02",
         "2026-03",
         "2026-04",
-        "Saldo Virtual",
+        "raiz_Item Final",
+        "raiz_Pedido",
+        "Compra Neces.",
         "Decis Compras",
         "Valor Comprado",
+        "Saldo Virtual",
         "Data OC",
         "Lote Mínimo",
         "Lote Econom",
@@ -95,9 +190,9 @@ def compra_necessidade(dfs):
         "Família",
         "Falta",
     ]
+
     df["Data OC"] = df["Data OC"].dt.strftime("%d/%m/%Y")
 
-    # mantém só as que existem
     df = df[[col for col in colunas_desejadas if col in df.columns]]
 
     df = df.round(2)
