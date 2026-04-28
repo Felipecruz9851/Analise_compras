@@ -146,6 +146,7 @@ def compra_necessidade(dfs):
         # sobra sem consumo
         if saldo > 0:
             nova = row_base.to_dict()
+            nova["Decis Compras"] = saldo
             nova["Compra Neces."] = saldo
             nova["raiz_Item Final"] = None
             nova["raiz_Pedido"] = None

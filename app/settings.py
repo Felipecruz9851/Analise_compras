@@ -31,7 +31,7 @@ ANALISES = [
 ]
 
 FAMILIAS = {
-    "compra por necessidade": "FNC,VSN,VRG,NEC",
+    "compra por necessidade": "FNC,VSN,VRG,NEC,IDA",
 }
 
 LOCAIS = {
