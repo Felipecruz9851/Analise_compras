@@ -181,7 +181,7 @@ class Api:
 
         today = date.today().strftime("%Y-%m-%d")
         nome_analise = self._analise_nome or "analise"
-        nome_base = f"OCs {nome_analise} no payload {today}"
+        nome_base = f"OCs {nome_analise} - {today}"
 
         exports_dir = Path("exports")
         exports_dir.mkdir(exist_ok=True)
