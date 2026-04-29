@@ -3,7 +3,7 @@
 	"python.analysis.extraPaths": [
 		"c:/Users/engli/OneDrive/Área de Trabalho/Analise_compras"
 	],
-	"python.analysis.autoImportCompletions": false,
+	"python.analysis.autoImportCompletions": true,
 	"python.analysis.typeCheckingMode": "off"
 }
 

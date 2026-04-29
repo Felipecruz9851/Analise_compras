@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import date, timedelta
 from app.services.processor import calc_data
-from app.settings import carregar_feriados
+from app.settings import carregar_feriados, prazo_por_representante
 from pandas.tseries.offsets import CustomBusinessDay
 
 
@@ -78,7 +78,7 @@ def compra_necessidade(dfs):
     )
 
     # =========================
-    # 🔥 RATEIO CORRETO (SEM DUPLICAR CONSUMO)
+    # RATEIO CORRETO (SEM DUPLICAR CONSUMO)
     # =========================
 
     df_consumo = calc_data(dfs).copy()
@@ -167,6 +167,17 @@ def compra_necessidade(dfs):
 
     df = pd.DataFrame(resultado)
 
+    df["texto OC"] = (
+        "ped - "
+        + df["raiz_Pedido"].fillna("").astype(str).str.replace(r"\.0$", "", regex=True)
+        + " | "
+        + "it - "
+        + df["raiz_Item Final"]
+        .fillna("")
+        .astype(str)
+        .str.replace(r"\.0$", "", regex=True)
+    )
+
     # =========================
     # 🔚 FINAL
     # =========================
@@ -180,8 +191,7 @@ def compra_necessidade(dfs):
         "2026-02",
         "2026-03",
         "2026-04",
-        "raiz_Item Final",
-        "raiz_Pedido",
+        "texto OC",
         "Compra Neces.",
         "Decis Compras",
         "Valor Comprado",
@@ -199,6 +209,8 @@ def compra_necessidade(dfs):
         "Observação",
         "Última Data Entrada",
         "Última Data Saída",
+        "raiz_Item Final",
+        "raiz_Pedido",
         "Família",
         "Falta",
     ]

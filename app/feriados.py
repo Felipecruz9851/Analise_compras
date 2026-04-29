@@ -6,7 +6,7 @@ from pathlib import Path
 
 BASE_URL = "http://192.168.0.6"
 LOGIN_PAGE = f"{BASE_URL}/home/"
-LOGIN_POST = f"{BASE_URL}/home/login"
+LOGIN_POST = f"{BASE_URL}/home/login/"
 FERIADOS_URL = f"{BASE_URL}/pcp/feriados.php"
 
 usuario = input("Usuário: ")
