@@ -123,7 +123,7 @@ PRAZOS_EXPEDICAO = [
     # valores únicos
     {"tipo": "valores", "itens": [7, 9, 95, 202, 762, 724], "prazo": 3},
     {"tipo": "valores", "itens": [201, 203, 241, 261], "prazo": 3},
-    {"tipo": "valores", "itens": [5000, 3000, 700], "prazo": 3},
+    {"tipo": "valores", "itens": [3000, 700], "prazo": 3},
     {"tipo": "valores", "itens": [601, 602, 603], "prazo": 10},
     # intervalos
     {"tipo": "intervalo", "de": 50, "ate": 90, "prazo": 3},
@@ -152,4 +152,7 @@ def prazo_por_representante(rep: int) -> int | None:
 
 if __name__ == "__main__":
 
-    print(FERIADOS_BRASIL)
+    print("insira um valor de representante para obter o prazo de expedição:")
+    rep = int(input())
+    prazo = prazo_por_representante(rep)
+    print(prazo)

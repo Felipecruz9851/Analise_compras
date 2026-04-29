@@ -113,6 +113,17 @@ def compra_necessidade(dfs):
         item = row_base["Item"]
         saldo = row_base["Decis Compras"]
 
+        # ✅ item sem necessidade de compra — mantém no resultado sem rateio
+        if saldo <= 0:
+            nova = row_base.to_dict()
+            nova["Compra Neces."] = 0
+            nova["raiz_Item Final"] = None
+            nova["raiz_Pedido"] = None
+            resultado.append(nova)
+            continue
+
+        consumos = consumo_dict.get(item, [])
+
         consumos = consumo_dict.get(item, [])
 
         for cons in consumos:
@@ -126,7 +137,7 @@ def compra_necessidade(dfs):
 
             usado = min(saldo, disponivel)
 
-            # 🔥 ABATE o consumo (isso resolve a duplicação)
+            #  ABATE o consumo
             cons["Consumo"] -= usado
 
             nova = row_base.to_dict()
