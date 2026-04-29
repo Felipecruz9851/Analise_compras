@@ -3,6 +3,7 @@ import threading
 import pandas as pd
 from app.services.pipeline import executar_pipeline
 from app import settings
+from datetime import date
 
 
 class Api:
@@ -17,7 +18,9 @@ class Api:
             "rodar_analise",
             "obter_slice",
             "salvar_edicao",
+            "gerar_ocs",
         }
+        self._analise_nome = None
 
     def call(self, method, payload=None):
         if method not in self._allowed_methods:
@@ -55,6 +58,7 @@ class Api:
 
             self._df_base = df
             self._df_ativo = df.copy()
+            self._analise_nome = payload["analise"]
 
             return {"status": "ok", "total": len(df)}
 
@@ -166,6 +170,131 @@ class Api:
             self._edicoes[row_id] = valor
 
         return {"status": "ok"}
+
+    def gerar_ocs(self, payload=None):
+        if self._df_base is None:
+            return {"erro": "Sem dados carregados"}
+
+        from datetime import date
+        from pathlib import Path
+        import os
+
+        today = date.today().strftime("%Y-%m-%d")
+        nome_analise = self._analise_nome or "analise"
+        nome_base = f"OCs {nome_analise} no payload {today}"
+
+        exports_dir = Path("exports")
+        exports_dir.mkdir(exist_ok=True)
+
+        # HTML completo sem filtros/edit - dados brutos do df_base
+        df_html = self._df_base.copy()
+
+        # Resumo familias
+        soma_fam = (
+            df_html.groupby("Família")["Valor Comprado"]
+            .sum()
+            .sort_values(ascending=False)
+        )
+        resumo_html = soma_fam.to_dict()
+        total_geral_html = float(soma_fam.sum())
+
+        # Gerar HTML estático
+        html_content = self._gerar_html_historico(
+            df_html.to_dict("records"), resumo_html, total_geral_html
+        )
+
+        html_path = exports_dir / f"{nome_base}.html"
+        html_path.write_text(html_content, encoding="utf-8")
+
+        # CSV itens decis >0
+        df_csv = df_html[df_html["Decis Compras"] > 0][
+            ["Item", "Data OC", "Decis Compras", "texto OC"]
+        ].copy()
+        csv_path = exports_dir / f"{nome_base}.csv"
+        df_csv.to_csv(csv_path, index=False, sep=";", decimal=",")
+
+        return {
+            "status": "ok",
+            "html": str(html_path.absolute()),
+            "csv": str(csv_path.absolute()),
+        }
+
+    def _gerar_html_historico(self, data, resumo, total_geral):
+        colunas = [c for c in data[0].keys() if c not in ["__rowId", "Gráfico"]]
+        import re
+
+        colunas_mes = [c for c in colunas if re.match(r"^\d{{4}}-\d{{2}}$", c)] or [
+            "2024-01"
+        ]  # fallback
+        colunas_tabela = [c for c in colunas if c not in colunas_mes]
+        colunas_tabela.insert(2, "Gráfico")  # placeholder
+
+        html_resumo = ""
+        html_resumo += """
+        <div class="familia-item familia-total">
+          <span class="familia-nome">TOTAL GERAL</span>
+          <span class="familia-valor">R$ {:.2f}</span>
+        </div>""".format(total_geral)
+        for familia, valor in resumo.items():
+            pct = (valor / total_geral * 100) if total_geral > 0 else 0
+            html_resumo += """
+        <div class="familia-item">
+          <span class="familia-nome">{}</span>
+          <span class="familia-valor">R$ {:.2f}</span>
+          <span class="familia-percentual">{:.1f}%</span>
+        </div>""".format(familia, valor, pct)
+
+        html_tbody = ""
+        for row in data:
+            html_tbody += "<tr>"
+            for col in colunas_tabela:
+                if col == "Gráfico":
+                    html_tbody += "<td>-</td>"
+                elif col == "Decis Compras":
+                    val = row.get(col, "")
+                    html_tbody += f'<td class="col-destaque-verde">{val}</td>'
+                elif col == "Valor Comprado":
+                    val = row.get(col, 0)
+                    html_tbody += f'<td class="col-destaque-verde">R$ {val:,.2f}</td>'
+                else:
+                    val = row.get(col, "")
+                    html_tbody += (
+                        f'<td title="{val}">{val[:100]}...</td>'
+                        if len(str(val)) > 100
+                        else f"<td>{val}</td>"
+                    )
+            html_tbody += "</tr>"
+
+        today_str = date.today().strftime("%Y-%m-%d")
+        return f"""<!DOCTYPE html>
+<html>
+<head>
+  <title>OCs {self._analise_nome or "analise"} {today_str}</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {{ font-family: Arial; margin: 20px; }}
+    table {{ width: 100%; border-collapse: collapse; }}
+    th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+    .col-destaque-verde {{ background-color: #d4edda; font-weight: bold; }}
+    .familia-item {{ display: flex; justify-content: space-between; padding: 5px; }}
+    .familia-total {{ background-color: #e9ecef; font-weight: bold; }}
+  </style>
+</head>
+<body>
+  <h1>Histórico OCs - {self._analise_nome or "analise"} - {today_str}</h1>
+  <h2>Resumo por Família</h2>
+  <div id="resumoFamilias">{html_resumo}</div>
+  <h2>Tabela Completa (sem filtros)</h2>
+  <table>
+    <thead>
+      <tr>
+{''.join([f'<th>{c}</th>' for c in colunas_tabela])}
+      </tr>
+    </thead>
+    <tbody>{html_tbody}</tbody>
+  </table>
+</body>
+</html>"""
 
 
 def start():

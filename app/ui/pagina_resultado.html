@@ -15,6 +15,8 @@
     <div class="header-left">
       <button onclick="voltar()">Voltar</button>
       <button onclick="alternarBanner()" id="btnBanner" title="Ocultar/Exibir Resumo por Família">◀ Resumo</button>
+      <button id="btnGerarOCs" onclick="gerarOCs()" title="Gerar histórico completo OCs (HTML + CSV)">Gerar
+        OCs</button>
     </div>
 
     <div class="header-right">
@@ -28,6 +30,7 @@
       <div class="contador">
         Registros: <span id="totalRegistros">0</span>
       </div>
+
     </div>
   </header>
 
@@ -74,6 +77,7 @@
     let filtrosInvertidos = false;
     let colunasInvertidas = {};
     let colunasExatas = {};
+    let carregandoExport = false;
 
 
 
@@ -638,6 +642,30 @@
     /* =============================
        INICIALIZA
        ============================= */
+
+    /* =============================
+       GERAR OCs
+       ============================= */
+    async function gerarOCs() {
+      if (carregandoExport) return;
+      carregandoExport = true;
+      const btn = document.getElementById('btnGerarOCs');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+
+      try {
+        const resp = await window.pywebview.api.call("gerar_ocs", {});
+        if (resp.erro) throw resp.erro;
+        alert(`OCs gerados!\nHTML: ${resp.html}\nCSV: ${resp.csv}`);
+      } catch (e) {
+        alert('Erro ao gerar OCs: ' + (e.message || e));
+      } finally {
+        carregandoExport = false;
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
 
     window.addEventListener('pywebviewready', init)
   </script>
