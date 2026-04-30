@@ -179,6 +179,10 @@ def compra_necessidade(dfs):
     )
 
     # =========================
+    # DATA IDEAL (CONSIDERA ENTRGA DO PEDIDO E DIAS DE EXPEDIÇÃO)
+    # =========================
+
+    # =========================
     # 🔚 FINAL
     # =========================
 
