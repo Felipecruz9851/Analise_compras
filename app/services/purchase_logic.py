@@ -72,9 +72,14 @@ def compra_necessidade(dfs):
     feriados_pd = pd.to_datetime(feriados)
     bd = CustomBusinessDay(holidays=feriados_pd)
 
-    df["Data OC"] = df["Data OC"].where(
-        (df["Data OC"].dt.weekday < 5) & (~df["Data OC"].isin(feriados_pd)),
-        df["Data OC"] + bd,
+    import numpy as np
+
+    feriados_np = np.array(feriados_pd, dtype="datetime64[D]")
+
+    datas = df["Data OC"].values.astype("datetime64[D]")
+
+    df["Data OC"] = np.busday_offset(
+        datas, offsets=0, roll="forward", holidays=feriados_np
     )
 
     # =========================
@@ -119,6 +124,9 @@ def compra_necessidade(dfs):
             nova["Compra Neces."] = 0
             nova["raiz_Item Final"] = None
             nova["raiz_Pedido"] = None
+
+            nova["Entrega pedido"] = None
+            nova["Representante"] = None
             resultado.append(nova)
             continue
 
@@ -143,9 +151,10 @@ def compra_necessidade(dfs):
             nova = row_base.to_dict()
             nova["Decis Compras"] = usado
             nova["Compra Neces."] = row_base["Decis Compras"]
-
             nova["raiz_Item Final"] = cons.get("raiz_Item Final")
             nova["raiz_Pedido"] = cons.get("raiz_Pedido")
+            nova["Entrega pedido"] = cons.get("raiz_Entrega Pedido")
+            nova["Representante"] = cons.get("raiz_Representante")
 
             # 🔧 corrige valor proporcional
             nova["Valor Comprado"] = usado * row_base["Valor Unitário"]
@@ -162,6 +171,8 @@ def compra_necessidade(dfs):
             nova["raiz_Item Final"] = None
             nova["raiz_Pedido"] = None
             nova["Valor Comprado"] = saldo * row_base["Valor Unitário"]
+            nova["Entrega pedido"] = None
+            nova["Representante"] = None
 
             resultado.append(nova)
 
@@ -199,6 +210,8 @@ def compra_necessidade(dfs):
         "Estoque Padrão",
         "Estoque Produção",
         "Decis Compras",
+        "Entrega pedido",
+        "Representante",
         "Valor Comprado",
         "Saldo Virtual",
         "texto OC",
@@ -223,7 +236,13 @@ def compra_necessidade(dfs):
 
     df = df[[col for col in colunas_desejadas if col in df.columns]]
 
-    df = df.round(2)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].round(2)
+
+    for col in df.select_dtypes(include=["datetime64[ns]"]):
+        df[col] = df[col].dt.strftime("%Y-%m-%d")
+
+    df = df.where(pd.notnull(df), None)
 
     return df
 

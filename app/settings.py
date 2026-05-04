@@ -85,6 +85,7 @@ LOCAIS = {
     "OSSOPAINEL",
     "TAPETES",
     "LE FABRI01",
+    "PLAN_ESP",
 }
 
 
