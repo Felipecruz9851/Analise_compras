@@ -1,9 +1,11 @@
+import re
 import pandas as pd
 import numpy as np
 from datetime import date, timedelta
 from app.services.processor import calc_data
 from app.settings import carregar_feriados, prazo_por_representante
 from pandas.tseries.offsets import CustomBusinessDay
+import re
 
 
 def compra_necessidade(dfs):
@@ -199,23 +201,22 @@ def compra_necessidade(dfs):
 
     df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
 
+    colunas_mes = [col for col in df.columns if re.match(r"^\d{4}-\d{2}$", col)]
+
     colunas_desejadas = [
         "Item",
         "Descrição",
-        "2026-01",
-        "2026-02",
-        "2026-03",
-        "2026-04",
+        *colunas_mes,  # ← dinâmico
         "Neces",
         "Estoque Padrão",
         "Estoque Produção",
         "Decis Compras",
+        "Valor Comprado",
+        "Compra Neces.",
         "Entrega pedido",
         "Representante",
-        "Valor Comprado",
         "Saldo Virtual",
         "texto OC",
-        "Compra Neces.",
         "Data OC",
         "Lote Mínimo",
         "Lote Econom",
