@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import date
 import csv
+import pandas as pd
 
 FERIADOS_TXT = Path(__file__).with_name("feriados.txt")
 
@@ -129,7 +130,7 @@ PRAZOS_EXPEDICAO = [
     # intervalos
     {"tipo": "intervalo", "de": 50, "ate": 90, "prazo": 3},
     {"tipo": "intervalo", "de": 1000, "ate": 1999, "prazo": 3},
-    {"tipo": "intervalo", "de": 2000, "ate": 2999, "prazo": 3},
+    {"tipo": "intervalo", "de": 2000, "ate": 2999, "prazo": 8},
     {"tipo": "intervalo", "de": 3000, "ate": 3999, "prazo": 8},
     {"tipo": "intervalo", "de": 4000, "ate": 5999, "prazo": 8},
     {"tipo": "intervalo", "de": 6000, "ate": 6999, "prazo": 8},
@@ -140,15 +141,27 @@ PRAZOS_EXPEDICAO = [
 ]
 
 
-def prazo_por_representante(rep: int) -> int | None:
+def prazo_por_representante(rep: int | str) -> int:
+    if pd.isna(rep):
+        return 0
+
+    rep = int(rep)
+
+    # # regra especial
+    # if str(rep).endswith("95"):
+    #     return 3
+
+    # valores específicos primeiro
     for regra in PRAZOS_EXPEDICAO:
         if regra["tipo"] == "valores" and rep in regra["itens"]:
             return regra["prazo"]
 
+    # depois intervalos
+    for regra in PRAZOS_EXPEDICAO:
         if regra["tipo"] == "intervalo" and regra["de"] <= rep <= regra["ate"]:
             return regra["prazo"]
 
-    return None  # ou um prazo padrão
+    return 10  # fallback consistente
 
 
 if __name__ == "__main__":

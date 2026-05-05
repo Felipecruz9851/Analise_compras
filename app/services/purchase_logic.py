@@ -169,7 +169,7 @@ def compra_necessidade(dfs):
         if saldo > 0:
             nova = row_base.to_dict()
             nova["Decis Compras"] = saldo
-            nova["Compra Neces."] = saldo
+            nova["Compra Neces."] = row_base["Decis Compras"]
             nova["raiz_Item Final"] = None
             nova["raiz_Pedido"] = None
             nova["Valor Comprado"] = saldo * row_base["Valor Unitário"]
@@ -195,8 +195,49 @@ def compra_necessidade(dfs):
     # DATA IDEAL (CONSIDERA ENTRGA DO PEDIDO E DIAS DE EXPEDIÇÃO)
     # =========================
 
+    feriados = carregar_feriados()
+    feriados_np = np.array(feriados, dtype="datetime64[D]")
+
+    def calcular_data_util(row, feriados_np):
+        data = row["Entrega pedido"]
+        prazo = row["prazo"]
+
+        if pd.isna(data):
+            return pd.NaT
+
+        if prazo <= 0:
+            return data
+
+        try:
+            return pd.Timestamp(
+                np.busday_offset(
+                    np.datetime64(data.date()),
+                    -int(prazo),
+                    roll="backward",
+                    holidays=feriados_np,
+                )
+            )
+        except Exception:
+            return pd.NaT
+
+    # --- 1. Garantir datetime ---
+    df["Entrega pedido"] = pd.to_datetime(df["Entrega pedido"], errors="coerce")
+
+    # --- 2. Mapear prazos ---
+    df["prazo"] = df["Representante"].map(prazo_por_representante).fillna(0)
+
+    df["prazo"] = pd.to_numeric(df["prazo"], errors="coerce").fillna(0)
+
+    # --- 3. Calcular Data Ideal considerando feriados ---
+    df["Data Ideal"] = df.apply(
+        lambda row: calcular_data_util(row, feriados_np), axis=1
+    )
+
+    # --- 4. Limpeza ---
+    df.drop(columns="prazo", inplace=True)
+
     # =========================
-    # 🔚 FINAL
+    # FINAL
     # =========================
 
     df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
@@ -206,13 +247,14 @@ def compra_necessidade(dfs):
     colunas_desejadas = [
         "Item",
         "Descrição",
-        *colunas_mes,  # ← dinâmico
+        *colunas_mes,
         "Neces",
         "Estoque Padrão",
         "Estoque Produção",
         "Decis Compras",
         "Valor Comprado",
         "Compra Neces.",
+        "Data Ideal",
         "Entrega pedido",
         "Representante",
         "Saldo Virtual",
