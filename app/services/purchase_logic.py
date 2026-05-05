@@ -120,13 +120,17 @@ def compra_necessidade(dfs):
         item = row_base["Item"]
         saldo = row_base["Decis Compras"]
 
-        # ✅ item sem necessidade de compra — mantém no resultado sem rateio
-        if saldo <= 0:
+        # ✅ pula rateio se sem necessidade ou Lote Mínimo == 1
+        if saldo <= 0 or row_base["Lote Mínimo"] != 1:
             nova = row_base.to_dict()
-            nova["Compra Neces."] = 0
+            if saldo > 0:
+                nova["Decis Compras"] = saldo
+                nova["Compra Neces."] = row_base["Decis Compras"]
+                nova["Valor Comprado"] = saldo * row_base["Valor Unitário"]
+            else:
+                nova["Compra Neces."] = 0
             nova["raiz_Item Final"] = None
             nova["raiz_Pedido"] = None
-
             nova["Entrega pedido"] = None
             nova["Representante"] = None
             resultado.append(nova)
