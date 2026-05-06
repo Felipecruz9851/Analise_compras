@@ -125,7 +125,7 @@ PRAZOS_EXPEDICAO = [
     # valores únicos
     {"tipo": "valores", "itens": [7, 9, 95, 202, 762, 724], "prazo": 3},
     {"tipo": "valores", "itens": [201, 203, 241, 261], "prazo": 3},
-    {"tipo": "valores", "itens": [3000, 700], "prazo": 3},
+    {"tipo": "valores", "itens": [700], "prazo": 3},
     {"tipo": "valores", "itens": [601, 602, 603], "prazo": 10},
     # intervalos
     {"tipo": "intervalo", "de": 50, "ate": 90, "prazo": 3},

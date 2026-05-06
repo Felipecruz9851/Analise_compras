@@ -116,11 +116,16 @@ def compra_necessidade(dfs):
 
     resultado = []
 
+    # =========================
+    # RATEIO base
+    # =========================
+
     for _, row_base in df.iterrows():
+
         item = row_base["Item"]
         saldo = row_base["Decis Compras"]
 
-        # ✅ pula rateio se sem necessidade ou Lote Mínimo == 1
+        # ✅ pula rateio se sem necessidade ou Lote Mínimo != 1
         if saldo <= 0 or row_base["Lote Mínimo"] != 1:
             nova = row_base.to_dict()
             if saldo > 0:
@@ -183,6 +188,48 @@ def compra_necessidade(dfs):
             resultado.append(nova)
 
     df = pd.DataFrame(resultado)
+
+    # =========================
+    # COMPLEMENTO (pós-rateio): se raiz_* faltarem para Decis Compras>0,
+    # preencher pela “primeira ordem cons” do mesmo Item.
+    # =========================
+    if not df.empty:
+        # referência: consumo original (sem abatimento)
+        df_ref = df_consumo.copy()
+
+        # ordenar por Ordem Cons desc e pegar o primeiro registro por Item
+        df_ref_sorted = df_ref.sort_values("Ordem Cons", ascending=False)
+        df_ref_top = df_ref_sorted.drop_duplicates("Item", keep="first")
+
+        mapa_top = df_ref_top.set_index("Item").to_dict("index")
+
+        def _fill_if_missing(row):
+            if pd.isna(row.get("Decis Compras")) or row.get("Decis Compras") <= 0:
+                return row
+            item = row.get("Item")
+            top = mapa_top.get(item)
+            if not top:
+                return row
+
+            for k_out, k_in in [
+                ("raiz_Item Final", "raiz_Item Final"),
+                ("raiz_Pedido", "raiz_Pedido"),
+                ("raiz_Representante", "raiz_Representante"),
+                ("Entrega pedido", "raiz_Entrega Pedido"),
+            ]:
+                val = row.get(k_out)
+                if pd.isna(val) or val is None or val == "":
+                    row[k_out] = top.get(k_in)
+            # manter compatibilidade com código existente
+            if (
+                pd.isna(row.get("Representante"))
+                or row.get("Representante") is None
+                or row.get("Representante") == ""
+            ):
+                row["Representante"] = top.get("raiz_Representante")
+            return row
+
+        df = df.apply(_fill_if_missing, axis=1)
 
     df["texto OC"] = (
         "ped - "
@@ -258,11 +305,11 @@ def compra_necessidade(dfs):
         "Decis Compras",
         "Valor Comprado",
         "Compra Neces.",
+        "texto OC",
         "Data Ideal",
         "Entrega pedido",
         "Representante",
         "Saldo Virtual",
-        "texto OC",
         "Data OC",
         "Lote Mínimo",
         "Lote Econom",
