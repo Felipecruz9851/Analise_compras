@@ -312,11 +312,11 @@ def compra_necessidade(dfs):
             # Critério 2: Representante entre 50 e 100
             try:
                 rep = float(row.get("Representante") or "nan")
-                c2 = 50 <= rep <= 100
+                c2 = 50 <= rep <= 100 or rep == 0
             except (ValueError, TypeError):
                 c2 = False
 
-            # Critério 3: raiz_fábrica != "UL-ALMOX05"
+            # Critério 3: raiz_Fábrica != "UL-ALMOX05"
             chave = (row.get("Item"), row.get("raiz_Pedido"))
             fabrica = fab_map.get(chave)
             c3 = pd.notna(fabrica) and fabrica != "UL-ALMOX05"
