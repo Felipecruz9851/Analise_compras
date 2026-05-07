@@ -287,6 +287,47 @@ def compra_necessidade(dfs):
     # --- 4. Limpeza ---
     df.drop(columns="prazo", inplace=True)
 
+    # --- 5. Filtro mármore ---
+
+    if not df.empty and "Família" in df.columns:
+
+        # Mapa (Item, raiz_Pedido) → raiz_fábrica a partir do df_consumo
+        fab_map = (
+            df_consumo.dropna(subset=["raiz_Fábrica"])
+            .drop_duplicates(subset=["Item", "raiz_Pedido"])
+            .set_index(["Item", "raiz_Pedido"])["raiz_Fábrica"]
+            .to_dict()
+        )
+
+        hoje = pd.Timestamp.today().normalize()
+        limite_data = hoje + pd.Timedelta(days=28)
+
+        mask_vrg = df["Família"] == "VRG"
+
+        def _criterios_vrg(row):
+            # Critério 1: Data Ideal <= hoje + 28 dias corridos
+            data_ideal = pd.to_datetime(row.get("Data Ideal"), errors="coerce")
+            c1 = pd.notna(data_ideal) and data_ideal <= limite_data
+
+            # Critério 2: Representante entre 50 e 100
+            try:
+                rep = float(row.get("Representante") or "nan")
+                c2 = 50 <= rep <= 100
+            except (ValueError, TypeError):
+                c2 = False
+
+            # Critério 3: raiz_fábrica != "UL-ALMOX05"
+            chave = (row.get("Item"), row.get("raiz_Pedido"))
+            fabrica = fab_map.get(chave)
+            c3 = pd.notna(fabrica) and fabrica != "UL-ALMOX05"
+
+            return c1 or c2 or c3
+
+        nenhum_criterio = mask_vrg & ~df.apply(_criterios_vrg, axis=1)
+
+        df.loc[nenhum_criterio, "Decis Compras"] = 0
+        df.loc[nenhum_criterio, "Valor Comprado"] = 0
+
     # =========================
     # FINAL
     # =========================
