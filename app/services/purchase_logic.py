@@ -382,6 +382,134 @@ def compra_necessidade(dfs):
     return df
 
 
+def compra_estoque_nec_conf(dfs):
+    import pandas as pd
+    import numpy as np
+    from pandas.tseries.offsets import CustomBusinessDay
+    import re
+
+    feriados = carregar_feriados()
+    df = dfs.get("apoio_compras").copy()
+
+    # --- NORMALIZAÇÃO ---
+    for c in df.columns:
+        if df[c].dtype == object:
+            df[c] = (
+                df[c]
+                .str.replace(".", "", regex=False)
+                .str.replace(",", ".", regex=False)
+            )
+
+    colunas_para_normalizar = [
+        "Neces",
+        "Estoque Padrão",
+        "Lote Mínimo",
+        "Dispon",
+        "Lote Econom",
+        "Estoque Produção",
+        "OC",
+        "Valor Unitário",
+    ]
+
+    for col in colunas_para_normalizar:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # --- CÁLCULO COMPRA ---
+    df["Falta"] = df["Neces"] - (
+        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
+    )
+
+    df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
+        0, 1
+    )
+
+    df["Decis Compras"] = np.where(
+        df["Falta"] <= 0,
+        0,
+        np.where(
+            df["Falta"] <= df["Lote Mínimo"],
+            df["Lote Mínimo"],
+            df["Lote Mínimo"]
+            + np.ceil((df["Falta"] - df["Lote Mínimo"]) / df["Lote Econom"])
+            * df["Lote Econom"],
+        ),
+    )
+
+    df["Valor Comprado"] = df["Decis Compras"] * df["Valor Unitário"]
+
+    # --- DATA OC ---
+    df["Prazo Fornecedor"] = (
+        pd.to_numeric(df["Prazo Fornecedor"], errors="coerce").fillna(0).astype(int)
+    )
+
+    df["Data OC"] = pd.to_datetime("today").normalize() + pd.to_timedelta(
+        df["Prazo Fornecedor"], unit="D"
+    )
+
+    feriados_pd = pd.to_datetime(feriados)
+    bd = CustomBusinessDay(holidays=feriados_pd)
+
+    import numpy as np
+
+    feriados_np = np.array(feriados_pd, dtype="datetime64[D]")
+
+    datas = df["Data OC"].values.astype("datetime64[D]")
+
+    df["Data OC"] = np.busday_offset(
+        datas, offsets=0, roll="forward", holidays=feriados_np
+    )
+
+    # =========================
+    # FINAL
+    # =========================
+
+    df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
+
+    colunas_mes = [col for col in df.columns if re.match(r"^\d{4}-\d{2}$", col)]
+    print(f'#######\n{dfs.get("apoio_compras").columns}')
+    colunas_desejadas = [
+        "Item",
+        "Descrição",
+        *colunas_mes,
+        "Neces",
+        "Estoque Padrão",
+        "Estoque Produção",
+        "Decis Compras",
+        "Valor Comprado",
+        "Saldo Virtual",
+        "Data OC",
+        "Lote Mínimo",
+        "Lote Econom",
+        "Valor Unitário",
+        "OC",
+        "Valor Estoque",
+        "Média Diária",
+        "Observação",
+        "Última Data Entrada",
+        "Última Data Saída",
+        "Família",
+        "Falta",
+    ]
+
+    df["Data OC"] = df["Data OC"].dt.strftime("%d/%m/%Y")
+
+    df = df[[col for col in colunas_desejadas if col in df.columns]]
+
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].round(2)
+
+    for col in df.select_dtypes(include=["datetime64[ns]"]):
+        df[col] = df[col].dt.strftime("%Y-%m-%d")
+
+    df = df.where(pd.notnull(df), None)
+    df.to_excel("debug_compra_estoque_nec_conf.xlsx", index=False)
+    print(
+        "DataFrame final gerado para análise 'Compra est NEC conf' com colunas:",
+        df.columns,
+    )
+    return df
+
+
 def calcular(analise, dfs):
     """
     Recebe o dicionário dfs = {"apoio_compras": df}
@@ -393,7 +521,11 @@ def calcular(analise, dfs):
 
     if analise == "compra por necessidade":
         analise_compra = compra_necessidade(dfs)
-    else:
-        raise "dados insuficientes"
+    elif analise == "Compra est NEC conf":
+        analise_compra = compra_estoque_nec_conf(dfs)
 
+    else:
+        raise NotImplementedError(
+            "Análise 'Compra est NEC conf' ainda não implementada"
+        )
     return analise_compra

@@ -117,7 +117,7 @@ class Api:
                         df_filtrado[col]
                         .astype(str)
                         .str.lower()
-                        .str.contains(val.lower(), na=False)
+                        .str.contains(val.lower(), na=False, regex=False)
                     )
 
                 # Verifica se essa coluna esta invertida individualmente
@@ -307,4 +307,4 @@ def start():
         maximized=True,
     )
 
-    webview.start(debug=True)
+    webview.start(debug=False)

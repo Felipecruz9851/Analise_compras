@@ -413,8 +413,8 @@
             const foiEditado = edicoes[rowId] !== undefined
             const valorFinal = foiEditado ? edicoes[rowId] : linha[col]
 
-            html += `<td style="min-width:180px">
-          <canvas id="${canvasId}" height="160"></canvas>
+            html += `<td style="min-width:210px">
+          <canvas id="${canvasId}" height="180"></canvas>
         </td>`;
 
             graficos.push({ id: canvasId, valores });
@@ -566,19 +566,26 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 15,
+              left: 15,
+              right: 15
+            }
+          },
           plugins: {
             legend: { display: false },
             datalabels: {
               display: true,
               align: 'top',
               anchor: 'end',
-              offset: 0,
+              offset: 6,
               color: '#1976d2',
               formatter: (value) => {
                 return value.toLocaleString('pt-BR')
               },
               font: {
-                size: 16,
+                size: 12,
                 weight: 'bold',
               }
             }
