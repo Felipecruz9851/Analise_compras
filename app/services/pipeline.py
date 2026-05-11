@@ -16,9 +16,9 @@ def coletar_dados(username, password, analise):
 
         #### CARREGA SNAPSHOT #######
         dfs = {}
-        with open("snapshot_dfs.pkl", "rb") as f:
+        with open(f"snapshot_{analise}.pkl", "rb") as f:
             dfs = pickle.load(f)
-        print("Carregado com sucesso")
+        print(f"Snapshot carregado para {analise}.")
     #############################
 
     else:

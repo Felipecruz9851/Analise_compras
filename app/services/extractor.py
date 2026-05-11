@@ -156,54 +156,54 @@ class Extractor:
                     "grupo": "apoio_compras",
                 }
             )
+        if analise == "compra por necessidade":
+            for local in LOCAIS:
+                tarefas.append(
+                    {
+                        "nome": f"ordens_{local}",
+                        "method": "POST",
+                        "url": self.ORDENS,
+                        "data": {
+                            "cod_empresa": "11",
+                            "local[]": local,
+                            "inicio": "2000-01-01",
+                            "fim": "2050-12-31",
+                        },
+                        "timeout": (5, 600),
+                        "grupo": "ordens",
+                    }
+                )
 
-        for local in LOCAIS:
+            for local in LOCAIS:
+                tarefas.append(
+                    {
+                        "nome": f"cons{local}",
+                        "method": "POST",
+                        "url": self.CONS,
+                        "data": {
+                            "cod_empresa": "11",
+                            "local[]": local,
+                            "dati": "2000-01-01",
+                            "datf": "2050-12-31",
+                        },
+                        "timeout": (5, 600),
+                        "grupo": "cons",
+                    }
+                )
             tarefas.append(
                 {
-                    "nome": f"ordens_{local}",
+                    "nome": "estoque",
                     "method": "POST",
-                    "url": self.ORDENS,
+                    "url": self.ESTOQUE,
                     "data": {
                         "cod_empresa": "11",
-                        "local[]": local,
-                        "inicio": "2000-01-01",
-                        "fim": "2050-12-31",
+                        "situacao": "L",
+                        "relatorio": "R",
                     },
                     "timeout": (5, 600),
-                    "grupo": "ordens",
+                    "grupo": "estoque",
                 }
             )
-
-        for local in LOCAIS:
-            tarefas.append(
-                {
-                    "nome": f"cons{local}",
-                    "method": "POST",
-                    "url": self.CONS,
-                    "data": {
-                        "cod_empresa": "11",
-                        "local[]": local,
-                        "dati": "2000-01-01",
-                        "datf": "2050-12-31",
-                    },
-                    "timeout": (5, 600),
-                    "grupo": "cons",
-                }
-            )
-        tarefas.append(
-            {
-                "nome": "estoque",
-                "method": "POST",
-                "url": self.ESTOQUE,
-                "data": {
-                    "cod_empresa": "11",
-                    "situacao": "L",
-                    "relatorio": "R",
-                },
-                "timeout": (5, 600),
-                "grupo": "estoque",
-            }
-        )
 
         return tarefas
 

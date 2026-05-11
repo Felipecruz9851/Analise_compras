@@ -25,14 +25,12 @@ FERIADOS_BRASIL = carregar_feriados()
 
 ANALISES = [
     "compra por necessidade",
-    "Compra para estoque",
-    "rev",
-    "lam",
-    "compra para estoque ignora necess.",
+    "Compra est NEC conf",
 ]
 
 FAMILIAS = {
     "compra por necessidade": "FNC,VSN,VRG,NEC,IDA",
+    "Compra est NEC conf": "ABR,AVI,COL,EMB,EPM,ETI,FOR,LNH,MAN,PRF,VPE",
 }
 
 LOCAIS = {
