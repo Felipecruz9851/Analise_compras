@@ -254,6 +254,11 @@ class Api:
         for analise in ANALISES:
             dfs = coletar_dados(username, password, analise)
             fname = f"snapshot_{analise}.pkl"
+            # Remove o arquivo se existir
+            if os.path.exists(fname):
+                os.remove(fname)
+
+            # Gera novo arquivo
             with open(fname, "wb") as f:
                 pickle.dump(dfs, f)
             snapshots.append(fname)
@@ -270,13 +275,13 @@ class Api:
         base = Path(os.getcwd())
         pattern = "snapshot_*.pkl"
         files = sorted(
-            base.glob(pattern), key=lambda p: p.stat().st_ctime, reverse=True
+            base.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
         )
 
         resp = []
         for p in files:
             st = p.stat()
-            dt = datetime.fromtimestamp(st.st_ctime)
+            dt = datetime.fromtimestamp(st.st_mtime)
             resp.append(
                 {
                     "nome": p.name,
