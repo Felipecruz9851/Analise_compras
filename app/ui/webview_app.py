@@ -19,7 +19,10 @@ class Api:
             "obter_slice",
             "salvar_edicao",
             "gerar_ocs",
+            "gerar_pickles",
+            "listar_pickles",
         }
+
         self._analise_nome = None
 
     def call(self, method, payload=None):
@@ -157,6 +160,7 @@ class Api:
         }
 
     def salvar_edicao(self, payload):
+
         row_id = payload.get("rowId")
         valor = payload.get("valor")
 
@@ -232,7 +236,55 @@ class Api:
             "csv": str(csv_path.absolute()),
         }
 
+    def gerar_pickles(self, payload=None):
+        import os
+        import pickle
+        from time import perf_counter
+        from app.services.pipeline import coletar_dados
+        from app.settings import ANALISES
+
+        username = "felipe.cruz"
+        password = "#Gladoscruz.9851"
+
+        start = perf_counter()
+        snapshots = []
+        for analise in ANALISES:
+            dfs = coletar_dados(username, password, analise)
+            fname = f"snapshot_{analise}.pkl"
+            with open(fname, "wb") as f:
+                pickle.dump(dfs, f)
+            snapshots.append(fname)
+
+        elapsed = perf_counter() - start
+        return {"status": "ok", "gerados": snapshots, "elapsed_sec": elapsed}
+
+    def listar_pickles(self, payload=None):
+
+        from pathlib import Path
+        import os
+        from datetime import datetime
+
+        base = Path(os.getcwd())
+        pattern = "snapshot_*.pkl"
+        files = sorted(
+            base.glob(pattern), key=lambda p: p.stat().st_ctime, reverse=True
+        )
+
+        resp = []
+        for p in files:
+            st = p.stat()
+            dt = datetime.fromtimestamp(st.st_ctime)
+            resp.append(
+                {
+                    "nome": p.name,
+                    "data_criacao": dt.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+
+        return resp
+
     def _gerar_html_historico(self, data, resumo, total_geral):
+
         colunas = [c for c in data[0].keys() if c not in ["__rowId", "Gráfico"]]
         import re
 
