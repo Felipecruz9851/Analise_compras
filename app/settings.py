@@ -30,7 +30,8 @@ ANALISES = [
 
 FAMILIAS = {
     "compra por necessidade": "FNC,VSN,VRG,NEC,IDA",
-    "Compra est NEC conf": "ABR,AVI,COL,EMB,EPM,ETI,FOR,LNH,MAN,PRF,VPE",
+    # "Compra est NEC conf": "ACE,ARM,CRD,DBR,FEC,GIR,PEZ,PUX,RDZ",
+    "Compra est NEC conf": "ABR,ACE,ARM,AVI,COL,CRD,DBR,EMB,EPM,ETI,FOR,GIR,MAN,PEZ,PRF,PUX,RDZ,FER,FIB,FND,VPE,LAM,FEC,GAS,LNH,REV,MIN",
 }
 
 LOCAIS = {

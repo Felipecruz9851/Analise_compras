@@ -38,6 +38,7 @@ class Extractor:
     ORDENS = f"{BASE_URL}/pcp/atrasadas.php"
     CONS = f"{BASE_URL}/pcp/consumo_alt.php"
     ESTOQUE = f"{BASE_URL}/pcp/estoque_lote.php"
+    CONF = f"{BASE_URL}/pcp/pontualidade_fornecedor-lgx.php"
 
     ARQ_TEMPOS = Path("tempos_execucao.json")
 
@@ -118,6 +119,24 @@ class Extractor:
         familias = FAMILIAS[analise].split(",")
 
         tarefas = []
+
+        for familia in familias:
+            tarefas.append(
+                {
+                    "nome": f"conf_{familia}",
+                    "method": "POST",
+                    "url": self.CONF,
+                    "data": {
+                        "inicio": "2000-01-01",
+                        "fim": "2050-12-31",
+                        "grupo": "",
+                        "item": "",
+                        "familia": familia,
+                    },
+                    "timeout": (5, 600),
+                    "grupo": "conf",
+                }
+            )
 
         for familia in familias:
             tarefas.append(
