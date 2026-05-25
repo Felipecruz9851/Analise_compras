@@ -189,6 +189,19 @@ class Api:
         # HTML completo sem filtros/edit - dados brutos do df_base
         df_html = self._df_base.copy()
 
+        # ✅ aplicar edições feitas na tela (Decis Compras) antes de exportar
+        if self._edicoes:
+            for row_id, valor in self._edicoes.items():
+                mask = df_html["__rowId"] == row_id
+                if mask.any():
+                    df_html.loc[mask, "Decis Compras"] = valor
+                    if (
+                        "Valor Unitário" in df_html.columns
+                        and "Valor Comprado" in df_html.columns
+                    ):
+                        unit = df_html.loc[mask, "Valor Unitário"]
+                        df_html.loc[mask, "Valor Comprado"] = unit * float(valor)
+
         # Resumo familias
         soma_fam = (
             df_html.groupby("Família")["Valor Comprado"]
