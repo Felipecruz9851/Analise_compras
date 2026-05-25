@@ -102,7 +102,7 @@ function renderPickles(lista) {
     }
 
     let html = `
-        <div style="font-size:12px; margin-bottom:10px; color:#333;">Arquivos pickle encontrados: <b>${lista.length}</b></div>
+        <div style="font-size:12px; margin-bottom:10px; color:#333;">Arquivos encontrados: <b>${lista.length}</b></div>
         <div class="table-wrapper" style="max-height: 240px; overflow: auto; border: 1px solid #e0e0e0; border-radius: 12px;">
           <table style="width:100%; border-collapse: collapse; font-size: 12px;">
             <thead>
@@ -147,11 +147,16 @@ async function gerarPickles() {
     const loadingOverlay = document.createElement('div');
     loadingOverlay.id = 'loading-overlay';
     loadingOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;';
-    loadingOverlay.innerHTML = '<div style="width:50px;height:50px;border:5px solid rgba(255,255,255,0.3);border-top:5px solid #3cb371;border-radius:50%;animation:spin 1s linear infinite;"></div><p style="color:white;margin-top:20px;font-size:18px;">Gerando arquivos pickle...</p><style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
+    loadingOverlay.innerHTML = '<div style="width:50px;height:50px;border:5px solid rgba(255,255,255,0.3);border-top:5px solid #3cb371;border-radius:50%;animation:spin 1s linear infinite;"></div><p style="color:white;margin-top:20px;font-size:18px;">Coletando dados...</p><style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
     document.body.appendChild(loadingOverlay);
 
     try {
-        const resp = await window.pywebview.api.call('gerar_pickles', {});
+        const payload = {
+            username: document.getElementById("user").value,
+            password: document.getElementById("pass").value,
+        };
+
+        const resp = await window.pywebview.api.call('gerar_pickles', payload);
         if (resp && resp.erro) throw new Error(resp.erro);
         await listarPickles();
     } catch (e) {

@@ -243,8 +243,11 @@ class Api:
         from app.services.pipeline import coletar_dados
         from app.settings import ANALISES
 
-        username = "felipe.cruz"
-        password = "#Gladoscruz.9851"
+        username = payload.get("username") if payload else None
+        password = payload.get("password") if payload else None
+
+        if not username or not password:
+            return {"erro": "Informe username e password para gerar os pickles"}
 
         start = perf_counter()
         snapshots = []
@@ -372,4 +375,4 @@ def start():
         maximized=True,
     )
 
-    webview.start(debug=False)
+    webview.start(debug=True)
