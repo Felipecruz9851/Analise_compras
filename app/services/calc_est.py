@@ -3,17 +3,50 @@ import pandas as pd
 import numpy as np
 
 # =========================================================
+# FUNÇÕES REGISTRADAS
+# =========================================================
+#
+# Todas funções disponíveis dentro das fórmulas
+#
+# =========================================================
+
+
+def div(a, b, default=0):
+    """
+    Divisão segura
+    """
+
+    return np.where(b == 0, default, a / b)
+
+
+FUNCOES = {
+    "np": np,
+    "ceil": np.ceil,
+    "floor": np.floor,
+    "abs": np.abs,
+    "round": np.round,
+    "div": div,
+}
+
+
+# =========================================================
 # BASE DE DADOS
 # =========================================================
 
 df = pd.DataFrame(
     {
-        "item": ["A", "B", "C", "D"],
-        "estoque": [100, 20, 5, 300],
-        "compras": [0, 10, 0, 0],
-        "necessidade": [30, 50, 15, 40],
-        "consumo_90": [90, 180, 45, 360],
-        "cobertura": [45, 30, 20, 60],
+        "item": ["A", "B", "C", "D", "E", "F", "G", "H"],
+        "familia": ["ACO", "ACO", "LAM", "ELE", "ACO", "IMP", "LAM", "ACO"],
+        "estoque": [100, 20, 5, 300, 0, 12, 50, 8],
+        "compras": [0, 10, 0, 0, 100, 0, 0, 2],
+        "necessidade": [30, 50, 15, 40, 120, 0, 10, 50],
+        "cons_1": [30, 0, 0, 120, 80, 0, 15, 5],
+        "cons_2": [30, 0, 0, 120, 100, 0, 20, 0],
+        "cons_3": [30, 0, 0, 120, 90, 0, 30, 0],
+        "consumo_90": [90, 0, 0, 360, 270, 0, 65, 5],
+        "cobertura": [45, 30, 20, 60, 40, 10, 25, 15],
+        "lote_min": [50, 100, 25, 200, 500, 20, 50, 10],
+        "lote_mult": [10, 25, 5, 50, 100, 10, 25, 5],
     }
 )
 
@@ -25,131 +58,138 @@ print(df)
 # =========================================================
 # REGRAS
 # =========================================================
-#
-# TIPOS:
-#
-# eval
-#   cálculo vetorizado simples
-#
-# where
-#   decisão binária simples
-#
-# select
-#   múltiplas condições/classificação
-#
-# =========================================================
 
 REGRAS = [
     # =====================================================
-    # EVAL
+    # CONSUMO MÉDIO
     # =====================================================
     {
         "ordem": 1,
-        "ativo": True,
         "tipo": "eval",
         "coluna": "consumo_dia",
-        "formula": "consumo_90 / 90",
+        "formula": "div(consumo_90, 90)",
         "descricao": "Consumo médio diário",
     },
+    # =====================================================
+    # SALDO VIRTUAL
+    # =====================================================
     {
         "ordem": 2,
-        "ativo": True,
         "tipo": "eval",
         "coluna": "saldo_virtual",
         "formula": "estoque + compras - necessidade",
-        "descricao": "Saldo considerando compras futuras",
+        "descricao": "Saldo futuro",
     },
+    # =====================================================
+    # DIAS DE SALDO
+    # =====================================================
     {
         "ordem": 3,
-        "ativo": True,
         "tipo": "eval",
         "coluna": "dias_saldo",
-        "formula": "saldo_virtual / consumo_dia",
+        "formula": "div(saldo_virtual, consumo_dia, 9999)",
         "descricao": "Quantidade de dias restantes",
     },
     # =====================================================
-    # WHERE
+    # STATUS OPERACIONAL
     # =====================================================
     {
         "ordem": 4,
-        "ativo": True,
-        "tipo": "where",
-        "coluna": "ponto_pedido",
-        "condicao": "dias_saldo < cobertura",
-        "verdadeiro": "COMPRAR",
-        "falso": "OK",
-        "descricao": "Define necessidade de compra",
+        "tipo": "select",
+        "coluna": "status",
+        "descricao": "Classificação operacional",
+        "regras": [
+            {
+                "quando": "(cons_1 != 0) & " "(cons_2 != 0) & " "(cons_3 != 0)",
+                "resultado": "'X'",
+            },
+            {
+                "quando": "(cons_1 == 0) & "
+                "(cons_2 == 0) & "
+                "(cons_3 == 0) & "
+                "(necessidade <= 0) & "
+                "(saldo_virtual > 0)",
+                "resultado": "'Z'",
+            },
+        ],
+        "default": "'Y'",
     },
     # =====================================================
-    # SELECT
+    # PONTO DE PEDIDO
     # =====================================================
     {
         "ordem": 5,
-        "ativo": True,
+        "tipo": "where",
+        "coluna": "ponto_pedido",
+        "condicao": "dias_saldo < cobertura",
+        "verdadeiro": "'COMPRAR'",
+        "falso": "'OK'",
+        "descricao": "Necessidade de compra",
+    },
+    # =====================================================
+    # QUANTIDADE DE COMPRA
+    # =====================================================
+    {
+        "ordem": 6,
+        "tipo": "eval",
+        "coluna": "qtd_compra",
+        "formula": "(cobertura - dias_saldo) * consumo_dia",
+        "descricao": "Necessidade calculada",
+    },
+    # =====================================================
+    # DECISÃO FINAL DE COMPRA
+    # =====================================================
+    {
+        "ordem": 7,
         "tipo": "select",
-        "coluna": "criticidade",
-        # IMPORTANTE:
-        # O np.select usa o PRIMEIRO match encontrado.
-        # Portanto a ordem das condições importa.
-        "condicoes": ["dias_saldo <= 5", "dias_saldo <= 15", "dias_saldo <= 30"],
-        "valores": ["CRITICO", "ALTO", "MEDIO"],
-        "default": "BAIXO",
-        "descricao": "Classificação da criticidade",
+        "coluna": "decisao_compra",
+        "descricao": "Aplicação de lote mínimo e múltiplo",
+        "regras": [
+            {"quando": "qtd_compra <= 0", "resultado": "0"},
+            {"quando": "qtd_compra < lote_min", "resultado": "lote_min"},
+        ],
+        "default": (
+            "lote_min + "
+            "("
+            "ceil("
+            "(qtd_compra - lote_min) "
+            "/ lote_mult"
+            ") * lote_mult"
+            ")"
+        ),
     },
 ]
 
 
 # =========================================================
-# FUNÇÕES AUXILIARES
+# EXECUTOR DE EXPRESSÕES
 # =========================================================
 
 
-def validar_coluna(df, coluna):
+def executar_expressao(df, formula):
     """
-    Verifica se coluna existe
-    """
-
-    if coluna not in df.columns:
-
-        raise Exception(f"Coluna inexistente: {coluna}")
-
-
-def validar_formula(df, formula):
-    """
-    Tenta executar expressão
-    para validar erros antes
+    Executa expressão usando eval Python
+    com Series pandas vetorizadas
     """
 
-    try:
+    contexto = {**FUNCOES, **{col: df[col] for col in df.columns}}
 
-        df.eval(formula)
-
-    except Exception as e:
-
-        raise Exception(f"Erro na fórmula [{formula}] -> {e}")
+    return eval(formula, {"__builtins__": {}}, contexto)
 
 
 # =========================================================
-# EXECUTOR
+# EXECUTOR PRINCIPAL
 # =========================================================
 
 print("\n================ EXECUÇÃO ================\n")
 
 for regra in sorted(REGRAS, key=lambda x: x["ordem"]):
 
-    # -----------------------------------------------------
-    # IGNORA REGRAS INATIVAS
-    # -----------------------------------------------------
-
-    if not regra.get("ativo", True):
-
-        continue
+    inicio = time.time()
 
     tipo = regra["tipo"]
 
     coluna = regra["coluna"]
-
-    inicio = time.time()
 
     print(f"\n[{regra['ordem']}] " f"{coluna} " f"({tipo})")
 
@@ -163,11 +203,7 @@ for regra in sorted(REGRAS, key=lambda x: x["ordem"]):
 
         if tipo == "eval":
 
-            formula = regra["formula"]
-
-            validar_formula(df, formula)
-
-            df.eval(f"{coluna} = {formula}", inplace=True)
+            df[coluna] = executar_expressao(df, regra["formula"])
 
         # =================================================
         # WHERE
@@ -175,13 +211,13 @@ for regra in sorted(REGRAS, key=lambda x: x["ordem"]):
 
         elif tipo == "where":
 
-            condicao = regra["condicao"]
+            condicao = executar_expressao(df, regra["condicao"])
 
-            validar_formula(df, condicao)
+            verdadeiro = executar_expressao(df, regra["verdadeiro"])
 
-            df[coluna] = np.where(
-                df.eval(condicao), regra["verdadeiro"], regra["falso"]
-            )
+            falso = executar_expressao(df, regra["falso"])
+
+            df[coluna] = np.where(condicao, verdadeiro, falso)
 
         # =================================================
         # SELECT
@@ -191,45 +227,44 @@ for regra in sorted(REGRAS, key=lambda x: x["ordem"]):
 
             condicoes = []
 
-            for condicao in regra["condicoes"]:
+            valores = []
 
-                validar_formula(df, condicao)
+            for r in regra["regras"]:
 
-                condicoes.append(df.eval(condicao))
+                condicoes.append(executar_expressao(df, r["quando"]))
 
-            df[coluna] = np.select(
-                condicoes, regra["valores"], default=regra["default"]
-            )
+                valores.append(executar_expressao(df, r["resultado"]))
+
+            default = executar_expressao(df, regra["default"])
+
+            df[coluna] = np.select(condicoes, valores, default=default)
 
         # =================================================
-        # TIPO DESCONHECIDO
+        # TIPO INVÁLIDO
         # =================================================
 
         else:
 
             raise Exception(f"Tipo inválido: {tipo}")
 
-        # =================================================
-        # TEMPO DE EXECUÇÃO
-        # =================================================
-
         fim = time.time()
 
         print(f"OK " f"({fim - inicio:.4f}s)")
 
-        print(f"Coluna criada: {coluna}")
-
-    # =====================================================
-    # ERRO
-    # =====================================================
-
     except Exception as e:
 
-        print(f"ERRO na regra " f"[{coluna}]")
+        print(f"\nERRO na regra " f"[{coluna}]")
 
         print(str(e))
 
         break
+
+
+# =========================================================
+# LIMPEZA FINAL
+# =========================================================
+
+df.replace([np.inf, -np.inf], np.nan, inplace=True)
 
 
 # =========================================================
@@ -239,14 +274,3 @@ for regra in sorted(REGRAS, key=lambda x: x["ordem"]):
 print("\n================ RESULTADO ================\n")
 
 print(df)
-
-
-# =========================================================
-# COLUNAS GERADAS
-# =========================================================
-
-print("\n================ COLUNAS ================\n")
-
-for c in df.columns:
-
-    print(c)
