@@ -5,6 +5,8 @@ import pandas as pd
 
 FERIADOS_TXT = Path(__file__).with_name("feriados.txt")
 
+ESTOQUE_SEGURANCA = 7
+
 
 def carregar_feriados(caminho=FERIADOS_TXT):
     feriados = []
