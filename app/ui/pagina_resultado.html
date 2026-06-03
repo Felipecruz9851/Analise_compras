@@ -230,7 +230,9 @@
     function configurarColunas(dados) {
       const todasColunas = Object.keys(dados[0]).filter(c => c !== "__rowId");
 
-      colunasMes = todasColunas.filter(ehColunaMes);
+      colunasMes = todasColunas
+        .filter(ehColunaMes)
+        .sort();
       colunasTabela = todasColunas.filter(c => !ehColunaMes(c) && c !== "Gráfico");
 
       colunasTabela.splice(2, 0, "Gráfico");
@@ -568,7 +570,7 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 15,
+              top: 25,
               left: 15,
               right: 15
             }

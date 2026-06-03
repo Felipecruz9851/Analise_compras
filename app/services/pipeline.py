@@ -1,3 +1,4 @@
+from datetime import datetime
 import uuid
 from app.services.extractor import Extractor
 from app.services.processor import juntar_tabelas
@@ -14,7 +15,7 @@ def coletar_dados(username, password, analise):
 
     if username == "":
 
-        #### CARREGA SNAPSHOT #######
+    ##### CARREGA SNAPSHOT #######
         dfs = {}
         with open(f"snapshot_{analise}.pkl", "rb") as f:
             dfs = pickle.load(f)
@@ -35,6 +36,16 @@ def coletar_dados(username, password, analise):
         dfs = juntar_tabelas(html_resultados)
         print("Dados tratados.")
         print("Dicionário dfs gerado com grupos:", list(dfs.keys()))
+
+        # Salva df 'apont' em arquivo
+        from datetime import datetime
+        from dateutil.relativedelta import relativedelta
+        data = datetime.now() - relativedelta(months=4)
+        mes = data.month
+        ano = data.year
+        if "apont" in dfs:
+            dfs["apont"].to_csv(f"apont-{ano}-{mes:02d}.csv", index=False, encoding="utf-8-sig", sep=";")
+            print(f"DataFrame 'apont' salvo.")
 
     return dfs
 

@@ -2,10 +2,11 @@ import re
 import pandas as pd
 import numpy as np
 from datetime import date, timedelta
-from app.services.processor import calc_data
+from app.services.processor import calc_data, sanitizar_dataframe
 from app.settings import carregar_feriados, prazo_por_representante
 from pandas.tseries.offsets import CustomBusinessDay
 import re
+from pathlib import Path
 
 
 def compra_necessidade(dfs):
@@ -328,6 +329,33 @@ def compra_necessidade(dfs):
         df.loc[nenhum_criterio, "Decis Compras"] = 0
         df.loc[nenhum_criterio, "Valor Comprado"] = 0
 
+
+    # =========================
+    # Busca histórico de consumo quarto mes completo
+    # =========================
+
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    data = datetime.now() - relativedelta(months=4)
+    mes = data.month
+    ano = data.year        
+    arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
+    df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
+    df_apont = (
+        df_apont[['Item', 'Qtde.']]
+        .groupby('Item', as_index=False)
+        .sum())
+
+    nome_col = f"{ano}-{mes:02d}"
+
+    
+
+    df[nome_col] = df['Item'].map(
+    df_apont.set_index('Item')['Qtde.']
+    ).fillna(0)
+    print (df.head())
+
+
     # =========================
     # FINAL
     # =========================
@@ -459,6 +487,35 @@ def compra_estoque_nec_conf(dfs):
         datas, offsets=0, roll="forward", holidays=feriados_np
     )
 
+
+
+    # =========================
+    # Busca histórico de consumo quarto mes completo
+    # =========================
+
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    data = datetime.now() - relativedelta(months=4)
+    mes = data.month
+    ano = data.year        
+    arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
+    df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
+    df_apont = sanitizar_dataframe(df_apont)
+    df_apont = (
+        df_apont[['Item', 'Qtde.']]
+        .groupby('Item', as_index=False)
+        .sum())
+
+    nome_col = f"{ano}-{mes:02d}"
+    
+    
+
+    df[nome_col] = df['Item'].map(
+    df_apont.set_index('Item')['Qtde.']
+    ).fillna(0)
+
+
+
     # =========================
     # FINAL
     # =========================
@@ -466,7 +523,7 @@ def compra_estoque_nec_conf(dfs):
     df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
 
     colunas_mes = [col for col in df.columns if re.match(r"^\d{4}-\d{2}$", col)]
-    print(f'#######\n{dfs.get("apoio_compras").columns}')
+    print(colunas_mes)
     colunas_desejadas = [
         "Item",
         "Descrição",

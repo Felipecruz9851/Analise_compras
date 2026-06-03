@@ -39,6 +39,7 @@ class Extractor:
     CONS = f"{BASE_URL}/pcp/consumo_alt.php"
     ESTOQUE = f"{BASE_URL}/pcp/estoque_lote.php"
     CONF = f"{BASE_URL}/pcp/pontualidade_fornecedor-lgx.php"
+    APONT = f"{BASE_URL}/sup/movto.php"
 
     ARQ_TEMPOS = Path("tempos_execucao.json")
 
@@ -120,6 +121,44 @@ class Extractor:
 
         tarefas = []
 
+        from datetime import datetime
+        from dateutil.relativedelta import relativedelta
+        data = datetime.now() - relativedelta(months=4)
+        mes = data.month
+        ano = data.year        
+        arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
+        
+        if arquivo_apont.exists():
+            pass
+        else:
+            for i in range(1,32):
+                tarefas.append(
+                    {
+                        "nome": f"apont{i}",
+                        "method": "GET",
+                        "url": self.APONT,
+                        "data": {
+                            "cod_empresa": "11",
+                            "inicio": f"{ano}-{mes:02d}-{i:02d}",
+                            "fim": f"{ano}-{mes:02d}-{i:02d}",
+                            "oper": "SMPP,REQM,VEMP",
+                            "codigo": "",
+                            "grupo": "",
+                            "tipo": "C",
+                            "usu": "",
+                            "local": "",
+                            "local_ori": "",
+                            "conta": "",
+                            "centrocusto": "",
+                            "localprod": "",
+                            "item_desc": "2",
+                            "lista_repres": "2"
+                        },
+                        "timeout": (5, 600),
+                        "grupo": "apont",
+                    }
+                )
+
         for familia in familias:
             tarefas.append(
                 {
@@ -150,6 +189,7 @@ class Extractor:
                         "grupo": "",
                         "local": "",
                         "ordem": "cod_item",
+                        #"apenas_30": "S",
                     },
                     "timeout": (5, 600),
                     "grupo": "apoio_compras",
@@ -168,6 +208,7 @@ class Extractor:
                         "local": "",
                         "ordem": "cod_item",
                         "inativ": "S",
+                        #"apenas_30": "S",
                     },
                     "timeout": (5, 600),
                     "grupo": "apoio_compras",
@@ -234,6 +275,7 @@ class Extractor:
             method=tarefa["method"],
             url=tarefa["url"],
             data=tarefa.get("data"),
+            params=tarefa.get("data"),
             timeout=tarefa.get("timeout", 30),
         )
 
