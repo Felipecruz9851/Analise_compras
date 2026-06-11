@@ -329,32 +329,30 @@ def compra_necessidade(dfs):
         df.loc[nenhum_criterio, "Decis Compras"] = 0
         df.loc[nenhum_criterio, "Valor Comprado"] = 0
 
-
     # =========================
     # Busca histórico de consumo quarto mes completo
     # =========================
 
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
+
     data = datetime.now() - relativedelta(months=4)
     mes = data.month
-    ano = data.year        
+    ano = data.year
     arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
     df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
-    df_apont = (
-        df_apont[['Item', 'Qtde.']]
-        .groupby('Item', as_index=False)
-        .sum())
+    df_apont = sanitizar_dataframe(df_apont)
+    df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
 
     nome_col = f"{ano}-{mes:02d}"
 
-    
+    df[nome_col] = df["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
 
-    df[nome_col] = df['Item'].map(
-    df_apont.set_index('Item')['Qtde.']
-    ).fillna(0)
-    print (df.head())
-
+    if nome_col in df.columns:
+        col = df.pop(nome_col)
+        df.insert(2, nome_col, col)
+    else:
+        df.insert(2, nome_col, pd.NA)
 
     # =========================
     # FINAL
@@ -442,6 +440,34 @@ def compra_estoque_nec_conf(dfs):
     for col in colunas_para_normalizar:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    # =========================
+    # Busca histórico de consumo quarto mes completo
+    # =========================
+
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+
+    data = datetime.now() - relativedelta(months=4)
+    mes = data.month
+    ano = data.year
+    arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
+    df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
+    df_apont = sanitizar_dataframe(df_apont)
+    df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
+
+    nome_col = f"{ano}-{mes:02d}"
+
+    df[nome_col] = df["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
+
+    if nome_col in df.columns:
+        col = df.pop(nome_col)
+        df.insert(2, nome_col, col)
+    else:
+        df.insert(2, nome_col, pd.NA)
+    ##########################################################################
+
+    ##########################################################################
+
     # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
         df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
@@ -487,35 +513,6 @@ def compra_estoque_nec_conf(dfs):
         datas, offsets=0, roll="forward", holidays=feriados_np
     )
 
-
-
-    # =========================
-    # Busca histórico de consumo quarto mes completo
-    # =========================
-
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
-    data = datetime.now() - relativedelta(months=4)
-    mes = data.month
-    ano = data.year        
-    arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
-    df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
-    df_apont = sanitizar_dataframe(df_apont)
-    df_apont = (
-        df_apont[['Item', 'Qtde.']]
-        .groupby('Item', as_index=False)
-        .sum())
-
-    nome_col = f"{ano}-{mes:02d}"
-    
-    
-
-    df[nome_col] = df['Item'].map(
-    df_apont.set_index('Item')['Qtde.']
-    ).fillna(0)
-
-
-
     # =========================
     # FINAL
     # =========================
@@ -559,7 +556,7 @@ def compra_estoque_nec_conf(dfs):
         df[col] = df[col].dt.strftime("%Y-%m-%d")
 
     df = df.where(pd.notnull(df), None)
-    df.to_excel("debug_compra_estoque_nec_conf.xlsx", index=False)
+    # df.to_excel("debug_compra_estoque_nec_conf.xlsx", index=False)
     print(
         "DataFrame final gerado para análise 'Compra est NEC conf' com colunas:",
         df.columns,

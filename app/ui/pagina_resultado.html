@@ -674,6 +674,7 @@
         btn.disabled = false;
         btn.textContent = originalText;
       }
+      await window.pywebview.api.call("abre_pasta", {})
     }
 
     window.addEventListener('pywebviewready', init)

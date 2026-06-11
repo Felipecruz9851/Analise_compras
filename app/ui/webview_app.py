@@ -21,6 +21,7 @@ class Api:
             "gerar_ocs",
             "gerar_pickles",
             "listar_pickles",
+            "abre_pasta",
         }
 
         self._analise_nome = None
@@ -225,7 +226,7 @@ class Api:
 
         # CSV itens decis >0
         df_csv = df_html[df_html["Decis Compras"] > 0][
-            ["Item", "Data OC", "Decis Compras", "texto OC"]
+            ["Item", "Decis Compras", "Data OC", "texto OC"]
         ].copy()
         csv_path = exports_dir / f"{nome_base}.csv"
         df_csv.to_csv(csv_path, index=False, sep=";", decimal=",")
@@ -235,6 +236,18 @@ class Api:
             "html": str(html_path.absolute()),
             "csv": str(csv_path.absolute()),
         }
+
+    def abre_pasta(self, payload=None):
+        import os
+        from pathlib import Path
+
+        exports_dir = Path("exports")
+        if not exports_dir.exists():
+            return {"erro": "Pasta de exports não existe"}
+
+        path = str(exports_dir.absolute())
+        os.startfile(path)
+        return {"status": "ok", "path": path}
 
     def gerar_pickles(self, payload=None):
         import os
@@ -380,4 +393,4 @@ def start():
         maximized=True,
     )
 
-    webview.start(debug=True)
+    webview.start(debug=False)
