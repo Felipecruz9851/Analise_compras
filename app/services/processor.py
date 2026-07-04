@@ -244,6 +244,7 @@ def calc_data(dfs):
         pendentes = consumo[~consumo["Ordem Cons"].isin(cache_raiz)].drop_duplicates(
             "Ordem Cons"
         )
+
         novos = 0
         for _, row in tqdm(
             pendentes.iterrows(),

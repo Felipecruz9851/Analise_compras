@@ -40,9 +40,21 @@ def compra_necessidade(dfs):
     for col in colunas_para_normalizar:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    # Busca estoque Rejeitado
+
+    est_r = dfs.get("estoque_R").copy()
+    print(est_r.columns.to_list())
+    est_r = est_r[["Item", "Qtde."]]
+    est_r = sanitizar_dataframe(est_r)
+    est_r = est_r.groupby("Item")["Qtde."].sum()
+
+    # Insere o valor de estoque rejeitado
+
+    df["Estoque Rejeitado"] = df["Item"].map(est_r).fillna(0)
+    
     # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
-        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
+        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"] + df["Estoque Rejeitado"]
     )
 
     df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
@@ -389,6 +401,7 @@ def compra_necessidade(dfs):
         "Última Data Saída",
         "raiz_Item Final",
         "raiz_Pedido",
+        "Estoque Rejeitado",
         "Família",
         "Falta",
     ]

@@ -123,15 +123,16 @@ class Extractor:
 
         from datetime import datetime
         from dateutil.relativedelta import relativedelta
+
         data = datetime.now() - relativedelta(months=4)
         mes = data.month
-        ano = data.year        
+        ano = data.year
         arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
-        
+
         if arquivo_apont.exists():
             pass
         else:
-            for i in range(1,32):
+            for i in range(1, 32):
                 tarefas.append(
                     {
                         "nome": f"apont{i}",
@@ -152,7 +153,7 @@ class Extractor:
                             "centrocusto": "",
                             "localprod": "",
                             "item_desc": "2",
-                            "lista_repres": "2"
+                            "lista_repres": "2",
                         },
                         "timeout": (5, 600),
                         "grupo": "apont",
@@ -189,31 +190,34 @@ class Extractor:
                         "grupo": "",
                         "local": "",
                         "ordem": "cod_item",
-                        #"apenas_30": "S",
+                        # "apenas_30": "S",
                     },
                     "timeout": (5, 600),
                     "grupo": "apoio_compras",
                 }
             )
-        for familia in familias:
-            tarefas.append(
-                {
-                    "nome": f"apoio_compras_{familia}",
-                    "method": "POST",
-                    "url": self.APOIO,
-                    "data": {
-                        "cod_empresa": "11",
-                        "familia": familia,
-                        "grupo": "",
-                        "local": "",
-                        "ordem": "cod_item",
-                        "inativ": "S",
-                        #"apenas_30": "S",
-                    },
-                    "timeout": (5, 600),
-                    "grupo": "apoio_compras",
-                }
-            )
+        if analise == "compra por necessidade":
+            for familia in familias:
+                tarefas.append(
+                    {
+                        "nome": f"apoio_compras_{familia}",
+                        "method": "POST",
+                        "url": self.APOIO,
+                        "data": {
+                            "cod_empresa": "11",
+                            "familia": familia,
+                            "grupo": "",
+                            "local": "",
+                            "ordem": "cod_item",
+                            "inativ": "S",
+                            # "apenas_30": "S",
+                        },
+                        "timeout": (5, 600),
+                        "grupo": "apoio_compras",
+                    }
+                )
+        else:
+            pass
         if analise == "compra por necessidade":
             for local in LOCAIS:
                 tarefas.append(
@@ -260,6 +264,21 @@ class Extractor:
                     },
                     "timeout": (5, 600),
                     "grupo": "estoque",
+                }
+            )
+
+            tarefas.append(
+                {
+                    "nome": "estoque_R",
+                    "method": "POST",
+                    "url": self.ESTOQUE,
+                    "data": {
+                        "cod_empresa": "11",
+                        "situacao": "R",
+                        "relatorio": "R",
+                    },
+                    "timeout": (5, 600),
+                    "grupo": "estoque_R",
                 }
             )
 

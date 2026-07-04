@@ -6,5 +6,7 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 from app.ui.webview_app import start
 
+
+
 if __name__ == "__main__":
     start()

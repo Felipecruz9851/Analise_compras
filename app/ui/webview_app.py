@@ -226,8 +226,29 @@ class Api:
 
         # CSV itens decis >0
         df_csv = df_html[df_html["Decis Compras"] > 0][
-            ["Item", "Decis Compras", "Data OC", "texto OC"]
+            ["Item", "Data OC", "Decis Compras", "texto OC"]
         ].copy()
+
+        df_csv = df_csv.assign(
+            **{
+                "texto OC1": "",
+                "texto OC2": "",
+                "texto OC3": "",
+                "texto OC4": "",
+            }
+        )[
+            [
+                "Item",
+                "Data OC",
+                "Decis Compras",
+                "texto OC",
+                "texto OC1",
+                "texto OC2",
+                "texto OC3",
+                "texto OC4",
+            ]
+        ]
+
         csv_path = exports_dir / f"{nome_base}.csv"
         df_csv.to_csv(csv_path, index=False, sep=";", decimal=",")
 
