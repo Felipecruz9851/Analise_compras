@@ -51,7 +51,7 @@ def compra_necessidade(dfs):
     # Insere o valor de estoque rejeitado
 
     df["Estoque Rejeitado"] = df["Item"].map(est_r).fillna(0)
-    
+
     # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
         df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"] + df["Estoque Rejeitado"]
@@ -373,7 +373,6 @@ def compra_necessidade(dfs):
     df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
 
     colunas_mes = [col for col in df.columns if re.match(r"^\d{4}-\d{2}$", col)]
-
     colunas_desejadas = [
         "Item",
         "Descrição",

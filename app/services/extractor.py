@@ -191,6 +191,7 @@ class Extractor:
                         "local": "",
                         "ordem": "cod_item",
                         # "apenas_30": "S",
+                        "exibir_baixa": "S"
                     },
                     "timeout": (5, 600),
                     "grupo": "apoio_compras",
