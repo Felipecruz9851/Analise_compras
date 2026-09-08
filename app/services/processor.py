@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 def juntar_tabelas(
     resultados: List[Tuple[pd.DataFrame, str]],
-) -> Dict[str, pd.DataFrame]:
+    ) -> Dict[str, pd.DataFrame]:
     """
     Recebe lista de (df, grupo) retornada pelos workers e junta DataFrames por grupo.
     """
