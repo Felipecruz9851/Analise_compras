@@ -16,8 +16,8 @@
     <div class="header-left">
       <button onclick="voltar()">Voltar</button>
       <button onclick="alternarBanner()" id="btnBanner" title="Ocultar/Exibir Resumo por Família">◀ Resumo</button>
-      <button id="btnGerarOCs" onclick="gerarOCs()" title="Gerar histórico completo OCs (HTML + CSV)">Gerar
-        OCs</button>
+      <button id="btnGerarOCs" onclick="gerarOCs()" title="Gerar histórico completo OCs (HTML + CSV)">Gerar OCs</button>
+      <button onclick="abrirExports()" title="Ver Arquivos Gerados" style="margin-left: 5px;">Exportações</button>
     </div>
 
     <div class="header-right">
@@ -48,7 +48,28 @@
       </table>
       <div id="scroll-sentinel"></div> <!-- ← aqui, dentro do container -->
     </div>
+    </div>
   </main>
+
+  <!-- Modal Exportações -->
+  <div id="modalExports" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:1000; justify-content:center; align-items:center;">
+    <div class="exports-modal-box">
+      <div class="exports-modal-header">
+        <h3 class="exports-modal-title">📁 Exportações Geradas</h3>
+        <button class="exports-btn-close-x" onclick="fecharExports()" title="Fechar">&times;</button>
+      </div>
+      <div id="exportsList" class="exports-list-body">
+        Carregando...
+      </div>
+      <div class="exports-modal-footer">
+        <div class="exports-footer-actions">
+          <button class="exports-btn exports-btn-download" onclick="baixarSelecionados()">⬇ Baixar Selecionados</button>
+          <button class="exports-btn exports-btn-delete" onclick="excluirSelecionados()">🗑 Excluir Selecionados</button>
+        </div>
+        <button class="exports-btn exports-btn-close" onclick="fecharExports()">Fechar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     /* =============================
@@ -667,7 +688,7 @@
       try {
         const resp = await window.pywebview.api.call("gerar_ocs", {});
         if (resp.erro) throw resp.erro;
-        alert(`OCs gerados!\nHTML: ${resp.html}\nCSV: ${resp.csv}`);
+        alert(`OCs gerados com sucesso!`);
       } catch (e) {
         alert('Erro ao gerar OCs: ' + (e.message || e));
       } finally {
@@ -675,7 +696,80 @@
         btn.disabled = false;
         btn.textContent = originalText;
       }
-      await window.pywebview.api.call("abre_pasta", {})
+      abrirExports();
+    }
+
+    async function abrirExports() {
+      document.getElementById('modalExports').style.display = 'flex';
+      document.getElementById('exportsList').innerHTML = 'Carregando...';
+      try {
+        const exports = await window.pywebview.api.call('listar_exports', {});
+        if (!exports || exports.length === 0) {
+          document.getElementById('exportsList').innerHTML = '<p>Nenhum arquivo gerado ainda.</p>';
+          return;
+        }
+        let html = '<table style="width:100%; border-collapse: collapse;">';
+        html += '<thead><tr><th style="text-align:center; padding:8px; border-bottom:1px solid #ddd; width:40px;"><input type="checkbox" onclick="toggleAllExports(this)"></th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Nome</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Tamanho</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Data</th><th style="text-align:center; padding:8px; border-bottom:1px solid #ddd;">Ação</th></tr></thead><tbody>';
+        exports.forEach(file => {
+          html += `<tr>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><input type="checkbox" class="export-checkbox" value="${file.nome}"></td>
+            <td style="padding:8px; border-bottom:1px solid #eee;">${file.nome}</td>
+            <td style="padding:8px; border-bottom:1px solid #eee;">${file.tamanho}</td>
+            <td style="padding:8px; border-bottom:1px solid #eee;">${file.data_criacao}</td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><a href="${file.url}" target="_blank" download="${file.nome}" class="btn-download" style="background:#2e8b57; color:white; padding:6px 12px; text-decoration:none; border-radius:4px; font-size:12px; display:inline-block;">Download</a></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        document.getElementById('exportsList').innerHTML = html;
+      } catch(e) {
+        document.getElementById('exportsList').innerHTML = '<p style="color:red">Erro ao carregar exportações.</p>';
+      }
+    }
+    
+    function fecharExports() {
+      document.getElementById('modalExports').style.display = 'none';
+    }
+
+    function toggleAllExports(source) {
+      const checkboxes = document.querySelectorAll('.export-checkbox');
+      checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+    
+    function getSelecionados() {
+      const checkboxes = document.querySelectorAll('.export-checkbox:checked');
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    async function baixarSelecionados() {
+      const arquivos = getSelecionados();
+      if (arquivos.length === 0) return alert("Selecione pelo menos um arquivo para baixar.");
+      
+      try {
+        const resp = await window.pywebview.api.call('baixar_zip', { arquivos });
+        if (resp.erro) throw resp.erro;
+        const a = document.createElement('a');
+        a.href = resp.url;
+        a.download = resp.url.split('/').pop();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch(e) {
+        alert("Erro ao gerar zip: " + (e.message || e));
+      }
+    }
+    
+    async function excluirSelecionados() {
+      const arquivos = getSelecionados();
+      if (arquivos.length === 0) return alert("Selecione pelo menos um arquivo para excluir.");
+      if (!confirm(`Deseja excluir ${arquivos.length} arquivo(s)?`)) return;
+      
+      try {
+        const resp = await window.pywebview.api.call('excluir_exports', { arquivos });
+        if (resp.erro) throw resp.erro;
+        abrirExports();
+      } catch(e) {
+        alert("Erro ao excluir: " + (e.message || e));
+      }
     }
 
     window.addEventListener('pywebviewready', init)

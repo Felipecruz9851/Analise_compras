@@ -41,6 +41,11 @@ app.include_router(api_router, prefix="/api")
 # Serve the UI static files
 app.mount("/ui", StaticFiles(directory=os.path.join(BASE_DIR, "app", "ui")), name="ui")
 
+# Serve the exports directory for downloads
+exports_dir = os.path.join(BASE_DIR, "exports")
+os.makedirs(exports_dir, exist_ok=True)
+app.mount("/exports", StaticFiles(directory=exports_dir), name="exports")
+
 @app.get("/")
 def read_root():
     return RedirectResponse(url="/ui/login.html")

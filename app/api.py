@@ -16,7 +16,6 @@ from app.session_manager import get_session
 router = APIRouter()
 
 class CallPayload(BaseModel):
-    method: str
     payload: Optional[Dict[str, Any]] = None
 
 @router.get("/listar_analises")
@@ -42,6 +41,12 @@ def call_method(method: str, req: CallPayload):
         return gerar_pickles(session, req.payload)
     elif method == "listar_pickles":
         return listar_pickles(session, req.payload)
+    elif method == "listar_exports":
+        return listar_exports(session, req.payload)
+    elif method == "excluir_exports":
+        return excluir_exports(session, req.payload)
+    elif method == "baixar_zip":
+        return baixar_zip(session, req.payload)
     else:
         return {"erro": "Método não permitido ou inexistente"}
 
@@ -166,9 +171,10 @@ def gerar_ocs(session, payload=None):
     if session.df_base is None:
         return {"erro": "Sem dados carregados"}
 
-    today = date.today().strftime("%Y-%m-%d")
+    from datetime import datetime
+    stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     nome_analise = session.analise_nome or "analise"
-    nome_base = f"OCs {nome_analise} - {today}"
+    nome_base = f"OCs {nome_analise} - {stamp}"
 
     exports_dir = Path("exports")
     exports_dir.mkdir(exist_ok=True)
@@ -289,6 +295,66 @@ def listar_pickles(session, payload=None):
             }
         )
     return resp
+
+def listar_exports(session, payload=None):
+    from datetime import datetime
+    exports_dir = Path("exports")
+    if not exports_dir.exists():
+        return []
+    
+    files = sorted(
+        exports_dir.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True
+    )
+
+    resp = []
+    for p in files:
+        if p.is_file():
+            st = p.stat()
+            dt = datetime.fromtimestamp(st.st_mtime)
+            resp.append(
+                {
+                    "nome": p.name,
+                    "url": f"/exports/{p.name}",
+                    "tamanho": f"{st.st_size / 1024:.1f} KB",
+                    "data_criacao": dt.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+    return resp
+
+def excluir_exports(session, payload=None):
+    if not payload or "arquivos" not in payload:
+        return {"erro": "Nenhum arquivo informado"}
+    
+    exports_dir = Path("exports")
+    removidos = []
+    for nome in payload["arquivos"]:
+        p = exports_dir / nome
+        if p.exists() and p.is_file():
+            if p.resolve().parent == exports_dir.resolve():
+                p.unlink()
+                removidos.append(nome)
+    
+    return {"status": "ok", "removidos": removidos}
+
+def baixar_zip(session, payload=None):
+    if not payload or "arquivos" not in payload:
+        return {"erro": "Nenhum arquivo informado"}
+    
+    import zipfile
+    from datetime import datetime
+    
+    exports_dir = Path("exports")
+    stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    zip_name = f"Lote_OCs_{stamp}.zip"
+    zip_path = exports_dir / zip_name
+    
+    with zipfile.ZipFile(zip_path, 'w') as zipf:
+        for nome in payload["arquivos"]:
+            p = exports_dir / nome
+            if p.exists() and p.is_file() and p.resolve().parent == exports_dir.resolve():
+                zipf.write(p, arcname=nome)
+                
+    return {"status": "ok", "url": f"/exports/{zip_name}"}
 
 def _gerar_html_historico(session, data, resumo, total_geral):
     colunas = [c for c in data[0].keys() if c not in ["__rowId", "Gráfico"]]
