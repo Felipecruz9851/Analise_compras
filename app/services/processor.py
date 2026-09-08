@@ -16,13 +16,43 @@ def juntar_tabelas(
         grupos[grupo].append(df)
 
     dfs = {}
+
     for grupo, lista_dfs in grupos.items():
+
         if len(lista_dfs) > 1:
+
+            print(f"\n===== GRUPO '{grupo}' =====")
+            print(f"Tabelas para unir: {len(lista_dfs)}")
+
+            for i, df in enumerate(lista_dfs):
+
+                colunas_duplicadas = df.columns[df.columns.duplicated()].tolist()
+
+                print(
+                    f"\nTabela {i}: "
+                    f"linhas={len(df)}, "
+                    f"colunas={len(df.columns)}, "
+                    f"indice_unico={df.index.is_unique}"
+                )
+
+                if colunas_duplicadas:
+                    print(f"!!! COLUNAS DUPLICADAS: " f"{colunas_duplicadas}")
+
+                    print("Todas as colunas:")
+                    print(df.columns.tolist())
+
+                if not df.index.is_unique:
+                    print("!!! ÍNDICE DUPLICADO")
+
+            # Tenta juntar
             dfs[grupo] = pd.concat(lista_dfs, ignore_index=True)
-            print(f"Grupo '{grupo}': {len(lista_dfs)} tabelas unidas")
+
+            print(f"Grupo '{grupo}': " f"{len(lista_dfs)} tabelas unidas")
+
         else:
             dfs[grupo] = lista_dfs[0]
-            print(f"Grupo '{grupo}': tabela única")
+
+            print(f"Grupo '{grupo}': " f"tabela única")
 
     return dfs
 
