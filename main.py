@@ -52,4 +52,4 @@ def read_root():
 
 if __name__ == "__main__":
     print("Starting Analise de Compras Server on http://0.0.0.0:8686")
-    uvicorn.run("main:app", host="0.0.0.0", port=8686, reload=False)
+    uvicorn.run("main:app", host="0.0.0.0", port=8686, reload=True)

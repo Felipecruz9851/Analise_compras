@@ -39,7 +39,7 @@ def compra_necessidade(dfs):
 
     for col in colunas_para_normalizar:
         df[col] = pd.to_numeric(df[col], errors="coerce")
-
+    
     # Busca estoque Rejeitado
 
     est_r = dfs.get("estoque_R").copy()
@@ -54,7 +54,10 @@ def compra_necessidade(dfs):
 
     # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
-        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"] + df["Estoque Rejeitado"]
+        df["Estoque Produção"]
+        + df["Estoque Padrão"]
+        + df["OC"]
+        + df["Estoque Rejeitado"]
     )
 
     df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
@@ -421,14 +424,13 @@ def compra_necessidade(dfs):
 
 
 def compra_estoque_nec_conf(dfs):
+
     import pandas as pd
     import numpy as np
     from pandas.tseries.offsets import CustomBusinessDay
-    import re
 
     feriados = carregar_feriados()
-    df = dfs.get("apoio_compras").copy()
-
+    df = sanitizar_dataframe(dfs.get("apoio_compras").copy())
     # --- NORMALIZAÇÃO ---
     for c in df.columns:
         if df[c].dtype == object:
@@ -452,37 +454,11 @@ def compra_estoque_nec_conf(dfs):
     for col in colunas_para_normalizar:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # =========================
-    # Busca histórico de consumo quarto mes completo
-    # =========================
-
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
-
-    data = datetime.now() - relativedelta(months=4)
-    mes = data.month
-    ano = data.year
-    arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
-    df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
-    df_apont = sanitizar_dataframe(df_apont)
-    df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
-
-    nome_col = f"{ano}-{mes:02d}"
-
-    df[nome_col] = df["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
-
-    if nome_col in df.columns:
-        col = df.pop(nome_col)
-        df.insert(2, nome_col, col)
-    else:
-        df.insert(2, nome_col, pd.NA)
-    ##########################################################################
-
-    ##########################################################################
-
     # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
-        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
+        df["Estoque Produção"]
+        + df["Estoque Padrão"]
+        + df["OC"]
     )
 
     df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
@@ -526,17 +502,43 @@ def compra_estoque_nec_conf(dfs):
     )
 
     # =========================
+    # Busca histórico de consumo quarto mes completo
+    # =========================
+
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+
+    data = datetime.now() - relativedelta(months=4)
+    mes = data.month
+    ano = data.year
+    arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
+    df_apont = pd.read_csv(arquivo_apont, sep=";", encoding="utf-8-sig")
+    df_apont = sanitizar_dataframe(df_apont)
+    df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
+
+    nome_col = f"{ano}-{mes:02d}"
+
+    df[nome_col] = df["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
+
+    if nome_col in df.columns:
+        col = df.pop(nome_col)
+        df.insert(2, nome_col, col)
+    else:
+        df.insert(2, nome_col, pd.NA)
+
+    # =========================
     # FINAL
     # =========================
 
     df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
+    df["texto OC"] = ""
 
     colunas_mes = [col for col in df.columns if re.match(r"^\d{4}-\d{2}$", col)]
-    print(colunas_mes)
     colunas_desejadas = [
         "Item",
         "Descrição",
         *colunas_mes,
+        "Baixa",
         "Neces",
         "Estoque Padrão",
         "Estoque Produção",
@@ -553,8 +555,12 @@ def compra_estoque_nec_conf(dfs):
         "Observação",
         "Última Data Entrada",
         "Última Data Saída",
+        "raiz_Item Final",
+        "raiz_Pedido",
+        "Estoque Rejeitado",
         "Família",
         "Falta",
+        "texto OC",
     ]
 
     df["Data OC"] = df["Data OC"].dt.strftime("%d/%m/%Y")
@@ -568,13 +574,10 @@ def compra_estoque_nec_conf(dfs):
         df[col] = df[col].dt.strftime("%Y-%m-%d")
 
     df = df.where(pd.notnull(df), None)
-    # df.to_excel("debug_compra_estoque_nec_conf.xlsx", index=False)
-    print(
-        "DataFrame final gerado para análise 'Compra est NEC conf' com colunas:",
-        df.columns,
-    )
-    return df
 
+    
+
+    return df
 
 def calcular(analise, dfs):
     """
