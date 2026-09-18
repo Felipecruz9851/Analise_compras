@@ -46,6 +46,11 @@ exports_dir = os.path.join(BASE_DIR, "exports")
 os.makedirs(exports_dir, exist_ok=True)
 app.mount("/exports", StaticFiles(directory=exports_dir), name="exports")
 
+# Serve the CSV directory for downloads
+csv_dir = os.path.join(BASE_DIR, "CSV")
+os.makedirs(csv_dir, exist_ok=True)
+app.mount("/csv_files", StaticFiles(directory=csv_dir), name="csv_files")
+
 @app.get("/")
 def read_root():
     return RedirectResponse(url="/ui/login.html")

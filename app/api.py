@@ -47,6 +47,14 @@ def call_method(method: str, req: CallPayload):
         return excluir_exports(session, req.payload)
     elif method == "baixar_zip":
         return baixar_zip(session, req.payload)
+    elif method == "executar_carrega_dados":
+        return executar_carrega_dados(session, req.payload)
+    elif method == "listar_csv":
+        return listar_csv(session, req.payload)
+    elif method == "excluir_csv":
+        return excluir_csv(session, req.payload)
+    elif method == "baixar_zip_csv":
+        return baixar_zip_csv(session, req.payload)
     else:
         return {"erro": "Método não permitido ou inexistente"}
 
@@ -354,6 +362,124 @@ def baixar_zip(session, payload=None):
             if p.exists() and p.is_file() and p.resolve().parent == exports_dir.resolve():
                 zipf.write(p, arcname=nome)
                 
+    return {"status": "ok", "url": f"/exports/{zip_name}"}
+
+def executar_carrega_dados(session, payload=None):
+    """Gera os CSVs a partir dos snapshots .pkl já existentes no servidor."""
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    from pathlib import Path
+    import pandas as pd
+    import pickle
+    from app.services.processor import sanitizar_dataframe
+
+    csv_dir = Path("CSV")
+    csv_dir.mkdir(exist_ok=True)
+
+    try:
+        analise_apoio = "Compra est NEC conf"
+        pkl_path = Path(f"snapshot_{analise_apoio}.pkl")
+        if not pkl_path.exists():
+            return {"erro": f"Arquivo '{pkl_path}' não encontrado. Gere os snapshots primeiro usando 'Gerar Dados'."}
+
+        with open(pkl_path, "rb") as f:
+            dfs = pickle.load(f)
+
+        apoio_comp = dfs.get("apoio_compras").copy()
+
+        # Histórico de consumo do quarto mês completo
+        data_ref = datetime.now() - relativedelta(months=4)
+        mes = data_ref.month
+        ano = data_ref.year
+        arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
+        if arquivo_apont.exists():
+            df_apont = pd.read_csv(arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig")
+            df_apont = sanitizar_dataframe(df_apont)
+            df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
+            nome_col = f"{ano}-{mes:02d}"
+            apoio_comp[nome_col] = apoio_comp["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
+            if nome_col in apoio_comp.columns:
+                col = apoio_comp.pop(nome_col)
+                apoio_comp.insert(2, nome_col, col)
+            else:
+                apoio_comp.insert(2, nome_col, pd.NA)
+            apoio_comp = apoio_comp.reindex(
+                columns=apoio_comp.columns.drop("Baixa").tolist() + ["Baixa"]
+            )
+
+        apoio_comp.to_csv("CSV/apoio.csv", index=False, sep=";", decimal=",", encoding="utf-8-sig")
+
+        conf = dfs.get("conf").copy()
+        conf.to_csv("CSV/conf.csv", index=False, sep=";", encoding="utf-8-sig")
+
+        # Trata conf.csv (mantém apenas D==11, 5 mais recentes por item)
+        caminho_conf = Path("CSV/conf.csv")
+        df_conf = pd.read_csv(caminho_conf, sep=None, engine="python")
+        col_a = df_conf.columns[0]
+        col_d = df_conf.columns[3]
+        col_f = df_conf.columns[5]
+        col_l = df_conf.columns[11]
+        df_conf = df_conf[df_conf[col_d].astype(str).str.strip() == "11"]
+        df_conf = df_conf[df_conf[col_l].notna() & (df_conf[col_l].astype(str).str.strip() != "")]
+        df_conf[col_f] = pd.to_datetime(df_conf[col_f], errors="coerce", dayfirst=True)
+        df_conf = df_conf[df_conf[col_f].notna()].dropna(subset=[col_f])
+        df_conf = df_conf.sort_values(by=col_f, ascending=False)
+        df_conf = df_conf.groupby(col_a, group_keys=False).head(5)
+        df_conf = df_conf.sort_values(by=[col_a, col_f], ascending=[True, False])
+        df_conf.to_csv(caminho_conf, index=False, sep=";")
+
+        return {"status": "ok", "mensagem": "CSVs gerados com sucesso a partir dos snapshots."}
+
+    except Exception as e:
+        return {"erro": str(e)}
+
+def listar_csv(session, payload=None):
+    from datetime import datetime
+    csv_dir = Path("CSV")
+    if not csv_dir.exists():
+        return []
+    files = sorted(csv_dir.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True)
+    resp = []
+    for p in files:
+        if p.is_file():
+            st = p.stat()
+            dt = datetime.fromtimestamp(st.st_mtime)
+            resp.append({
+                "nome": p.name,
+                "url": f"/csv_files/{p.name}",
+                "tamanho": f"{st.st_size / 1024:.1f} KB",
+                "data_criacao": dt.strftime("%Y-%m-%d %H:%M:%S"),
+            })
+    return resp
+
+def excluir_csv(session, payload=None):
+    if not payload or "arquivos" not in payload:
+        return {"erro": "Nenhum arquivo informado"}
+    csv_dir = Path("CSV")
+    removidos = []
+    for nome in payload["arquivos"]:
+        p = csv_dir / nome
+        if p.exists() and p.is_file() and p.resolve().parent == csv_dir.resolve():
+            p.unlink()
+            removidos.append(nome)
+    return {"status": "ok", "removidos": removidos}
+
+def baixar_zip_csv(session, payload=None):
+    if not payload or "arquivos" not in payload:
+        return {"erro": "Nenhum arquivo informado"}
+    import zipfile
+    from datetime import datetime
+    csv_dir = Path("CSV")
+    exports_dir = Path("exports")
+    exports_dir.mkdir(exist_ok=True)
+    stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    zip_name = f"CSV_{stamp}.zip"
+    zip_path = exports_dir / zip_name
+    with zipfile.ZipFile(zip_path, 'w') as zipf:
+        for nome in payload["arquivos"]:
+            p = csv_dir / nome
+            if p.exists() and p.is_file() and p.resolve().parent == csv_dir.resolve():
+                zipf.write(p, arcname=nome)
     return {"status": "ok", "url": f"/exports/{zip_name}"}
 
 def _gerar_html_historico(session, data, resumo, total_geral):

@@ -11,14 +11,14 @@ from time import perf_counter
 #     sys.path.insert(0, BASE_DIR)
 
 
-username = "felipe.cruz"
-password = "#Gladoscruz.9851"
+# username = "felipe.cruz"
+# password = "#Gladoscruz.9851"
 
-for analise in ANALISES:
-    dfs = coletar_dados(username, password, analise)
-    with open(f"snapshot_{analise}.pkl", "wb") as f:
-        pickle.dump(dfs, f)
-    print(f"Snapshot salvo para {analise}.")
+# for analise in ANALISES:
+#     dfs = coletar_dados(username, password, analise)
+#     with open(f"snapshot_{analise}.pkl", "wb") as f:
+#         pickle.dump(dfs, f)
+#     print(f"Snapshot salvo para {analise}.")
 
 
 # Gerar apoio

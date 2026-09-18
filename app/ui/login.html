@@ -32,12 +32,145 @@
 
         <button onclick="gerarPickles()" style="margin-top: 10px;">Gerar Dados</button>
 
+        <button onclick="carregarDados()" style="margin-top: 10px;">Carregar Dados CSV</button>
+
         <div id="pickles-container" style="margin-top: 15px; width: 100%;"></div>
 
 
     </div>
 
+    <!-- Modal CSV -->
+    <div id="modalCSV" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:1000; justify-content:center; align-items:center;">
+        <div class="exports-modal-box">
+            <div class="exports-modal-header">
+                <h3 class="exports-modal-title">📂 Arquivos CSV Gerados</h3>
+                <button class="exports-btn-close-x" onclick="fecharModalCSV()" title="Fechar">&times;</button>
+            </div>
+            <div id="csvList" class="exports-list-body">
+                Carregando...
+            </div>
+            <div class="exports-modal-footer">
+                <div class="exports-footer-actions">
+                    <button class="exports-btn exports-btn-download" onclick="baixarSelecionadosCSV()">⬇ Baixar Selecionados</button>
+                    <button class="exports-btn exports-btn-delete" onclick="excluirSelecionadosCSV()">🗑 Excluir Selecionados</button>
+                </div>
+                <button class="exports-btn exports-btn-close" onclick="fecharModalCSV()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="login.js"></script>
+
+    <script>
+        async function carregarDados() {
+            const payload = {
+                username: document.getElementById("user").value,
+                password: document.getElementById("pass").value,
+            };
+            if (!payload.username || !payload.password) {
+                alert("Preencha o usuário e a senha antes de carregar dados.");
+                return;
+            }
+
+            // Mostra loading
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Carregando...';
+
+            try {
+                const resp = await window.pywebview.api.call("executar_carrega_dados", payload);
+                if (resp.erro) throw new Error(resp.erro);
+                alert("✅ " + resp.mensagem);
+                abrirModalCSV();
+            } catch (e) {
+                alert("Erro ao carregar dados: " + (e.message || e));
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        async function abrirModalCSV() {
+            document.getElementById('modalCSV').style.display = 'flex';
+            document.getElementById('csvList').innerHTML = 'Carregando...';
+            try {
+                const lista = await window.pywebview.api.call('listar_csv', {});
+                if (!lista || lista.length === 0) {
+                    document.getElementById('csvList').innerHTML = '<p>Nenhum arquivo CSV encontrado.</p>';
+                    return;
+                }
+                let html = '<table style="width:100%; border-collapse: collapse;">';
+                html += '<thead><tr>' +
+                    '<th style="text-align:center; padding:8px; border-bottom:1px solid #ddd; width:40px;"><input type="checkbox" onclick="toggleAllCSV(this)"></th>' +
+                    '<th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Nome</th>' +
+                    '<th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Tamanho</th>' +
+                    '<th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Data</th>' +
+                    '<th style="text-align:center; padding:8px; border-bottom:1px solid #ddd;">Ação</th>' +
+                    '</tr></thead><tbody>';
+                lista.forEach(file => {
+                    html += `<tr>
+                        <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><input type="checkbox" class="csv-checkbox" value="${file.nome}"></td>
+                        <td style="padding:8px; border-bottom:1px solid #eee;">${file.nome}</td>
+                        <td style="padding:8px; border-bottom:1px solid #eee;">${file.tamanho}</td>
+                        <td style="padding:8px; border-bottom:1px solid #eee;">${file.data_criacao}</td>
+                        <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">
+                            <a href="${file.url}" target="_blank" download="${file.nome}"
+                               style="background:#2e8b57; color:white; padding:6px 12px; text-decoration:none; border-radius:4px; font-size:12px; display:inline-block;">
+                                Download
+                            </a>
+                        </td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                document.getElementById('csvList').innerHTML = html;
+            } catch (e) {
+                document.getElementById('csvList').innerHTML = '<p style="color:red">Erro ao carregar lista de CSVs.</p>';
+            }
+        }
+
+        function fecharModalCSV() {
+            document.getElementById('modalCSV').style.display = 'none';
+        }
+
+        function toggleAllCSV(source) {
+            document.querySelectorAll('.csv-checkbox').forEach(cb => cb.checked = source.checked);
+        }
+
+        function getSelecionadosCSV() {
+            return Array.from(document.querySelectorAll('.csv-checkbox:checked')).map(cb => cb.value);
+        }
+
+        async function baixarSelecionadosCSV() {
+            const arquivos = getSelecionadosCSV();
+            if (arquivos.length === 0) return alert("Selecione pelo menos um arquivo para baixar.");
+            try {
+                const resp = await window.pywebview.api.call('baixar_zip_csv', { arquivos });
+                if (resp.erro) throw new Error(resp.erro);
+                const a = document.createElement('a');
+                a.href = resp.url;
+                a.download = resp.url.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (e) {
+                alert("Erro ao gerar zip: " + (e.message || e));
+            }
+        }
+
+        async function excluirSelecionadosCSV() {
+            const arquivos = getSelecionadosCSV();
+            if (arquivos.length === 0) return alert("Selecione pelo menos um arquivo para excluir.");
+            if (!confirm(`Deseja excluir ${arquivos.length} arquivo(s)?`)) return;
+            try {
+                const resp = await window.pywebview.api.call('excluir_csv', { arquivos });
+                if (resp.erro) throw new Error(resp.erro);
+                abrirModalCSV();
+            } catch (e) {
+                alert("Erro ao excluir: " + (e.message || e));
+            }
+        }
+    </script>
 
 </body>
 
