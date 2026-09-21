@@ -15,18 +15,21 @@ from app.session_manager import get_session
 
 router = APIRouter()
 
+
 class CallPayload(BaseModel):
     payload: Optional[Dict[str, Any]] = None
+
 
 @router.get("/listar_analises")
 def listar_analises():
     return settings.ANALISES
 
+
 @router.post("/call/{method}")
 def call_method(method: str, req: CallPayload):
     session_id = session_id_var.get()
     session = get_session(session_id)
-    
+
     if method == "rodar_analise":
         return rodar_analise(session, req.payload)
     elif method == "obter_slice":
@@ -58,6 +61,7 @@ def call_method(method: str, req: CallPayload):
     else:
         return {"erro": "Método não permitido ou inexistente"}
 
+
 def rodar_analise(session, payload):
     if session.lock.locked():
         return {"erro": "Processo já em execução"}
@@ -80,6 +84,7 @@ def rodar_analise(session, payload):
         session.analise_nome = payload["analise"]
 
         return {"status": "ok", "total": len(df)}
+
 
 def obter_slice(session, payload):
     if session.df_ativo is None:
@@ -144,9 +149,7 @@ def obter_slice(session, payload):
     total = len(df_calc)
 
     soma_por_familia = (
-        df_calc.groupby("Família")["Valor Comprado"]
-        .sum()
-        .sort_values(ascending=False)
+        df_calc.groupby("Família")["Valor Comprado"].sum().sort_values(ascending=False)
     )
     resumo = soma_por_familia.to_dict()
     total_geral = soma_por_familia.sum()
@@ -160,6 +163,7 @@ def obter_slice(session, payload):
         "total_geral": float(total_geral),
         "edicoes": session.edicoes,
     }
+
 
 def salvar_edicao(session, payload):
     row_id = payload.get("rowId")
@@ -175,11 +179,13 @@ def salvar_edicao(session, payload):
 
     return {"status": "ok"}
 
+
 def gerar_ocs(session, payload=None):
     if session.df_base is None:
         return {"erro": "Sem dados carregados"}
 
     from datetime import datetime
+
     stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     nome_analise = session.analise_nome or "analise"
     nome_base = f"OCs {nome_analise} - {stamp}"
@@ -202,9 +208,7 @@ def gerar_ocs(session, payload=None):
                     df_html.loc[mask, "Valor Comprado"] = unit * float(valor)
 
     soma_fam = (
-        df_html.groupby("Família")["Valor Comprado"]
-        .sum()
-        .sort_values(ascending=False)
+        df_html.groupby("Família")["Valor Comprado"].sum().sort_values(ascending=False)
     )
     resumo_html = soma_fam.to_dict()
     total_geral_html = float(soma_fam.sum())
@@ -249,6 +253,7 @@ def gerar_ocs(session, payload=None):
         "csv": str(csv_path.absolute()),
     }
 
+
 def abre_pasta(session, payload=None):
     exports_dir = Path("exports")
     if not exports_dir.exists():
@@ -259,8 +264,9 @@ def abre_pasta(session, payload=None):
         os.startfile(path)
     except Exception as e:
         pass
-        
+
     return {"status": "ok", "path": path}
+
 
 def gerar_pickles(session, payload=None):
     username = payload.get("username") if payload else None
@@ -284,13 +290,13 @@ def gerar_pickles(session, payload=None):
     elapsed = perf_counter() - start
     return {"status": "ok", "gerados": snapshots, "elapsed_sec": elapsed}
 
+
 def listar_pickles(session, payload=None):
     from datetime import datetime
+
     base = Path(os.getcwd())
     pattern = "snapshot_*.pkl"
-    files = sorted(
-        base.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
-    )
+    files = sorted(base.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
 
     resp = []
     for p in files:
@@ -304,15 +310,15 @@ def listar_pickles(session, payload=None):
         )
     return resp
 
+
 def listar_exports(session, payload=None):
     from datetime import datetime
+
     exports_dir = Path("exports")
     if not exports_dir.exists():
         return []
-    
-    files = sorted(
-        exports_dir.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True
-    )
+
+    files = sorted(exports_dir.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True)
 
     resp = []
     for p in files:
@@ -329,10 +335,11 @@ def listar_exports(session, payload=None):
             )
     return resp
 
+
 def excluir_exports(session, payload=None):
     if not payload or "arquivos" not in payload:
         return {"erro": "Nenhum arquivo informado"}
-    
+
     exports_dir = Path("exports")
     removidos = []
     for nome in payload["arquivos"]:
@@ -341,28 +348,34 @@ def excluir_exports(session, payload=None):
             if p.resolve().parent == exports_dir.resolve():
                 p.unlink()
                 removidos.append(nome)
-    
+
     return {"status": "ok", "removidos": removidos}
+
 
 def baixar_zip(session, payload=None):
     if not payload or "arquivos" not in payload:
         return {"erro": "Nenhum arquivo informado"}
-    
+
     import zipfile
     from datetime import datetime
-    
+
     exports_dir = Path("exports")
     stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     zip_name = f"Lote_OCs_{stamp}.zip"
     zip_path = exports_dir / zip_name
-    
-    with zipfile.ZipFile(zip_path, 'w') as zipf:
+
+    with zipfile.ZipFile(zip_path, "w") as zipf:
         for nome in payload["arquivos"]:
             p = exports_dir / nome
-            if p.exists() and p.is_file() and p.resolve().parent == exports_dir.resolve():
+            if (
+                p.exists()
+                and p.is_file()
+                and p.resolve().parent == exports_dir.resolve()
+            ):
                 zipf.write(p, arcname=nome)
-                
+
     return {"status": "ok", "url": f"/exports/{zip_name}"}
+
 
 def executar_carrega_dados(session, payload=None):
     """Gera os CSVs a partir dos snapshots .pkl já existentes no servidor."""
@@ -380,7 +393,9 @@ def executar_carrega_dados(session, payload=None):
         analise_apoio = "Compra est NEC conf"
         pkl_path = Path(f"snapshot_{analise_apoio}.pkl")
         if not pkl_path.exists():
-            return {"erro": f"Arquivo '{pkl_path}' não encontrado. Gere os snapshots primeiro usando 'Gerar Dados'."}
+            return {
+                "erro": f"Arquivo '{pkl_path}' não encontrado. Gere os snapshots primeiro usando 'Gerar Dados'."
+            }
 
         with open(pkl_path, "rb") as f:
             dfs = pickle.load(f)
@@ -393,11 +408,15 @@ def executar_carrega_dados(session, payload=None):
         ano = data_ref.year
         arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
         if arquivo_apont.exists():
-            df_apont = pd.read_csv(arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig")
+            df_apont = pd.read_csv(
+                arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig"
+            )
             df_apont = sanitizar_dataframe(df_apont)
             df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
             nome_col = f"{ano}-{mes:02d}"
-            apoio_comp[nome_col] = apoio_comp["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
+            apoio_comp[nome_col] = (
+                apoio_comp["Item"].map(df_apont.set_index("Item")["Qtde."]).fillna(0)
+            )
             if nome_col in apoio_comp.columns:
                 col = apoio_comp.pop(nome_col)
                 apoio_comp.insert(2, nome_col, col)
@@ -407,7 +426,9 @@ def executar_carrega_dados(session, payload=None):
                 columns=apoio_comp.columns.drop("Baixa").tolist() + ["Baixa"]
             )
 
-        apoio_comp.to_csv("CSV/apoio.csv", index=False, sep=";", decimal=",", encoding="utf-8-sig")
+        apoio_comp.to_csv(
+            "CSV/apoio.csv", index=False, sep=";", decimal=",", encoding="utf-8-sig"
+        )
 
         conf = dfs.get("conf").copy()
         conf.to_csv("CSV/conf.csv", index=False, sep=";", encoding="utf-8-sig")
@@ -420,21 +441,311 @@ def executar_carrega_dados(session, payload=None):
         col_f = df_conf.columns[5]
         col_l = df_conf.columns[11]
         df_conf = df_conf[df_conf[col_d].astype(str).str.strip() == "11"]
-        df_conf = df_conf[df_conf[col_l].notna() & (df_conf[col_l].astype(str).str.strip() != "")]
+        df_conf = df_conf[
+            df_conf[col_l].notna() & (df_conf[col_l].astype(str).str.strip() != "")
+        ]
         df_conf[col_f] = pd.to_datetime(df_conf[col_f], errors="coerce", dayfirst=True)
         df_conf = df_conf[df_conf[col_f].notna()].dropna(subset=[col_f])
         df_conf = df_conf.sort_values(by=col_f, ascending=False)
         df_conf = df_conf.groupby(col_a, group_keys=False).head(5)
         df_conf = df_conf.sort_values(by=[col_a, col_f], ascending=[True, False])
         df_conf.to_csv(caminho_conf, index=False, sep=";")
+        #############
 
-        return {"status": "ok", "mensagem": "CSVs gerados com sucesso a partir dos snapshots."}
+        import pickle
+
+        analise = "compra por necessidade"
+        # analise = "Compra est NEC conf"
+        dfs = {}
+        with open(f"snapshot_{analise}.pkl", "rb") as f:
+            dfs = pickle.load(f)
+        print(f"Snapshot carregado para {analise}.")
+        print(dfs.keys())
+
+        # Cálculo com grafos
+        import pandas as pd
+
+        print(f"{dfs.keys()}\n")
+
+        def sanitizar_dataframe(df, limite=0.8):
+            df = df.copy()
+
+            for col in df.columns:
+                serie = df[col].astype(str).str.strip()
+
+                tentativa_data = pd.to_datetime(
+                    serie, errors="coerce", dayfirst=True, format="%d/%m/%Y"
+                )
+                if tentativa_data.notna().mean() > limite:
+                    df[col] = tentativa_data
+                    continue
+
+                serie_num = serie.str.replace(".", "", regex=False).str.replace(
+                    ",", ".", regex=False
+                )
+                tentativa_num = pd.to_numeric(serie_num, errors="coerce")
+                if tentativa_num.notna().mean() > limite:
+                    df[col] = tentativa_num
+                    continue
+
+                df[col] = serie.replace({"": None})
+
+            return df
+
+        def calc_data(dfs):
+
+            ## Ajuste Ordens ##
+            ordens = sanitizar_dataframe(dfs.get("ordens"))
+            ordens = ordens[
+                [
+                    "Cliente",
+                    "Fábrica",
+                    "Ordem",
+                    "Pedido",
+                    "Item",
+                    "Saldo",
+                    "Representante",
+                    "Entrega Pedido",
+                    "Data Abertura",
+                ]
+            ]
+            ordens = ordens.rename(
+                columns={"Ordem": "Ordem Prod", "Saldo": "Saldo Prod"}
+            )
+
+            colunas = ["Entrega Pedido", "Data Abertura"]
+            for col in colunas:
+                ordens[col] = (
+                    ordens[col]
+                    .astype(str)
+                    .str.strip()
+                    .str.replace(r"[^\d]", "", regex=True)
+                    .pipe(lambda s: pd.to_datetime(s, format="%d%m%Y", errors="coerce"))
+                )
+
+            ## Ajuste Consumo ##
+            consumo = sanitizar_dataframe(dfs.get("cons"))
+            consumo["Item"] = consumo["Item"].str.split("-").str[0].str.strip()
+            consumo = consumo[
+                [
+                    "Tipo",
+                    "Item",
+                    "Baixa",
+                    "Consumo",
+                    "Local Prod.",
+                    "OP",
+                    "Familia",
+                    "Den. Item",
+                ]
+            ]
+            consumo = consumo.rename(columns={"OP": "Ordem Cons"})
+
+            ######## Item Pai ##########
+            consumo["item_pai"] = consumo["Ordem Cons"].map(
+                ordens.set_index("Ordem Prod")["Item"]
+            )
+
+            ######## Merge 1: traz Pedido/Cliente/etc via Ordem Cons ##########
+            consumo = consumo.merge(
+                ordens[
+                    [
+                        "Cliente",
+                        "Fábrica",
+                        "Ordem Prod",
+                        "Pedido",
+                        "Saldo Prod",
+                        "Representante",
+                        "Entrega Pedido",
+                        "Data Abertura",
+                    ]
+                ].rename(columns={"Ordem Prod": "Ordem", "Saldo Prod": "Saldo"}),
+                left_on="Ordem Cons",
+                right_on="Ordem",
+                how="left",
+            )
+
+            ######## Merge 2: Ordem Prod do componente ##########
+            ordens_op = ordens[["Item", "Ordem Prod", "Pedido"]].copy()
+
+            consumo_com_pedido = consumo[consumo["Pedido"] > 0]
+            consumo_sem_pedido = consumo[consumo["Pedido"] == 0]
+
+            consumo_com_pedido = consumo_com_pedido.merge(
+                ordens_op[ordens_op["Pedido"] > 0],
+                on=["Item", "Pedido"],
+                how="left",
+            )
+
+            consumo_sem_pedido = consumo_sem_pedido.merge(
+                ordens_op.drop_duplicates("Item")[["Item", "Ordem Prod"]],
+                on="Item",
+                how="left",
+            )
+
+            consumo = pd.concat([consumo_com_pedido, consumo_sem_pedido]).sort_index()
+
+            ######## Ordena as colunas ##########
+            consumo = consumo[
+                [
+                    "Tipo",
+                    "Ordem Prod",
+                    "Item",
+                    "Consumo",
+                    "Ordem Cons",
+                    "item_pai",
+                    "Saldo",
+                    "Pedido",
+                    "Representante",
+                    "Entrega Pedido",
+                    "Local Prod.",
+                    "Familia",
+                    "Cliente",
+                    "Fábrica",
+                    "Ordem",
+                    "Data Abertura",
+                    "Baixa",
+                    "Den. Item",
+                ]
+            ]
+
+            ######## Calculos Baseados em estoque ##########
+            estoque = sanitizar_dataframe(dfs.get("estoque"))
+            consumo["estoque"] = (
+                consumo["Item"].map(estoque.groupby("Item")["Qtde."].sum()).fillna(0)
+            )
+
+            from tqdm import tqdm
+
+            ######## Propagação dos atributos da raiz ##########
+
+            CAMPOS_RAIZ = [
+                "Cliente",
+                "Fábrica",
+                "Pedido",
+                "Representante",
+                "Entrega Pedido",
+                "Data Abertura",
+                "Saldo",
+                "Baixa",
+            ]
+            CAMPOS_RAIZ_COMPLETO = ["Item Final"] + CAMPOS_RAIZ
+
+            itens_existentes = set(consumo["Item"].unique())
+            raizes = set(consumo["item_pai"].dropna()) - itens_existentes
+
+            # Nível 0: item_pai aqui É o produto final (raiz real)
+            cache_raiz = {}
+            for _, row in (
+                consumo[consumo["item_pai"].isin(raizes)]
+                .drop_duplicates("Ordem Cons")
+                .iterrows()
+            ):
+                cache_raiz[row["Ordem Cons"]] = {
+                    "Item Final": row["item_pai"],
+                    **row[CAMPOS_RAIZ].to_dict(),
+                }
+
+            # Mapa Ordem Prod → [(Ordem Cons, Pedido_Ordem, Pedido_Contexto)]
+            mapa_raw = (
+                ordens[["Ordem Prod", "Item", "Pedido"]]
+                .rename(columns={"Pedido": "Pedido_Ordem"})
+                .merge(
+                    consumo[["Item", "Ordem Cons", "Pedido"]].drop_duplicates(
+                        ["Item", "Ordem Cons"]
+                    ),
+                    on="Item",
+                )
+            )
+
+            mapa_op_para_pais = {}
+            for _, row in mapa_raw.iterrows():
+                op = row["Ordem Prod"]
+                if op not in mapa_op_para_pais:
+                    mapa_op_para_pais[op] = []
+                mapa_op_para_pais[op].append(
+                    (row["Ordem Cons"], row["Pedido_Ordem"], row["Pedido"])
+                )
+
+            def achar_pai_no_cache(ordem_cons_filho, pedido_filho):
+                pais = mapa_op_para_pais.get(ordem_cons_filho, [])
+                pais_no_cache = [
+                    (oc, po, pc) for oc, po, pc in pais if oc in cache_raiz
+                ]
+                if not pais_no_cache:
+                    return None
+                if len(pais_no_cache) == 1:
+                    return cache_raiz[pais_no_cache[0][0]]
+                match = [(oc, po, pc) for oc, po, pc in pais_no_cache if po == pc]
+                if len(match) == 1:
+                    return cache_raiz[match[0][0]]
+                match2 = [
+                    (oc, po, pc) for oc, po, pc in pais_no_cache if pc == pedido_filho
+                ]
+                if match2:
+                    return cache_raiz[match2[0][0]]
+                return cache_raiz[pais_no_cache[0][0]]
+
+            # BFS top-down
+            for nivel in range(1, 12):
+                pendentes = consumo[
+                    ~consumo["Ordem Cons"].isin(cache_raiz)
+                ].drop_duplicates("Ordem Cons")
+                novos = 0
+                for _, row in tqdm(
+                    pendentes.iterrows(),
+                    total=len(pendentes),
+                    desc=f"Nível {nivel}",
+                    unit="ordem",
+                ):
+                    resultado = achar_pai_no_cache(row["Ordem Cons"], row["Pedido"])
+                    if resultado:
+                        cache_raiz[row["Ordem Cons"]] = resultado
+                        novos += 1
+                print(f"Nível {nivel}: {novos} novas entradas resolvidas")
+                if novos == 0:
+                    break
+
+            raiz_df = (
+                consumo["Ordem Cons"]
+                .map(cache_raiz)
+                .apply(
+                    lambda x: (
+                        x
+                        if isinstance(x, dict)
+                        else {c: None for c in CAMPOS_RAIZ_COMPLETO}
+                    )
+                )
+            )
+            raiz_df = pd.DataFrame(raiz_df.tolist(), index=consumo.index)
+            raiz_df.columns = [f"raiz_{c}" for c in CAMPOS_RAIZ_COMPLETO]
+            consumo = pd.concat([consumo, raiz_df], axis=1)
+
+            filtro = (consumo["Tipo"] == "C") & (
+                consumo["raiz_Entrega Pedido"] < "2027-01-01 00:00:00"
+            )
+            consumo = consumo[filtro]
+
+            #### Gera Excel ####
+            print("gerar excel")
+            csv_path = "CSV/"
+            consumo.to_excel(csv_path + "consumo.xlsx", index=False)
+
+            print("Concluido")
+
+        calc_data(dfs)
+
+        return {
+            "status": "ok",
+            "mensagem": "CSVs gerados com sucesso a partir dos snapshots.",
+        }
 
     except Exception as e:
         return {"erro": str(e)}
 
+
 def listar_csv(session, payload=None):
     from datetime import datetime
+
     csv_dir = Path("CSV")
     if not csv_dir.exists():
         return []
@@ -444,13 +755,16 @@ def listar_csv(session, payload=None):
         if p.is_file():
             st = p.stat()
             dt = datetime.fromtimestamp(st.st_mtime)
-            resp.append({
-                "nome": p.name,
-                "url": f"/csv_files/{p.name}",
-                "tamanho": f"{st.st_size / 1024:.1f} KB",
-                "data_criacao": dt.strftime("%Y-%m-%d %H:%M:%S"),
-            })
+            resp.append(
+                {
+                    "nome": p.name,
+                    "url": f"/csv_files/{p.name}",
+                    "tamanho": f"{st.st_size / 1024:.1f} KB",
+                    "data_criacao": dt.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
     return resp
+
 
 def excluir_csv(session, payload=None):
     if not payload or "arquivos" not in payload:
@@ -464,31 +778,32 @@ def excluir_csv(session, payload=None):
             removidos.append(nome)
     return {"status": "ok", "removidos": removidos}
 
+
 def baixar_zip_csv(session, payload=None):
     if not payload or "arquivos" not in payload:
         return {"erro": "Nenhum arquivo informado"}
     import zipfile
     from datetime import datetime
+
     csv_dir = Path("CSV")
     exports_dir = Path("exports")
     exports_dir.mkdir(exist_ok=True)
     stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     zip_name = f"CSV_{stamp}.zip"
     zip_path = exports_dir / zip_name
-    with zipfile.ZipFile(zip_path, 'w') as zipf:
+    with zipfile.ZipFile(zip_path, "w") as zipf:
         for nome in payload["arquivos"]:
             p = csv_dir / nome
             if p.exists() and p.is_file() and p.resolve().parent == csv_dir.resolve():
                 zipf.write(p, arcname=nome)
     return {"status": "ok", "url": f"/exports/{zip_name}"}
 
+
 def _gerar_html_historico(session, data, resumo, total_geral):
     colunas = [c for c in data[0].keys() if c not in ["__rowId", "Gráfico"]]
     import re
 
-    colunas_mes = [c for c in colunas if re.match(r"^\d{4}-\d{2}$", c)] or [
-        "2024-01"
-    ]
+    colunas_mes = [c for c in colunas if re.match(r"^\d{4}-\d{2}$", c)] or ["2024-01"]
     colunas_tabela = [c for c in colunas if c not in colunas_mes]
     colunas_tabela.insert(2, "Gráfico")
 
@@ -530,35 +845,111 @@ def _gerar_html_historico(session, data, resumo, total_geral):
 
     today_str = date.today().strftime("%Y-%m-%d")
     analise_nome = session.analise_nome or "analise"
-    
-    colunas_html = ''.join([f'<th>{c}</th>' for c in colunas_tabela])
-    
+
+    colunas_html = "".join([f"<th>{c}</th>" for c in colunas_tabela])
+
     return f"""<!DOCTYPE html>
 <html>
 <head>
   <title>OCs {analise_nome} {today_str}</title>
-  <link rel="stylesheet" href="styles.css">
   <style>
-    body {{ font-family: Arial; margin: 20px; }}
-    table {{ width: 100%; border-collapse: collapse; }}
-    th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{ font-family: Arial, sans-serif; padding: 16px; background: #f5f5f5; }}
+    h1 {{ font-size: 18px; margin-bottom: 8px; color: #2e8b57; }}
+    h2 {{ font-size: 14px; margin: 14px 0 6px; color: #555; }}
+
+    /* Resumo por família */
+    #resumoFamilias {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }}
+    .familia-item {{
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+    }}
+    .familia-total {{ background: #d4edda; font-weight: bold; border-color: #2e8b57; }}
+    .familia-nome {{ color: #333; }}
+    .familia-valor {{ font-weight: bold; color: #2e8b57; }}
+    .familia-percentual {{ color: #888; font-size: 11px; }}
+
+    /* Tabela com rolagem */
+    .table-wrapper {{
+      width: 100%;
+      height: calc(100vh - 220px);
+      overflow: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+    }}
+    table {{
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }}
+    thead th {{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #2e8b57;
+      color: white;
+      padding: 8px 10px;
+      text-align: left;
+      white-space: nowrap;
+      border-right: 1px solid #27784c;
+    }}
+    tbody td {{
+      padding: 6px 10px;
+      border-bottom: 1px solid #eee;
+      border-right: 1px solid #f0f0f0;
+      white-space: nowrap;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }}
+    tbody tr:hover {{ background: #f0faf4; }}
     .col-destaque-verde {{ background-color: #d4edda; font-weight: bold; }}
-    .familia-item {{ display: flex; justify-content: space-between; padding: 5px; }}
-    .familia-total {{ background-color: #e9ecef; font-weight: bold; }}
   </style>
 </head>
 <body>
-  <h1>Histórico OCs - {analise_nome} - {today_str}</h1>
+  <h1>Histórico OCs — {analise_nome} — {today_str}</h1>
   <h2>Resumo por Família</h2>
   <div id="resumoFamilias">{html_resumo}</div>
-  <h2>Tabela Completa (sem filtros)</h2>
-  <table>
-    <thead>
-      <tr>
-{colunas_html}
-      </tr>
-    </thead>
-    <tbody>{html_tbody}</tbody>
-  </table>
+  <h2>Tabela Completa</h2>
+  
+  <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Pesquisar em toda a tabela..." style="width: 100%; padding: 10px; margin-bottom: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+
+  <div class="table-wrapper">
+    <table id="historicoTable">
+      <thead>
+        <tr>{colunas_html}</tr>
+      </thead>
+      <tbody>{html_tbody}</tbody>
+    </table>
+  </div>
+
+  <script>
+    function filterTable() {{
+      const filter = document.getElementById("searchInput").value.toUpperCase();
+      const trs = document.querySelectorAll("#historicoTable tbody tr");
+
+      for (let i = 0; i < trs.length; i++) {{
+        const rowText = trs[i].textContent || trs[i].innerText;
+        if (rowText.toUpperCase().indexOf(filter) > -1) {{
+          trs[i].style.display = "";
+        }} else {{
+          trs[i].style.display = "none";
+        }}
+      }}
+    }}
+  </script>
 </body>
 </html>"""
