@@ -803,9 +803,12 @@ def _gerar_html_historico(session, data, resumo, total_geral):
     colunas = [c for c in data[0].keys() if c not in ["__rowId", "Gráfico"]]
     import re
 
-    colunas_mes = [c for c in colunas if re.match(r"^\d{4}-\d{2}$", c)] or ["2024-01"]
+    colunas_mes = [c for c in colunas if re.match(r"^\d{4}-\d{2}$", c)]
     colunas_tabela = [c for c in colunas if c not in colunas_mes]
-    colunas_tabela.insert(2, "Gráfico")
+    
+    # Inserir as colunas de meses no lugar onde ficava o "Gráfico" (posição 2)
+    for i, col_mes in enumerate(colunas_mes):
+        colunas_tabela.insert(2 + i, col_mes)
 
     html_resumo = ""
     html_resumo += f"""
@@ -826,14 +829,16 @@ def _gerar_html_historico(session, data, resumo, total_geral):
     for row in data:
         html_tbody += "<tr>"
         for col in colunas_tabela:
-            if col == "Gráfico":
-                html_tbody += "<td>-</td>"
-            elif col == "Decis Compras":
+            if col == "Decis Compras":
                 val = row.get(col, "")
                 html_tbody += f'<td class="col-destaque-verde">{val}</td>'
             elif col == "Valor Comprado":
                 val = row.get(col, 0)
-                html_tbody += f'<td class="col-destaque-verde">R$ {val:,.2f}</td>'
+                try:
+                    val_num = float(val)
+                except:
+                    val_num = 0
+                html_tbody += f'<td class="col-destaque-verde">R$ {val_num:,.2f}</td>'
             else:
                 val = row.get(col, "")
                 html_tbody += (
