@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import MetricsCards from './MetricsCards';
-import PurchaseTable from './PurchaseTable';
-import { apiCall } from '../services/api';
+import React, { useState, useEffect, useCallback } from "react";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+import MetricsCards from "./MetricsCards";
+import PurchaseTable from "./PurchaseTable";
+import { apiCall } from "../services/api";
 
 function Dashboard() {
   const [data, setData] = useState([]);
@@ -11,51 +11,54 @@ function Dashboard() {
   const [edicoes, setEdicoes] = useState({});
   const [totalGeral, setTotalGeral] = useState(0);
   const [totalItens, setTotalItens] = useState(0);
-  
+
   const [startIndex, setStartIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const loadData = useCallback(async (reset = false) => {
-    if (loading || (!hasMore && !reset)) return;
-    setLoading(true);
-    
-    const currentStart = reset ? 0 : startIndex;
-    const PAGE_SIZE = 50;
+  const loadData = useCallback(
+    async (reset = false) => {
+      if (loading || (!hasMore && !reset)) return;
+      setLoading(true);
 
-    try {
-      const resp = await apiCall("obter_slice", {
-        start: currentStart,
-        size: PAGE_SIZE,
-        filtros: {},
-        ordenacao: { coluna: null, direcao: 'asc' },
-        correspondenciaExata: false,
-        filtrosInvertidos: false,
-        colunasInvertidas: {},
-        colunasExatas: {},
-        data_ini: null,
-        data_fim: null
-      });
+      const currentStart = reset ? 0 : startIndex;
+      const PAGE_SIZE = 50;
 
-      if (!resp || !resp.data || resp.data.length === 0) {
-        setHasMore(false);
-      } else {
-        if (resp.resumo && currentStart === 0) {
-          setResumo(resp.resumo);
-          setTotalGeral(resp.total_geral);
+      try {
+        const resp = await apiCall("obter_slice", {
+          start: currentStart,
+          size: PAGE_SIZE,
+          filtros: {},
+          ordenacao: { coluna: null, direcao: "asc" },
+          correspondenciaExata: false,
+          filtrosInvertidos: false,
+          colunasInvertidas: {},
+          colunasExatas: {},
+          data_ini: null,
+          data_fim: null,
+        });
+
+        if (!resp || !resp.data || resp.data.length === 0) {
+          setHasMore(false);
+        } else {
+          if (resp.resumo && currentStart === 0) {
+            setResumo(resp.resumo);
+            setTotalGeral(resp.total_geral);
+          }
+          setEdicoes((prev) => ({ ...prev, ...(resp.edicoes || {}) }));
+          setData((prev) => (reset ? resp.data : [...prev, ...resp.data]));
+          setStartIndex(currentStart + PAGE_SIZE);
+          setTotalItens(resp.total);
         }
-        setEdicoes(prev => ({...prev, ...(resp.edicoes || {})}));
-        setData(prev => reset ? resp.data : [...prev, ...resp.data]);
-        setStartIndex(currentStart + PAGE_SIZE);
-        setTotalItens(resp.total);
+      } catch (e) {
+        console.error(e);
+        setHasMore(false);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error(e);
-      setHasMore(false);
-    } finally {
-      setLoading(false);
-    }
-  }, [startIndex, loading, hasMore]);
+    },
+    [startIndex, loading, hasMore],
+  );
 
   useEffect(() => {
     loadData(true);
@@ -64,10 +67,10 @@ function Dashboard() {
   const handleSaveEdition = async (rowId, valor) => {
     try {
       await apiCall("salvar_edicao", { rowId, valor });
-      setEdicoes(prev => ({...prev, [rowId]: valor}));
+      setEdicoes((prev) => ({ ...prev, [rowId]: valor }));
       // Recarrega do zero para atualizar totais
       loadData(true);
-    } catch(e) {
+    } catch (e) {
       console.error("Erro ao salvar edição", e);
     }
   };
@@ -80,34 +83,46 @@ function Dashboard() {
         <main className="w-full pt-20 bg-surface-canvas flex-1">
           <div className="flex flex-col w-full">
             <div className="p-lg space-y-xl max-w-[1720px] mx-auto w-full">
-              <MetricsCards totalGeral={totalGeral} totalItens={totalItens} edicoesCount={Object.keys(edicoes).length} />
-              
+              <MetricsCards
+                totalGeral={totalGeral}
+                totalItens={totalItens}
+                edicoesCount={Object.keys(edicoes).length}
+              />
+
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-md items-start mt-8">
-                 {/* Sidebar Familias */}
-                 <div className="xl:col-span-3 bg-surface-card rounded-lg p-md shadow-card">
-                    <h3 className="font-bold text-lg mb-4 text-on-surface">Valor Comprado por Família</h3>
-                    <div className="space-y-2">
-                       {Object.entries(resumo).map(([familia, valor]) => (
-                         <div key={familia} className="flex justify-between items-center py-2 border-b border-border">
-                           <span className="text-sm font-medium">{familia}</span>
-                           <span className="text-sm font-bold text-primary">
-                             {valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                           </span>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
-                 {/* Table */}
-                 <div className="xl:col-span-9 bg-surface-card rounded-lg shadow-card">
-                    <PurchaseTable 
-                      data={data} 
-                      edicoes={edicoes} 
-                      onLoadMore={() => loadData(false)} 
-                      hasMore={hasMore}
-                      onSaveEdition={handleSaveEdition}
-                      loading={loading}
-                    />
-                 </div>
+                {/* Sidebar Familias */}
+                <div className="xl:col-span-3 bg-surface-card rounded-lg p-md shadow-card">
+                  <h3 className="font-bold text-lg mb-4 text-on-surface">
+                    Valor Comprado por Família
+                  </h3>
+                  <div className="space-y-2">
+                    {Object.entries(resumo).map(([familia, valor]) => (
+                      <div
+                        key={familia}
+                        className="flex justify-between items-center py-2 border-b border-border"
+                      >
+                        <span className="text-sm font-medium">{familia}</span>
+                        <span className="text-sm font-bold text-primary">
+                          {valor.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Table */}
+                <div className="xl:col-span-9 bg-surface-card rounded-lg shadow-card">
+                  <PurchaseTable
+                    data={data}
+                    edicoes={edicoes}
+                    onLoadMore={() => loadData(false)}
+                    hasMore={hasMore}
+                    onSaveEdition={handleSaveEdition}
+                    loading={loading}
+                  />
+                </div>
               </div>
             </div>
           </div>

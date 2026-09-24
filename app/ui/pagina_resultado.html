@@ -582,9 +582,10 @@
           labels: labelsPlot,
           datasets: [{
             data: valoresPlot,
-            borderWidth: 1,
-            pointRadius: 3,
-            tension: 0.3
+            borderWidth: 2.5,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.1
           }]
         },
         options: {
@@ -592,9 +593,10 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 25,
+              top: 35,
               left: 15,
-              right: 15
+              right: 15,
+              bottom: 10
             }
           },
           plugins: {
@@ -615,8 +617,8 @@
             }
           },
           scales: {
-            x: { display: true, grace: 100 },
-            y: { display: false, grace: 100 }
+            x: { display: true },
+            y: { display: false, grace: '30%' }
           }
         }
       });

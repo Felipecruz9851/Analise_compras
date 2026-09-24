@@ -119,7 +119,11 @@ body {
 button {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 100%
+  );
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -155,7 +159,7 @@ button:active {
   white-space: pre-wrap;
   word-wrap: break-word;
   color: var(--color-text-main);
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: "Consolas", "Monaco", monospace;
 }
 
 /* ============================= */
@@ -192,7 +196,11 @@ button:active {
 }
 
 .table-wrapper thead {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 100%
+  );
   color: white;
   position: sticky;
   top: 0;
@@ -284,7 +292,6 @@ body.full-page {
   background: var(--color-bg-main);
   height: 100%;
   overflow: hidden;
-
 }
 
 .page-header {
@@ -299,13 +306,11 @@ body.full-page {
   align-items: center;
   padding: 0 30px;
   z-index: 1000;
-
 }
 
 .page-header h2 {
   font-size: 20px;
   color: var(--color-text-main);
-
 }
 
 .page-content {
@@ -328,9 +333,11 @@ body.full-page {
 }
 
 .table-wrapper th {
-  background: linear-gradient(135deg,
-      var(--color-primary),
-      var(--color-primary-light));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-light)
+  );
   color: white;
   position: sticky;
   top: 0;
@@ -342,7 +349,6 @@ body.full-page {
   display: flex;
   flex-direction: column;
   gap: 6px;
-
 }
 
 .table-wrapper th button.sort-btn {
@@ -395,7 +401,6 @@ body.full-page {
   align-items: center;
   padding: 0 30px;
   z-index: 1000;
-
 }
 
 .header-left,
@@ -404,7 +409,6 @@ body.full-page {
   display: flex;
   align-items: center;
   gap: 15px;
-
 }
 
 .header-center {
@@ -427,7 +431,7 @@ body.full-page {
 
 .main-content {
   margin-top: 90px;
-  padding: 10px
+  padding: 10px;
 }
 
 .table-container {
@@ -456,7 +460,6 @@ body.full-page {
   font-weight: 600;
   padding: 10px;
   text-align: left;
-
 }
 
 .table-container td {
@@ -504,7 +507,11 @@ body.full-page {
   padding: 0 12px;
   border: none;
   border-radius: 6px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 100%
+  );
   color: white;
   font-size: 11px;
   font-weight: 600;
@@ -636,7 +643,6 @@ body.full-page {
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
-
 }
 
 .col-header-top {
@@ -644,9 +650,7 @@ body.full-page {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-
 }
-
 
 .sort-btn {
   padding: 2px 6px;
@@ -779,7 +783,7 @@ body.full-page {
 
 .familia-valor {
   font-weight: 600;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: "Consolas", "Monaco", monospace;
   text-align: right;
   min-width: 100px;
 }
@@ -816,7 +820,9 @@ body.full-page {
 /* Célula editável */
 .cell-editable {
   cursor: text;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
   position: relative;
   padding: 4px 8px !important;
 }
@@ -973,8 +979,15 @@ body.full-page {
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: translateY(-16px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .exports-modal-header {
@@ -994,8 +1007,8 @@ body.full-page {
 }
 
 .exports-btn-close-x {
-  background: rgba(255,255,255,0.18);
-  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   color: white;
   font-size: 20px;
   width: 32px;
@@ -1012,7 +1025,7 @@ body.full-page {
 }
 
 .exports-btn-close-x:hover {
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.35);
   transform: none;
   box-shadow: none;
 }
