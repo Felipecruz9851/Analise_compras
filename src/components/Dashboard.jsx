@@ -67,7 +67,15 @@ function Dashboard() {
   const handleSaveEdition = async (rowId, valor) => {
     try {
       await apiCall("salvar_edicao", { rowId, valor });
-      setEdicoes((prev) => ({ ...prev, [rowId]: valor }));
+      setEdicoes((prev) => {
+        const next = { ...prev };
+        if (valor === null || valor === undefined) {
+          delete next[rowId];
+        } else {
+          next[rowId] = valor;
+        }
+        return next;
+      });
       // Recarrega do zero para atualizar totais
       loadData(true);
     } catch (e) {

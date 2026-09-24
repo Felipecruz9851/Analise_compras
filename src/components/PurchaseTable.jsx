@@ -166,32 +166,37 @@ export default function PurchaseTable({
                     return (
                       <td key={col} className="py-2 px-3 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <input
-                            type="number"
-                            defaultValue={valorFinal}
-                            onBlur={(e) => {
-                              const num = parseNumeroBR(e.target.value);
-                              if (num !== valorOriginal) {
-                                onSaveEdition(rowId, num);
-                              } else if (foiEditado) {
-                                onSaveEdition(rowId, null); // Reverte edição se voltar pro original
-                              }
-                            }}
-                            className={`w-24 h-7 text-center font-bold rounded border px-1 ${foiEditado ? "border-cell-edited-border text-cell-edited-text bg-white" : "border-border"}`}
-                          />
-                          {foiEditado && (
-                            <button
-                              onClick={() => {
-                                onSaveEdition(rowId, null);
+                            <input
+                              key={`input-${rowId}-${foiEditado ? 'editado' : 'original'}-${valorFinal}`}
+                              type="number"
+                              defaultValue={valorFinal}
+                              onBlur={(e) => {
+                                const num = parseNumeroBR(e.target.value);
+                                if (num !== valorFinal) {
+                                  // Só salva se o valor digitado for diferente do que já está no estado!
+                                  if (num === valorOriginal) {
+                                    onSaveEdition(rowId, null);
+                                  } else {
+                                    onSaveEdition(rowId, num);
+                                  }
+                                }
                               }}
-                              className="w-6 h-6 rounded-full bg-cell-edited-border text-white flex items-center justify-center shadow-sm"
-                              title="Restaurar"
-                            >
-                              <span className="material-symbols-outlined text-[14px]">
-                                undo
-                              </span>
-                            </button>
-                          )}
+                              className={`w-24 h-7 text-center font-bold rounded border px-1 ${foiEditado ? "border-cell-edited-border text-cell-edited-text bg-white" : "border-border"}`}
+                            />
+                            {foiEditado && (
+                              <button
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  onSaveEdition(rowId, null);
+                                }}
+                                className="w-6 h-6 rounded-full bg-cell-edited-border text-white flex items-center justify-center shadow-sm"
+                                title="Restaurar"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">
+                                  undo
+                                </span>
+                              </button>
+                            )}
                         </div>
                       </td>
                     );
