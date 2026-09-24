@@ -16,9 +16,14 @@ export default function Login({ onAnalysisReady }) {
   const [csvList, setCsvList] = useState([]);
   const [selectedCsvs, setSelectedCsvs] = useState({});
 
+  const [sessaoAtiva, setSessaoAtiva] = useState(false);
+
   useEffect(() => {
     carregarAnalises();
     loadPickles();
+    apiCall("verificar_sessao").then(res => {
+      if (res && res.ativa) setSessaoAtiva(true);
+    }).catch(() => {});
   }, []);
 
   const carregarAnalises = async () => {
@@ -101,7 +106,12 @@ export default function Login({ onAnalysisReady }) {
     try {
       const resp = await apiCall('baixar_zip_csv', { arquivos });
       if (resp.erro) throw new Error(resp.erro);
-      window.open(resp.url, '_blank');
+      const a = document.createElement('a');
+      a.href = resp.url;
+      a.download = resp.url.split('/').pop();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     } catch(e) {
       alert("Erro ao baixar: " + e.message);
     }
@@ -150,7 +160,23 @@ export default function Login({ onAnalysisReady }) {
           
           <div className="flex flex-col gap-2 pt-4">
             <button onClick={executarAnalise} className="bg-primary hover:bg-primary-light text-white font-bold py-3 rounded-md shadow-sm transition-colors">Executar Análise (Nova)</button>
-            <button onClick={onAnalysisReady} className="bg-surface-card border border-border text-text-main hover:bg-row-alt font-bold py-2 rounded-md shadow-sm transition-colors">Ir para Resultados (Sessão Ativa)</button>
+            
+            {sessaoAtiva && (
+              <div className="flex gap-2">
+                <button onClick={onAnalysisReady} className="flex-1 bg-surface-card border border-border text-text-main hover:bg-row-alt font-bold py-2 rounded-md shadow-sm transition-colors">Ir para Resultados</button>
+                <button onClick={async () => {
+                  if (window.confirm("Isso irá apagar os dados da sessão atual em memória. Deseja continuar?")) {
+                    try {
+                      await apiCall("excluir_sessao");
+                      alert("Sessão excluída com sucesso.");
+                      setSessaoAtiva(false);
+                    } catch(e) {
+                      alert("Erro: " + e.message);
+                    }
+                  }
+                }} className="bg-red-100 hover:bg-red-200 text-status-danger border border-red-300 font-bold py-2 px-4 rounded-md shadow-sm transition-colors" title="Excluir Sessão Ativa">🗑️ Excluir Sessão</button>
+              </div>
+            )}
             
             <div className="flex gap-2 mt-2">
               <button onClick={gerarDados} className="flex-1 border border-primary text-primary hover:bg-primary/10 font-semibold py-2 rounded-md transition-colors">Gerar Dados</button>
@@ -201,7 +227,7 @@ export default function Login({ onAnalysisReady }) {
                     <tr key={c.nome} className="border-b">
                       <td className="p-2 text-center"><input type="checkbox" checked={!!selectedCsvs[c.nome]} onChange={e => setSelectedCsvs({...selectedCsvs, [c.nome]: e.target.checked})} /></td>
                       <td className="p-2">{c.nome}</td><td className="p-2">{c.tamanho}</td><td className="p-2">{c.data_criacao}</td>
-                      <td className="p-2"><a href={c.url} target="_blank" className="bg-primary text-white px-3 py-1 rounded text-xs no-underline">Download</a></td>
+                      <td className="p-2"><a href={c.url} download={c.nome} className="bg-primary text-white px-3 py-1 rounded text-xs no-underline">Download</a></td>
                     </tr>
                   ))}
                 </tbody>

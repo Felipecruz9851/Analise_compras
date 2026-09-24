@@ -25,9 +25,18 @@ def listar_analises():
     return settings.ANALISES
 
 
+from fastapi import Response
+
 @router.post("/call/{method}")
-def call_method(method: str, req: CallPayload):
+def call_method(method: str, req: CallPayload, response: Response):
     session_id = session_id_var.get()
+    
+    if method == "rodar_analise":
+        import uuid
+        session_id = str(uuid.uuid4())
+        session_id_var.set(session_id)
+        response.set_cookie(key="session_id", value=session_id, httponly=True, samesite="lax")
+
     session = get_session(session_id)
 
     if method == "rodar_analise":
@@ -58,9 +67,22 @@ def call_method(method: str, req: CallPayload):
         return excluir_csv(session, req.payload)
     elif method == "baixar_zip_csv":
         return baixar_zip_csv(session, req.payload)
+    elif method == "excluir_sessao":
+        return excluir_sessao(session)
+    elif method == "verificar_sessao":
+        return {"ativa": session.df_ativo is not None}
     else:
         return {"erro": "Método não permitido ou inexistente"}
 
+
+def excluir_sessao(session):
+    import threading
+    session.lock = threading.Lock()
+    session.df_base = None
+    session.df_ativo = None
+    session.edicoes = {}
+    session.analise_nome = None
+    return {"status": "ok", "mensagem": "Sessão ativa excluída com sucesso!"}
 
 def rodar_analise(session, payload):
     if session.lock.locked():
@@ -435,7 +457,7 @@ def executar_carrega_dados(session, payload=None):
 
         # Trata conf.csv (mantém apenas D==11, 5 mais recentes por item)
         caminho_conf = Path("CSV/conf.csv")
-        df_conf = pd.read_csv(caminho_conf, sep=None, engine="python")
+        df_conf = pd.read_csv(caminho_conf, sep=";")
         col_a = df_conf.columns[0]
         col_d = df_conf.columns[3]
         col_f = df_conf.columns[5]
@@ -691,15 +713,12 @@ def executar_carrega_dados(session, payload=None):
                     ~consumo["Ordem Cons"].isin(cache_raiz)
                 ].drop_duplicates("Ordem Cons")
                 novos = 0
-                for _, row in tqdm(
-                    pendentes.iterrows(),
-                    total=len(pendentes),
-                    desc=f"Nível {nivel}",
-                    unit="ordem",
-                ):
-                    resultado = achar_pai_no_cache(row["Ordem Cons"], row["Pedido"])
+                
+                # Otimização pesada (zip em vez de iterrows)
+                for ordem_cons, pedido in zip(pendentes["Ordem Cons"], pendentes["Pedido"]):
+                    resultado = achar_pai_no_cache(ordem_cons, pedido)
                     if resultado:
-                        cache_raiz[row["Ordem Cons"]] = resultado
+                        cache_raiz[ordem_cons] = resultado
                         novos += 1
                 print(f"Nível {nivel}: {novos} novas entradas resolvidas")
                 if novos == 0:
