@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "cell-edited-text": "#c25e00",
+        "background": "#f8f9ff",
+        "secondary-fixed": "#86fab0",
+        "outline": "#6f7a70",
+        "outline-variant": "#becabe",
+        "on-secondary-fixed": "#00210f",
+        "surface-container-lowest": "#ffffff",
+        "surface-card": "#ffffff",
+        "error-container": "#ffdad6",
+        "on-secondary-fixed-variant": "#00522d",
+        "on-tertiary-container": "#fefcff",
+        "tertiary-container": "#1775d1",
+        "on-tertiary-fixed": "#001c3a",
+        "secondary-fixed-dim": "#69dd96",
+        "secondary-container": "#86fab0",
+        "surface-bright": "#f8f9ff",
+        "surface-dim": "#ccdbf3",
+        "on-secondary-container": "#007441",
+        "on-primary": "#ffffff",
+        "inverse-primary": "#7ed99e",
+        "cell-highlight-bg": "#d4edda",
+        "surface-canvas": "#f1f5f9",
+        "primary-fixed": "#9af6b8",
+        "on-background": "#0d1c2e",
+        "primary": "#006a3b",
+        "on-primary-fixed-variant": "#00522d",
+        "secondary": "#006d3d",
+        "on-primary-fixed": "#00210f",
+        "surface-row-alt": "#fafbfd",
+        "surface-variant": "#d5e3fc",
+        "on-surface-variant": "#3f4941",
+        "inverse-surface": "#233144",
+        "inverse-on-surface": "#eaf1ff",
+        "tertiary": "#005cab",
+        "surface": "#f8f9ff",
+        "on-surface": "#0d1c2e",
+        "on-error-container": "#93000a",
+        "status-danger-dark": "#c0392b",
+        "surface-container-highest": "#d5e3fc",
+        "tertiary-fixed": "#d4e3ff",
+        "cell-highlight-text": "#155724",
+        "error": "#ba1a1a",
+        "on-tertiary": "#ffffff",
+        "surface-container-high": "#dce9ff",
+        "border-strong": "#cbd5e1",
+        "tertiary-fixed-dim": "#a5c8ff",
+        "on-secondary": "#ffffff",
+        "border-subtle": "#e2e8f0",
+        "sparkline-blue": "#1976d2",
+        "primary-container": "#268451",
+        "surface-container-low": "#eff4ff",
+        "cell-edited-border": "#ff9800",
+        "on-tertiary-fixed-variant": "#004786",
+        "surface-subtle": "#f8fafc",
+        "on-error": "#ffffff",
+        "status-danger": "#dc3545",
+        "primary-fixed-dim": "#7ed99e",
+        "surface-container": "#e6eeff",
+        "cell-edited-bg": "#fff3e0",
+        "surface-tint": "#006d3d",
+        "on-primary-container": "#f6fff4"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      "spacing": {
+        "margin-dense": "1rem",
+        "gutter": "1rem",
+        "gutter-compact": "0.5rem",
+        "margin": "1.5rem",
+        "space-xs": "0.25rem",
+        "space-sm": "0.5rem",
+        "space-xl": "1.5rem",
+        "space-md": "0.75rem",
+        "space-lg": "1rem"
+      },
+      "fontFamily": {
+        "body-lg": ["Inter"],
+        "body-sm": ["Inter"],
+        "label-micro": ["Inter"],
+        "headline-sm": ["Manrope"],
+        "label-numeric": ["JetBrains Mono"],
+        "label-action": ["Inter"],
+        "body-md": ["Inter"],
+        "label-numeric-bold": ["JetBrains Mono"],
+        "headline-lg": ["Manrope"],
+        "headline-md": ["Manrope"],
+        "headline-xl": ["Manrope"]
+      },
+      "fontSize": {
+        "body-lg": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+        "label-micro": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+        "headline-sm": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+        "label-numeric": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+        "label-action": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+        "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+        "label-numeric-bold": ["12px", {"lineHeight": "16px", "fontWeight": "700"}],
+        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+        "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+        "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+      }
+    }
+  }
+}</script></head><body class="bg-surface-canvas text-on-surface font-body-md text-body-md min-h-screen"><aside class="fixed left-0 top-0 h-full w-72 bg-gradient-to-b from-[#2e8b57] to-[#1e5d3a] z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] text-on-primary"><div class="flex flex-col"><div class="h-20 px-6 flex items-center gap-3 border-b border-white/10"><div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md"><span class="material-symbols-outlined text-white text-[22px]">finance_mode</span></div><div><h1 class="font-headline-sm text-headline-sm font-bold tracking-tight text-white leading-tight">Emerald SCM</h1><span class="font-label-micro text-label-micro text-emerald-100/75 uppercase tracking-wider block">Procurement Intelligence</span></div></div><div class="px-4 py-4"><div class="bg-white/10 rounded-xl p-3 border border-white/20 backdrop-blur-sm mb-4"><div class="flex items-center justify-between text-emerald-100/90 mb-1"><span class="font-label-micro text-label-micro uppercase tracking-wider">Lote Vigente</span><span class="material-symbols-outlined text-[16px]">verified</span></div><div class="font-headline-md text-headline-md font-bold text-white tracking-tight">ANL-2024-Q3</div><div class="flex items-center gap-2 mt-2 pt-2 border-t border-white/15 text-white/90 font-label-micro text-label-micro"><span>Status:</span><span class="inline-flex items-center gap-1 font-semibold text-emerald-200"><span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span> Processado</span></div></div><nav class="flex flex-col gap-1" data-active-classes="bg-white/20 text-white font-bold rounded-xl shadow-sm backdrop-blur-md"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-emerald-50 hover:bg-white/10 hover:text-white transition-all" data-path="resultado-da-analise" href="#"><span class="material-symbols-outlined text-[20px]">table_chart</span><span class="font-body-md text-body-md font-medium">Resultado da Análise</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-emerald-50 hover:bg-white/10 hover:text-white transition-all" data-path="resumo-executivo" href="#"><span class="material-symbols-outlined text-[20px]">insights</span><span class="font-body-md text-body-md font-medium">Resumo Executivo</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-emerald-50 hover:bg-white/10 hover:text-white transition-all" data-path="ordens-de-compra" href="#"><span class="material-symbols-outlined text-[20px]">shopping_bag</span><span class="font-body-md text-body-md font-medium">Ordens Geradas</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-emerald-50 hover:bg-white/10 hover:text-white transition-all" data-path="regras-de-suprimento" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span class="font-body-md text-body-md font-medium">Parâmetros &amp; Regras</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-emerald-50 hover:bg-white/10 hover:text-white transition-all" data-path="historico-de-auditoria" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-body-md text-body-md font-medium">Log de Edição</span></a></nav></div></div><div class="p-4 border-t border-white/10"><div class="bg-white/10 rounded-xl p-3 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div><span class="font-body-sm text-body-sm font-semibold text-white block leading-tight">Dir. Suprimentos</span><span class="font-label-micro text-label-micro text-emerald-200/80 block">Controladoria Fiscal</span></div></div><button class="text-white/80 hover:text-white transition-colors" title="Encerrar Sessão" type="button"><span class="material-symbols-outlined text-[20px]">logout</span></button></div></div></aside><div class="pl-72 flex flex-col min-h-screen"><header class="fixed top-0 left-72 right-0 h-20 bg-surface-card/95 backdrop-blur-xl z-40 border-b border-border-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)] px-margin"><div class="h-full flex items-center justify-between gap-gutter"><div class="flex items-center gap-space-md"><button class="h-8 px-2.5 flex items-center gap-1.5 rounded-lg border border-border-strong text-on-surface-variant hover:bg-surface-subtle hover:text-on-surface transition-all font-body-sm text-body-sm font-medium" title="Voltar à etapa anterior" type="button"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span>Voltar</span></button><div class="h-6 w-px bg-border-subtle"></div><div><div class="flex items-center gap-2"><h2 class="font-headline-md text-headline-md font-semibold text-on-surface tracking-tight leading-none">Procurement Analytics - Resultado da Análise</h2><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-micro text-label-micro font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> AO VIVO</span></div><div class="flex items-center gap-space-sm mt-1"><span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">database</span> Registros analisados:</span><span class="font-label-numeric-bold text-label-numeric-bold text-primary px-1.5 py-0.2 rounded bg-primary-fixed-dim/30">1.482 itens</span><span class="text-border-strong">•</span><span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">check_circle</span> Selecionados para OC:</span><span class="font-label-numeric-bold text-label-numeric-bold text-secondary px-1.5 py-0.2 rounded bg-secondary-fixed/40">128 itens</span></div></div></div><div class="flex items-center gap-space-md"><div class="flex items-center bg-surface-subtle border border-border-subtle rounded-xl p-1 gap-1"><div class="flex items-center gap-1 px-2"><span class="material-symbols-outlined text-[16px] text-outline">calendar_today</span><span class="font-label-micro text-label-micro text-on-surface-variant font-medium uppercase">Período:</span></div><input aria-label="Data Inicial" class="h-7 px-2 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-numeric text-label-numeric focus:outline-none focus:border-tertiary" type="date" value="2024-09-01"/><span class="text-outline-variant font-body-sm text-body-sm">até</span><input aria-label="Data Final" class="h-7 px-2 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-numeric text-label-numeric focus:outline-none focus:border-tertiary" type="date" value="2024-09-30"/><button class="h-7 px-2.5 rounded-lg bg-primary-container text-on-primary-container font-label-action text-label-action hover:bg-primary transition-all flex items-center gap-1" title="Aplicar Filtro Temporal" type="button"><span class="material-symbols-outlined text-[14px]">filter_alt</span><span>APLICAR</span></button><button class="h-7 px-2 rounded-lg text-outline hover:text-on-surface hover:bg-surface-variant transition-colors flex items-center" title="Limpar Filtros" type="button"><span class="material-symbols-outlined text-[16px]">restart_alt</span></button></div><div class="h-6 w-px bg-border-subtle"></div><div class="flex items-center gap-2"><button class="h-8 px-3 rounded-lg border border-border-strong text-on-surface-variant hover:bg-surface-subtle hover:text-on-surface transition-all flex items-center gap-1.5 font-body-sm text-body-sm font-medium" title="Alternar visibilidade do painel de resumo" type="button"><span class="material-symbols-outlined text-[18px]">view_agenda</span><span>Resumo/Banner</span></button><button class="relative h-8 px-3 rounded-lg border border-border-strong text-on-surface-variant hover:bg-surface-subtle hover:text-on-surface transition-all flex items-center gap-1.5 font-body-sm text-body-sm font-medium" type="button"><span class="material-symbols-outlined text-[18px]">download</span><span>Exportações</span><span class="ml-1 px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary font-label-numeric-bold text-label-numeric-bold text-[10px]">4</span></button><button class="h-8 px-3.5 rounded-lg bg-gradient-to-r from-[#2e8b57] to-[#3cb371] text-white font-body-sm text-body-sm font-semibold hover:shadow-[0_4px_12px_rgba(46,139,87,0.3)] hover:-translate-y-0.5 transition-all flex items-center gap-2" type="button"><span class="material-symbols-outlined text-[18px]">shopping_cart_checkout</span><span>Gerar OCs</span><span class="px-1.5 py-0.2 rounded-full bg-white/20 text-white font-label-numeric-bold text-label-numeric-bold text-[11px]">128</span></button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-surface-canvas flex-1"><div class="flex flex-col w-full">
+<div class="p-margin space-y-space-xl max-w-[1720px] mx-auto w-full">
+<!-- Top KPI Performance Band -->
+<section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- KPI 1 -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-primary-fixed-dim/20 pointer-events-none group-hover:scale-110 transition-transform"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase text-on-surface-variant font-semibold tracking-wider">Total Geral Comprado</span>
+<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-numeric text-[11px] font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span> +8.4%
+          </span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">R$ 4.829.350,00</span>
+</div>
+<div class="mt-2 flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span>Meta Alocada: R$ 5.20M</span>
+<span class="font-label-numeric text-primary font-semibold">92.8%</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-secondary-fixed-dim h-full rounded-full" style="width: 92.8%;"></div>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-tertiary-fixed-dim/30 pointer-events-none group-hover:scale-110 transition-transform"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase text-on-surface-variant font-semibold tracking-wider">Itens Sob Análise</span>
+<span class="p-1 rounded-lg bg-surface-container text-tertiary flex items-center">
+<span class="material-symbols-outlined text-[16px]">inventory_2</span>
+</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">1.240</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">SKUs ativos</span>
+</div>
+<div class="mt-2 flex items-center gap-2 font-body-sm text-body-sm text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>98.6% com cobertura de lead-time</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 98.6%;"></div>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-cell-edited-bg pointer-events-none group-hover:scale-110 transition-transform"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase text-on-surface-variant font-semibold tracking-wider">Decisões Editadas</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cell-edited-bg text-cell-edited-text font-label-micro text-label-micro font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-cell-edited-border animate-ping"></span> Pendentes
+          </span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-cell-edited-text tracking-tight">18</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">itens alterados</span>
+</div>
+<div class="mt-2 flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span>Impacto orçamentário:</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-cell-edited-text">+R$ 142.300,00</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-cell-edited-border h-full rounded-full" style="width: 32%;"></div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-secondary-fixed/40 pointer-events-none group-hover:scale-110 transition-transform"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase text-on-surface-variant font-semibold tracking-wider">OCs Prontas para Emissão</span>
+<span class="p-1 rounded-lg bg-secondary-container text-on-secondary-container flex items-center">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">42</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">ordens automáticas</span>
+</div>
+<div class="mt-2 flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span>Fornecedores validados:</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-primary">28 parceiros</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 84%;"></div>
+</div>
+</div>
+</section>
+<!-- Interactive Workspace Grid: Left Family Breakdown & Right High-Density Decision Matrix -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
+<!-- LEFT SIDEBAR: Valor Comprado por Família -->
+<aside class="xl:col-span-3 flex flex-col gap-space-md transition-all duration-300" id="sidebar-familias">
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm space-y-space-md">
+<!-- Header and controls -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">account_tree</span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Famílias de Compra</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-numeric text-[11px] font-bold">6 Ativas</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Distribuição consolidada do lote vigente por segmento técnico.</p>
+<!-- Total Geral Card Highlight -->
+<div class="p-space-md rounded-xl bg-gradient-to-br from-primary via-primary-container to-secondary text-on-primary shadow-sm space-y-1">
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase tracking-wider text-emerald-100/90 font-semibold">Valor Total Analisado</span>
+<span class="material-symbols-outlined text-[16px] text-emerald-200">payments</span>
+</div>
+<div class="font-headline-md text-headline-md font-bold text-on-primary">R$ 4.829.350,00</div>
+<div class="font-label-micro text-label-micro text-emerald-100/80 flex items-center justify-between pt-1">
+<span>Lote ANL-2024-Q3</span>
+<span class="font-label-numeric">100.0% Alocado</span>
+</div>
+</div>
+<!-- Breakdown Category List with Progress Micro-Charts -->
+<div class="space-y-space-xs pt-1">
+<!-- Item 1 -->
+<button class="w-full text-left p-space-sm rounded-lg hover:bg-surface-subtle transition-all group focus:bg-surface-container-low" onclick="filterByFamily('Embalagens e Recipientes')" type="button">
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="font-medium text-on-surface group-hover:text-primary transition-colors truncate max-w-[170px]">Embalagens e Recipientes</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-on-surface">30.0%</span>
+</div>
+<div class="flex items-center justify-between font-label-numeric text-[11px] text-on-surface-variant mt-0.5">
+<span>R$ 1.450.200,00</span>
+<span class="text-primary font-semibold">24 SKUs</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-500" style="width: 30.0%;"></div>
+</div>
+</button>
+<!-- Item 2 -->
+<button class="w-full text-left p-space-sm rounded-lg hover:bg-surface-subtle transition-all group focus:bg-surface-container-low" onclick="filterByFamily('Matéria-Prima Química')" type="button">
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="font-medium text-on-surface group-hover:text-primary transition-colors truncate max-w-[170px]">Matéria-Prima Química</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-on-surface">23.2%</span>
+</div>
+<div class="flex items-center justify-between font-label-numeric text-[11px] text-on-surface-variant mt-0.5">
+<span>R$ 1.120.000,00</span>
+<span class="text-primary font-semibold">18 SKUs</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-primary-container h-full rounded-full transition-all duration-500" style="width: 23.2%;"></div>
+</div>
+</button>
+<!-- Item 3 -->
+<button class="w-full text-left p-space-sm rounded-lg hover:bg-surface-subtle transition-all group focus:bg-surface-container-low" onclick="filterByFamily('Componentes Elétricos')" type="button">
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="font-medium text-on-surface group-hover:text-primary transition-colors truncate max-w-[170px]">Componentes Elétricos</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-on-surface">18.4%</span>
+</div>
+<div class="flex items-center justify-between font-label-numeric text-[11px] text-on-surface-variant mt-0.5">
+<span>R$ 890.150,00</span>
+<span class="text-primary font-semibold">46 SKUs</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-secondary h-full rounded-full transition-all duration-500" style="width: 18.4%;"></div>
+</div>
+</button>
+<!-- Item 4 -->
+<button class="w-full text-left p-space-sm rounded-lg hover:bg-surface-subtle transition-all group focus:bg-surface-container-low" onclick="filterByFamily('Peças Mecânicas &amp; Usinagem')" type="button">
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="font-medium text-on-surface group-hover:text-primary transition-colors truncate max-w-[170px]">Peças Mecânicas &amp; Usinagem</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-on-surface">15.3%</span>
+</div>
+<div class="flex items-center justify-between font-label-numeric text-[11px] text-on-surface-variant mt-0.5">
+<span>R$ 740.000,00</span>
+<span class="text-primary font-semibold">12 SKUs</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full transition-all duration-500" style="width: 15.3%;"></div>
+</div>
+</button>
+<!-- Item 5 -->
+<button class="w-full text-left p-space-sm rounded-lg hover:bg-surface-subtle transition-all group focus:bg-surface-container-low" onclick="filterByFamily('Manutenção &amp; EPIs')" type="button">
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="font-medium text-on-surface group-hover:text-primary transition-colors truncate max-w-[170px]">Manutenção &amp; EPIs</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-on-surface">8.9%</span>
+</div>
+<div class="flex items-center justify-between font-label-numeric text-[11px] text-on-surface-variant mt-0.5">
+<span>R$ 429.000,00</span>
+<span class="text-primary font-semibold">32 SKUs</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-outline h-full rounded-full transition-all duration-500" style="width: 8.9%;"></div>
+</div>
+</button>
+<!-- Item 6 -->
+<button class="w-full text-left p-space-sm rounded-lg hover:bg-surface-subtle transition-all group focus:bg-surface-container-low" onclick="filterByFamily('Serviços Especializados')" type="button">
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="font-medium text-on-surface group-hover:text-primary transition-colors truncate max-w-[170px]">Serviços Especializados</span>
+<span class="font-label-numeric-bold text-label-numeric-bold text-on-surface">4.1%</span>
+</div>
+<div class="flex items-center justify-between font-label-numeric text-[11px] text-on-surface-variant mt-0.5">
+<span>R$ 200.000,00</span>
+<span class="text-primary font-semibold">8 SKUs</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-secondary-fixed-dim h-full rounded-full transition-all duration-500" style="width: 4.1%;"></div>
+</div>
+</button>
+</div>
+<div class="pt-2">
+<button class="w-full py-2 px-3 rounded-lg bg-surface-subtle hover:bg-surface-container text-on-surface-variant font-body-sm text-body-sm font-medium transition-colors flex items-center justify-center gap-1.5" onclick="clearFilters()" type="button">
+<span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+<span>Limpar Filtro de Família</span>
+</button>
+</div>
+</div>
+<!-- Analytical Context Card with Prompt Illustration -->
+<div class="bg-surface-card rounded-xl p-space-md shadow-sm overflow-hidden relative">
+<div class="flex items-start gap-3">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="High quality corporate photograph showing warehouse management team reviewing supply inventory with digital tablets in automated logistics hub with emerald accent lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfJnZjFRPju7Xr_09xlBQ8K71UPhe54X9Z-dEcEH1Li5iW0Fo9m-9gdTw--JfHq_4bYBXzZux2wiNoPBwvSYXk9lH2GHQoyLQUk1tRXLaWL1KjbXXxwosb-JsEd2Le47OqBYCKDM4yT3RpdPSrtPLWQsuTVJ8TFw-3wBnX1cKcblMpamFjz0suFC0CtbIL0V7GhsO-gEc_TsJyZYg-LJN36E8C_a1xxC1I7reSNYUaHOHHhANYjyH0"/>
+</div>
+<div>
+<span class="font-label-micro text-label-micro text-primary uppercase font-bold tracking-wide block">Auditoria em Tempo Real</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-0.5">Modificações na coluna 'Decis Compras' atualizam o valor do pedido e acionam log de conformidade fiscal.</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT: Decision Grid -->
+<main class="xl:col-span-9 flex flex-col gap-space-md">
+<!-- Table Controls & Search Filter Bar -->
+<div class="bg-surface-card rounded-xl p-space-md shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Left Search & Filter Chips -->
+<div class="flex flex-wrap items-center gap-2 flex-1">
+<div class="relative min-w-[240px] flex-1">
+<span class="material-symbols-outlined text-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-3 rounded-lg bg-surface-subtle text-on-surface placeholder:text-outline text-body-sm font-body-sm focus:outline-none focus:bg-surface-card focus:shadow-[inset_0_0_0_1.5px_#006a3b] transition-all" id="table-search" placeholder="Buscar SKU, código, descrição ou fornecedor..." type="text"/>
+</div>
+<!-- Quick Filter Badges -->
+<button class="h-9 px-3 rounded-lg bg-surface-subtle hover:bg-surface-container text-on-surface-variant font-body-sm text-body-sm font-medium transition-all flex items-center gap-1.5" id="filter-edited-btn" onclick="toggleFilterEdited()" type="button">
+<span class="w-2 h-2 rounded-full bg-cell-edited-border"></span>
+<span>Somente editados</span>
+<span class="ml-1 px-1.5 py-0.2 rounded-full bg-surface-card text-cell-edited-text font-label-numeric text-[11px]">18</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-subtle hover:bg-surface-container text-on-surface-variant font-body-sm text-body-sm font-medium transition-all flex items-center gap-1.5" id="filter-highvalue-btn" onclick="toggleFilterHighValue()" type="button">
+<span class="material-symbols-outlined text-[16px] text-tertiary">monetization_on</span>
+<span>Valor &gt; R$ 50k</span>
+</button>
+<div class="h-6 w-px bg-border-subtle hidden sm:block"></div>
+<span class="hidden h-7 px-2.5 rounded-full bg-primary-fixed-dim/40 text-primary font-label-micro text-label-micro font-bold items-center gap-1" id="active-family-tag">
+<span id="active-family-name">Embalagens</span>
+<button class="hover:text-status-danger" onclick="clearFilters()" type="button"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+</div>
+<!-- Right Action Controls -->
+<div class="flex items-center gap-2">
+<button class="h-9 px-3.5 rounded-lg bg-surface-container text-primary font-body-sm text-body-sm font-semibold hover:bg-primary hover:text-on-primary transition-all flex items-center gap-1.5 shadow-sm" onclick="saveCurrentBatch()" type="button">
+<span class="material-symbols-outlined text-[17px]">save</span>
+<span>Salvar Lote</span>
+</button>
+<button class="h-9 px-3.5 rounded-lg bg-gradient-to-r from-primary to-primary-container text-on-primary font-body-sm text-body-sm font-semibold hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-1.5" onclick="openExportModal()" type="button">
+<span class="material-symbols-outlined text-[17px]">file_download</span>
+<span>Download CSV</span>
+</button>
+</div>
+</div>
+<!-- Data Grid Surface -->
+<div class="bg-surface-card rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse" id="decision-matrix-table">
+<!-- Tier 1 Header -->
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-micro text-label-micro uppercase tracking-wider sticky top-0 z-20">
+<th class="py-2.5 px-3 w-10 text-center" scope="col">
+<input class="rounded accent-primary w-4 h-4 cursor-pointer" id="select-all-rows" onclick="toggleSelectAll(this)" type="checkbox"/>
+</th>
+<th class="py-2.5 px-3 font-semibold w-24" scope="col">Código</th>
+<th class="py-2.5 px-3 font-semibold min-w-[200px]" scope="col">Descrição do Material</th>
+<th class="py-2.5 px-3 font-semibold min-w-[210px] text-center" scope="col">Histórico Demanda (4M)</th>
+<th class="py-2.5 px-3 font-semibold min-w-[140px]" scope="col">Fornecedor</th>
+<th class="py-2.5 px-3 font-semibold text-right" scope="col">Estoque</th>
+<th class="py-2.5 px-3 font-semibold text-right" scope="col">Consumo M.</th>
+<th class="py-2.5 px-3 font-semibold text-right" scope="col">Preço Unit.</th>
+<th class="py-2.5 px-3 font-semibold text-center bg-cell-highlight-bg text-cell-highlight-text min-w-[140px]" scope="col">
+<div class="flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+<span>Decis Compras</span>
+</div>
+</th>
+<th class="py-2.5 px-3 font-semibold text-right bg-surface-container text-on-surface" scope="col">Valor Comprado</th>
+<th class="py-2.5 px-2 w-10 text-center" scope="col">Ações</th>
+</tr>
+</thead>
+<!-- Data Rows -->
+<tbody class="divide-y divide-border-subtle font-body-sm text-body-sm text-on-surface">
+<!-- Row 1: Normal item with sparkline -->
+<tr class="hover:bg-surface-row-alt transition-colors group" data-family="Embalagens e Recipientes" data-value="124500">
+<td class="py-2 px-3 text-center">
+<input checked="" class="row-checkbox rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-2 px-3 font-label-numeric-bold text-label-numeric-bold text-primary">EMB-0941</td>
+<td class="py-2 px-3">
+<div class="font-medium text-on-surface max-w-[220px] truncate" title="Tambor Metálico 200L com Tampa Removível Epóxi">Tambor Metálico 200L Tampa Removível</div>
+<span class="font-label-micro text-[10px] text-on-surface-variant">Família: Embalagens</span>
+</td>
+<td class="py-2 px-3">
+<div class="w-[210px] h-[36px] flex items-center justify-center mx-auto">
+<!-- Inline Sparkline SVG: Jan, Fev, Mar, Abr -->
+<svg class="w-full h-full overflow-visible" viewbox="0 0 210 36">
+<path d="M 15 28 L 75 22 L 135 12 L 195 6" fill="none" stroke="#1976d2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="15" cy="28" fill="#1976d2" r="3"></circle>
+<circle cx="75" cy="22" fill="#1976d2" r="3"></circle>
+<circle cx="135" cy="12" fill="#1976d2" r="3"></circle>
+<circle cx="195" cy="6" fill="#1976d2" r="3"></circle>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="15" y="23">210</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="75" y="17">280</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="135" y="7">410</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="195" y="3">550</text>
+</svg>
+</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-medium text-on-surface block max-w-[130px] truncate">Metalúrgica Sul S/A</span>
+<span class="font-label-micro text-[10px] text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Homologado
+                    </span>
+</td>
+<td class="py-2 px-3 font-label-numeric text-right">120 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">450 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">R$ 249,00</td>
+<!-- Decis Compras (Editable Normal) -->
+<td class="py-2 px-3 bg-cell-highlight-bg/50 text-center">
+<div class="inline-flex items-center justify-center relative w-full">
+<input class="editable-decis w-20 h-7 text-center font-label-numeric-bold text-label-numeric-bold bg-surface-card rounded px-1.5 focus:shadow-[inset_0_0_0_2px_#1976d2] focus:bg-surface-card hover:shadow-[inset_0_0_0_1.5px_#3cb371] hover:bg-[#e8f5e9] transition-all" onchange="markCellEdited(this, 500, 249.00, 'val-row-1')" type="number" value="500"/>
+</div>
+</td>
+<td class="py-2 px-3 bg-secondary-fixed/20 font-label-numeric-bold text-right text-primary" id="val-row-1">R$ 124.500,00</td>
+<td class="py-2 px-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors" title="Detalhes do item" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Edited Item with Amber Warning and Rollback Button -->
+<tr class="hover:bg-surface-row-alt transition-colors group bg-cell-edited-bg/30" data-edited="true" data-family="Matéria-Prima Química" data-value="280000">
+<td class="py-2 px-3 text-center">
+<input checked="" class="row-checkbox rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-2 px-3 font-label-numeric-bold text-label-numeric-bold text-cell-edited-text">QUI-4012</td>
+<td class="py-2 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-medium text-on-surface max-w-[200px] truncate" title="Polímero Sintético Granulado Grau Farmacêutico">Polímero Granulado Farma</span>
+<span class="px-1.5 py-0.2 rounded bg-cell-edited-border text-white font-label-action text-[9px] uppercase tracking-wider">MODIFICADO</span>
+</div>
+<span class="font-label-micro text-[10px] text-on-surface-variant">Família: Matéria-Prima Química</span>
+</td>
+<td class="py-2 px-3">
+<div class="w-[210px] h-[36px] flex items-center justify-center mx-auto">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 210 36">
+<path d="M 15 10 L 75 14 L 135 24 L 195 20" fill="none" stroke="#1976d2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="15" cy="10" fill="#1976d2" r="3"></circle>
+<circle cx="75" cy="14" fill="#1976d2" r="3"></circle>
+<circle cx="135" cy="24" fill="#1976d2" r="3"></circle>
+<circle cx="195" cy="20" fill="#1976d2" r="3"></circle>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="15" y="6">850</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="75" y="9">790</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="135" y="19">620</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="195" y="15">700</text>
+</svg>
+</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-medium text-on-surface block max-w-[130px] truncate">PetroChem Brasil</span>
+<span class="font-label-micro text-[10px] text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Homologado
+                    </span>
+</td>
+<td class="py-2 px-3 font-label-numeric text-right">340 kg</td>
+<td class="py-2 px-3 font-label-numeric text-right">800 kg</td>
+<td class="py-2 px-3 font-label-numeric text-right">R$ 280,00</td>
+<!-- Decis Compras (Modified State with Revert Button) -->
+<td class="py-2 px-3 bg-cell-edited-bg text-center">
+<div class="inline-flex items-center justify-center gap-1 relative w-full">
+<input class="editable-decis w-20 h-7 text-center font-label-numeric-bold text-label-numeric-bold bg-white rounded px-1.5 shadow-[inset_0_0_0_1.5px_#ff9800] text-cell-edited-text" data-original="750" onchange="markCellEdited(this, 750, 280.00, 'val-row-2')" type="number" value="1000"/>
+<button class="w-6 h-6 rounded-full bg-cell-edited-border hover:bg-[#e68900] text-white flex items-center justify-center shadow-sm transition-transform hover:scale-105" onclick="revertCell(this, 750, 280.00, 'val-row-2')" title="Reverter para o valor sugerido (750)" type="button">
+<span class="material-symbols-outlined text-[14px]">undo</span>
+</button>
+</div>
+</td>
+<td class="py-2 px-3 bg-secondary-fixed/20 font-label-numeric-bold text-right text-cell-edited-text" id="val-row-2">R$ 280.000,00</td>
+<td class="py-2 px-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors" title="Ver log de edição" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Componentes Elétricos -->
+<tr class="hover:bg-surface-row-alt transition-colors group" data-family="Componentes Elétricos" data-value="96200">
+<td class="py-2 px-3 text-center">
+<input checked="" class="row-checkbox rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-2 px-3 font-label-numeric-bold text-label-numeric-bold text-primary">ELE-8823</td>
+<td class="py-2 px-3">
+<div class="font-medium text-on-surface max-w-[220px] truncate" title="Inversor de Frequência 15kW Trifásico 380V IP65">Inversor Freq. 15kW Trifásico</div>
+<span class="font-label-micro text-[10px] text-on-surface-variant">Família: Elétricos</span>
+</td>
+<td class="py-2 px-3">
+<div class="w-[210px] h-[36px] flex items-center justify-center mx-auto">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 210 36">
+<path d="M 15 26 L 75 24 L 135 18 L 195 8" fill="none" stroke="#1976d2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="15" cy="26" fill="#1976d2" r="3"></circle>
+<circle cx="75" cy="24" fill="#1976d2" r="3"></circle>
+<circle cx="135" cy="18" fill="#1976d2" r="3"></circle>
+<circle cx="195" cy="8" fill="#1976d2" r="3"></circle>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="15" y="21">12</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="75" y="19">14</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="135" y="13">20</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="195" y="4">26</text>
+</svg>
+</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-medium text-on-surface block max-w-[130px] truncate">Siemens Energy Tech</span>
+<span class="font-label-micro text-[10px] text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Homologado
+                    </span>
+</td>
+<td class="py-2 px-3 font-label-numeric text-right">4 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">18 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">R$ 3.700,00</td>
+<!-- Decis Compras -->
+<td class="py-2 px-3 bg-cell-highlight-bg/50 text-center">
+<div class="inline-flex items-center justify-center relative w-full">
+<input class="editable-decis w-20 h-7 text-center font-label-numeric-bold text-label-numeric-bold bg-surface-card rounded px-1.5 focus:shadow-[inset_0_0_0_2px_#1976d2] hover:shadow-[inset_0_0_0_1.5px_#3cb371] hover:bg-[#e8f5e9] transition-all" onchange="markCellEdited(this, 26, 3700.00, 'val-row-3')" type="number" value="26"/>
+</div>
+</td>
+<td class="py-2 px-3 bg-secondary-fixed/20 font-label-numeric-bold text-right text-primary" id="val-row-3">R$ 96.200,00</td>
+<td class="py-2 px-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors" title="Mais opções" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: Peças Mecânicas (Edited) -->
+<tr class="hover:bg-surface-row-alt transition-colors group bg-cell-edited-bg/30" data-edited="true" data-family="Peças Mecânicas &amp; Usinagem" data-value="185000">
+<td class="py-2 px-3 text-center">
+<input checked="" class="row-checkbox rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-2 px-3 font-label-numeric-bold text-label-numeric-bold text-cell-edited-text">MEC-1290</td>
+<td class="py-2 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-medium text-on-surface max-w-[200px] truncate" title="Rolamento Autocompensador Esferas Série Especial">Rolamento Autocompensador 22k</span>
+<span class="px-1.5 py-0.2 rounded bg-cell-edited-border text-white font-label-action text-[9px] uppercase tracking-wider">AJUSTE</span>
+</div>
+<span class="font-label-micro text-[10px] text-on-surface-variant">Família: Peças Mecânicas</span>
+</td>
+<td class="py-2 px-3">
+<div class="w-[210px] h-[36px] flex items-center justify-center mx-auto">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 210 36">
+<path d="M 15 15 L 75 18 L 135 12 L 195 6" fill="none" stroke="#1976d2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="15" cy="15" fill="#1976d2" r="3"></circle>
+<circle cx="75" cy="18" fill="#1976d2" r="3"></circle>
+<circle cx="135" cy="12" fill="#1976d2" r="3"></circle>
+<circle cx="195" cy="6" fill="#1976d2" r="3"></circle>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="15" y="10">100</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="75" y="13">95</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="135" y="7">120</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="195" y="3">150</text>
+</svg>
+</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-medium text-on-surface block max-w-[130px] truncate">SKF Rolamentos do Brasil</span>
+<span class="font-label-micro text-[10px] text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Homologado
+                    </span>
+</td>
+<td class="py-2 px-3 font-label-numeric text-right">25 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">110 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">R$ 1.850,00</td>
+<!-- Decis Compras -->
+<td class="py-2 px-3 bg-cell-edited-bg text-center">
+<div class="inline-flex items-center justify-center gap-1 relative w-full">
+<input class="editable-decis w-20 h-7 text-center font-label-numeric-bold text-label-numeric-bold bg-white rounded px-1.5 shadow-[inset_0_0_0_1.5px_#ff9800] text-cell-edited-text" data-original="80" onchange="markCellEdited(this, 80, 1850.00, 'val-row-4')" type="number" value="100"/>
+<button class="w-6 h-6 rounded-full bg-cell-edited-border hover:bg-[#e68900] text-white flex items-center justify-center shadow-sm transition-transform hover:scale-105" onclick="revertCell(this, 80, 1850.00, 'val-row-4')" title="Reverter para o valor sugerido (80)" type="button">
+<span class="material-symbols-outlined text-[14px]">undo</span>
+</button>
+</div>
+</td>
+<td class="py-2 px-3 bg-secondary-fixed/20 font-label-numeric-bold text-right text-cell-edited-text" id="val-row-4">R$ 185.000,00</td>
+<td class="py-2 px-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: Manutenção & EPIs -->
+<tr class="hover:bg-surface-row-alt transition-colors group" data-family="Manutenção &amp; EPIs" data-value="34800">
+<td class="py-2 px-3 text-center">
+<input checked="" class="row-checkbox rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-2 px-3 font-label-numeric-bold text-label-numeric-bold text-primary">EPI-5501</td>
+<td class="py-2 px-3">
+<div class="font-medium text-on-surface max-w-[220px] truncate" title="Máscara Facial Inteira Respiratória Silicone com Filtro Duplo">Respirador Facial Silicone Duplo</div>
+<span class="font-label-micro text-[10px] text-on-surface-variant">Família: EPIs</span>
+</td>
+<td class="py-2 px-3">
+<div class="w-[210px] h-[36px] flex items-center justify-center mx-auto">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 210 36">
+<path d="M 15 8 L 75 14 L 135 16 L 195 24" fill="none" stroke="#1976d2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="15" cy="8" fill="#1976d2" r="3"></circle>
+<circle cx="75" cy="14" fill="#1976d2" r="3"></circle>
+<circle cx="135" cy="16" fill="#1976d2" r="3"></circle>
+<circle cx="195" cy="24" fill="#1976d2" r="3"></circle>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="15" y="4">310</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="75" y="10">280</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="135" y="12">240</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="195" y="20">190</text>
+</svg>
+</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-medium text-on-surface block max-w-[130px] truncate">3M Segurança Brasil</span>
+<span class="font-label-micro text-[10px] text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Homologado
+                    </span>
+</td>
+<td class="py-2 px-3 font-label-numeric text-right">85 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">220 un</td>
+<td class="py-2 px-3 font-label-numeric text-right">R$ 174,00</td>
+<td class="py-2 px-3 bg-cell-highlight-bg/50 text-center">
+<div class="inline-flex items-center justify-center relative w-full">
+<input class="editable-decis w-20 h-7 text-center font-label-numeric-bold text-label-numeric-bold bg-surface-card rounded px-1.5 focus:shadow-[inset_0_0_0_2px_#1976d2] hover:shadow-[inset_0_0_0_1.5px_#3cb371] hover:bg-[#e8f5e9] transition-all" onchange="markCellEdited(this, 200, 174.00, 'val-row-5')" type="number" value="200"/>
+</div>
+</td>
+<td class="py-2 px-3 bg-secondary-fixed/20 font-label-numeric-bold text-right text-primary" id="val-row-5">R$ 34.800,00</td>
+<td class="py-2 px-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 6: Serviços Especializados -->
+<tr class="hover:bg-surface-row-alt transition-colors group" data-family="Serviços Especializados" data-value="65000">
+<td class="py-2 px-3 text-center">
+<input checked="" class="row-checkbox rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-2 px-3 font-label-numeric-bold text-label-numeric-bold text-primary">SRV-0033</td>
+<td class="py-2 px-3">
+<div class="font-medium text-on-surface max-w-[220px] truncate" title="Calibração Acreditada RBC de Manômetros e Válvulas">Calibração RBC Válvulas Críticas</div>
+<span class="font-label-micro text-[10px] text-on-surface-variant">Família: Serviços</span>
+</td>
+<td class="py-2 px-3">
+<div class="w-[210px] h-[36px] flex items-center justify-center mx-auto">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 210 36">
+<path d="M 15 20 L 75 20 L 135 15 L 195 15" fill="none" stroke="#1976d2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="15" cy="20" fill="#1976d2" r="3"></circle>
+<circle cx="75" cy="20" fill="#1976d2" r="3"></circle>
+<circle cx="135" cy="15" fill="#1976d2" r="3"></circle>
+<circle cx="195" cy="15" fill="#1976d2" r="3"></circle>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="15" y="16">5</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="75" y="16">5</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="135" y="11">10</text>
+<text fill="#1976d2" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="195" y="11">10</text>
+</svg>
+</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-medium text-on-surface block max-w-[130px] truncate">TechMetrologia Ltda</span>
+<span class="font-label-micro text-[10px] text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Homologado
+                    </span>
+</td>
+<td class="py-2 px-3 font-label-numeric text-right">-</td>
+<td class="py-2 px-3 font-label-numeric text-right">10 sv</td>
+<td class="py-2 px-3 font-label-numeric text-right">R$ 6.500,00</td>
+<td class="py-2 px-3 bg-cell-highlight-bg/50 text-center">
+<div class="inline-flex items-center justify-center relative w-full">
+<input class="editable-decis w-20 h-7 text-center font-label-numeric-bold text-label-numeric-bold bg-surface-card rounded px-1.5 focus:shadow-[inset_0_0_0_2px_#1976d2] hover:shadow-[inset_0_0_0_1.5px_#3cb371] hover:bg-[#e8f5e9] transition-all" onchange="markCellEdited(this, 10, 6500.00, 'val-row-6')" type="number" value="10"/>
+</div>
+</td>
+<td class="py-2 px-3 bg-secondary-fixed/20 font-label-numeric-bold text-right text-primary" id="val-row-6">R$ 65.000,00</td>
+<td class="py-2 px-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer Pagination and Batch Status -->
+<div class="p-space-sm px-space-lg bg-surface-subtle flex flex-col sm:flex-row items-center justify-between gap-space-sm text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-3">
+<span>Exibindo <strong class="text-on-surface font-semibold">1-50</strong> de <strong class="text-on-surface font-semibold">1.240</strong> registros</span>
+<span class="text-border-strong">•</span>
+<div class="flex items-center gap-1.5 text-primary">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-medium">128 selecionados para emissão de OC</span>
+</div>
+</div>
+<!-- Pagination buttons -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container flex items-center justify-center text-on-surface-variant disabled:opacity-40 transition-colors" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-numeric font-bold flex items-center justify-center text-[12px]" type="button">1</button>
+<button class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-on-surface font-label-numeric flex items-center justify-center text-[12px] transition-colors" type="button">2</button>
+<button class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-on-surface font-label-numeric flex items-center justify-center text-[12px] transition-colors" type="button">3</button>
+<span class="px-1 text-outline">...</span>
+<button class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container text-on-surface font-label-numeric flex items-center justify-center text-[12px] transition-colors" type="button">25</button>
+<button class="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- MODAL / DRAWER DE EXPORTAÇÕES (Hidden by default, triggered via download button) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" id="modal-exportacoes">
+<div class="bg-surface-card w-full max-w-xl rounded-xl shadow-2xl p-space-lg space-y-space-md transform scale-95 transition-transform duration-300">
+<!-- Modal Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">download_for_offline</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Central de Exportações</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Arquivos consolidados prontos para integração ERP / SCM.</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-subtle text-on-surface-variant flex items-center justify-center transition-colors" onclick="closeExportModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- File Listing -->
+<div class="space-y-2 pt-2">
+<!-- Item 1 -->
+<div class="p-space-sm rounded-xl bg-surface-subtle flex items-center justify-between group hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+<div class="w-8 h-8 rounded-lg bg-surface-card flex items-center justify-center text-primary shadow-xs">
+<span class="material-symbols-outlined text-[18px]">table_view</span>
+</div>
+<div>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface block">OC_Lote_Abril_2025.csv</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant">1.4 MB • 14/04/2025 às 10:45</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-micro text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Pronto
+          </span>
+</div>
+<!-- Item 2 -->
+<div class="p-space-sm rounded-xl bg-surface-subtle flex items-center justify-between group hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+<div class="w-8 h-8 rounded-lg bg-surface-card flex items-center justify-center text-tertiary shadow-xs">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</div>
+<div>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface block">Relatorio_Consolidado_Familias.html</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant">820 KB • 14/04/2025 às 10:40</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-micro text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Pronto
+          </span>
+</div>
+<!-- Item 3 -->
+<div class="p-space-sm rounded-xl bg-surface-subtle flex items-center justify-between opacity-60">
+<div class="flex items-center gap-3">
+<input class="rounded accent-primary w-4 h-4" disabled="" type="checkbox"/>
+<div class="w-8 h-8 rounded-lg bg-surface-card flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">history_edu</span>
+</div>
+<div>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface block">Auditoria_Modificacoes_Lote.xlsx</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant">Processando na fila (23%)...</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-micro text-[11px] font-bold">
+            Gerando
+          </span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="pt-3 flex items-center justify-between">
+<button class="text-status-danger hover:text-status-danger-dark font-body-sm text-body-sm font-semibold flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+<span>Excluir Selecionados</span>
+</button>
+<div class="flex items-center gap-2">
+<button class="h-9 px-4 rounded-lg bg-surface-subtle hover:bg-surface-container text-on-surface-variant font-body-sm text-body-sm font-medium transition-colors" onclick="closeExportModal()" type="button">
+            Fechar
+          </button>
+<button class="h-9 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-container text-on-primary font-body-sm text-body-sm font-semibold hover:shadow-md transition-all flex items-center gap-1.5" onclick="downloadSelectedFiles()" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Baixar Selecionados</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Filter state trackers
+  let onlyEditedFilter = false;
+  let highValueFilter = false;
+  let activeFamily = null;
+
+  // Search input live filtering
+  const searchInput = document.getElementById('table-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      applyFilters();
+    });
+  }
+
+  function filterByFamily(familyName) {
+    activeFamily = familyName;
+    const tag = document.getElementById('active-family-tag');
+    const tagName = document.getElementById('active-family-name');
+    if (tag && tagName) {
+      tagName.textContent = familyName;
+      tag.classList.remove('hidden');
+      tag.classList.add('inline-flex');
+    }
+    applyFilters();
+  }
+
+  function toggleFilterEdited() {
+    onlyEditedFilter = !onlyEditedFilter;
+    const btn = document.getElementById('filter-edited-btn');
+    if (onlyEditedFilter) {
+      btn.classList.add('bg-cell-edited-bg', 'text-cell-edited-text');
+      btn.classList.remove('bg-surface-subtle', 'text-on-surface-variant');
+    } else {
+      btn.classList.remove('bg-cell-edited-bg', 'text-cell-edited-text');
+      btn.classList.add('bg-surface-subtle', 'text-on-surface-variant');
+    }
+    applyFilters();
+  }
+
+  function toggleFilterHighValue() {
+    highValueFilter = !highValueFilter;
+    const btn = document.getElementById('filter-highvalue-btn');
+    if (highValueFilter) {
+      btn.classList.add('bg-secondary-container', 'text-on-secondary-container');
+      btn.classList.remove('bg-surface-subtle', 'text-on-surface-variant');
+    } else {
+      btn.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+      btn.classList.add('bg-surface-subtle', 'text-on-surface-variant');
+    }
+    applyFilters();
+  }
+
+  function clearFilters() {
+    activeFamily = null;
+    onlyEditedFilter = false;
+    highValueFilter = false;
+    if (searchInput) searchInput.value = '';
+
+    const tag = document.getElementById('active-family-tag');
+    if (tag) tag.classList.add('hidden');
+
+    const btnEdited = document.getElementById('filter-edited-btn');
+    if (btnEdited) {
+      btnEdited.classList.remove('bg-cell-edited-bg', 'text-cell-edited-text');
+      btnEdited.classList.add('bg-surface-subtle', 'text-on-surface-variant');
+    }
+
+    const btnHigh = document.getElementById('filter-highvalue-btn');
+    if (btnHigh) {
+      btnHigh.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+      btnHigh.classList.add('bg-surface-subtle', 'text-on-surface-variant');
+    }
+
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    const table = document.getElementById('decision-matrix-table');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const rowFamily = row.getAttribute('data-family') || '';
+      const rowValue = parseFloat(row.getAttribute('data-value') || '0');
+      const isEdited = row.getAttribute('data-edited') === 'true';
+
+      let visible = true;
+
+      if (query && !text.includes(query)) visible = false;
+      if (activeFamily && rowFamily !== activeFamily) visible = false;
+      if (onlyEditedFilter && !isEdited) visible = false;
+      if (highValueFilter && rowValue < 50000) visible = false;
+
+      row.style.display = visible ? '' : 'none';
+    });
+  }
+
+  function toggleSelectAll(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+  }
+
+  function markCellEdited(inputElement, originalValue, unitPrice, valueCellId) {
+    const currentVal = parseFloat(inputElement.value);
+    const row = inputElement.closest('tr');
+    const valueCell = document.getElementById(valueCellId);
+
+    // Compute updated total purchased value
+    if (!isNaN(currentVal) && !isNaN(unitPrice) && valueCell) {
+      const total = currentVal * unitPrice;
+      valueCell.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      row.setAttribute('data-value', total);
+    }
+
+    if (currentVal !== originalValue) {
+      inputElement.classList.add('shadow-[inset_0_0_0_1.5px_#ff9800]', 'text-cell-edited-text', 'bg-white');
+      inputElement.parentElement.parentElement.classList.add('bg-cell-edited-bg');
+      row.classList.add('bg-cell-edited-bg/30');
+      row.setAttribute('data-edited', 'true');
+
+      // Add revert button if not already present
+      if (!inputElement.parentElement.querySelector('button')) {
+        const revBtn = document.createElement('button');
+        revBtn.type = 'button';
+        revBtn.className = 'w-6 h-6 rounded-full bg-cell-edited-border hover:bg-[#e68900] text-white flex items-center justify-center shadow-sm transition-transform hover:scale-105 ml-1';
+        revBtn.title = 'Reverter para o valor original (' + originalValue + ')';
+        revBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">undo</span>';
+        revBtn.onclick = function() { revertCell(revBtn, originalValue, unitPrice, valueCellId); };
+        inputElement.parentElement.appendChild(revBtn);
+      }
+    } else {
+      revertCell(inputElement, originalValue, unitPrice, valueCellId);
+    }
+  }
+
+  function revertCell(triggerElement, originalValue, unitPrice, valueCellId) {
+    const row = triggerElement.closest('tr');
+    const input = row.querySelector('.editable-decis');
+    const valueCell = document.getElementById(valueCellId);
+
+    if (input) {
+      input.value = originalValue;
+      input.classList.remove('shadow-[inset_0_0_0_1.5px_#ff9800]', 'text-cell-edited-text');
+      input.parentElement.parentElement.classList.remove('bg-cell-edited-bg');
+      row.classList.remove('bg-cell-edited-bg/30');
+      row.removeAttribute('data-edited');
+
+      const revertBtn = input.parentElement.querySelector('button');
+      if (revertBtn) revertBtn.remove();
+    }
+
+    if (!isNaN(originalValue) && !isNaN(unitPrice) && valueCell) {
+      const total = originalValue * unitPrice;
+      valueCell.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      row.setAttribute('data-value', total);
+    }
+  }
+
+  function saveCurrentBatch() {
+    alert('Lote de decisões ANL-2024-Q3 salvo com sucesso. Todas as modificações foram registradas no log de auditoria.');
+  }
+
+  function openExportModal() {
+    const modal = document.getElementById('modal-exportacoes');
+    if (modal) {
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      const inner = modal.querySelector('div');
+      if (inner) inner.classList.remove('scale-95');
+    }
+  }
+
+  function closeExportModal() {
+    const modal = document.getElementById('modal-exportacoes');
+    if (modal) {
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      const inner = modal.querySelector('div');
+      if (inner) inner.classList.add('scale-95');
+    }
+  }
+
+  function downloadSelectedFiles() {
+    closeExportModal();
+    alert('Download dos arquivos selecionados iniciado.');
+  }
+</script></main></div></body></html>

@@ -16,23 +16,27 @@ from app.context import session_id_var
 
 app = FastAPI()
 
+
 class SessionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         session_id = request.cookies.get("session_id")
         is_new_session = False
-        
+
         if not session_id:
             session_id = str(uuid.uuid4())
             is_new_session = True
-            
+
         session_id_var.set(session_id)
-        
+
         response = await call_next(request)
-        
+
         if is_new_session:
-            response.set_cookie(key="session_id", value=session_id, httponly=True, samesite='lax')
-            
+            response.set_cookie(
+                key="session_id", value=session_id, httponly=True, samesite="lax"
+            )
+
         return response
+
 
 app.add_middleware(SessionMiddleware)
 
@@ -51,9 +55,11 @@ csv_dir = os.path.join(BASE_DIR, "CSV")
 os.makedirs(csv_dir, exist_ok=True)
 app.mount("/csv_files", StaticFiles(directory=csv_dir), name="csv_files")
 
+
 @app.get("/")
 def read_root():
     return RedirectResponse(url="/ui/login.html")
+
 
 if __name__ == "__main__":
     print("Starting Analise de Compras Server on http://0.0.0.0:8686")
