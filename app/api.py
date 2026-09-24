@@ -71,8 +71,33 @@ def call_method(method: str, req: CallPayload, response: Response):
         return excluir_sessao(session)
     elif method == "verificar_sessao":
         return {"ativa": session.df_ativo is not None}
+    elif method == "obter_parametros":
+        return obter_parametros()
+    elif method == "salvar_parametros":
+        return salvar_parametros(req.payload)
     else:
         return {"erro": "Método não permitido ou inexistente"}
+
+import json
+
+def obter_parametros():
+    config_path = Path("app/services/config_parametros.json")
+    if not config_path.exists():
+        return {"erro": "Arquivo de configuração não encontrado"}
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        return {"erro": str(e)}
+
+def salvar_parametros(payload):
+    config_path = Path("app/services/config_parametros.json")
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=4, ensure_ascii=False)
+        return {"status": "ok", "mensagem": "Parâmetros salvos com sucesso!"}
+    except Exception as e:
+        return {"erro": str(e)}
 
 
 def excluir_sessao(session):

@@ -1,5 +1,6 @@
 import React from 'react';
 import logoLider from '../logo_lider.png';
+import ConfigEditor from './ConfigEditor';
 
 export default function Sidebar({ resumo = {} }) {
   return (
@@ -10,13 +11,7 @@ export default function Sidebar({ resumo = {} }) {
         </div>
         
         <div className="px-4 py-4 shrink-0">
-          <div className="bg-surface-canvas rounded-xl p-3 border border-border mb-4 shadow-sm">
-            <div className="flex items-center justify-between text-on-surface-variant mb-1">
-              <span className="text-xs uppercase tracking-wider font-semibold">Lote Vigente</span>
-              <span className="material-symbols-outlined text-[16px] text-primary">verified</span>
-            </div>
-            <div className="font-bold text-xl text-primary">ANL-2024-Q3</div>
-          </div>
+          <ConfigEditor />
         </div>
 
         {/* Resumo por Família na Sidebar */}
