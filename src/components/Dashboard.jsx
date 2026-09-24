@@ -15,9 +15,12 @@ function Dashboard() {
   const [startIndex, setStartIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  
+  const [filtros, setFiltros] = useState({});
+  const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: "asc" });
 
   const loadData = useCallback(
-    async (reset = false) => {
+    async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao) => {
       if (loading || (!hasMore && !reset)) return;
       setLoading(true);
 
@@ -28,8 +31,8 @@ function Dashboard() {
         const resp = await apiCall("obter_slice", {
           start: currentStart,
           size: PAGE_SIZE,
-          filtros: {},
-          ordenacao: { coluna: null, direcao: "asc" },
+          filtros: currentFiltros,
+          ordenacao: currentOrdenacao,
           correspondenciaExata: false,
           filtrosInvertidos: false,
           colunasInvertidas: {},
@@ -49,6 +52,7 @@ function Dashboard() {
           setData((prev) => (reset ? resp.data : [...prev, ...resp.data]));
           setStartIndex(currentStart + PAGE_SIZE);
           setTotalItens(resp.total);
+          setHasMore(resp.data.length === PAGE_SIZE);
         }
       } catch (e) {
         console.error(e);
@@ -57,12 +61,22 @@ function Dashboard() {
         setLoading(false);
       }
     },
-    [startIndex, loading, hasMore],
+    [startIndex, loading, hasMore, filtros, ordenacao],
   );
 
   useEffect(() => {
     loadData(true);
   }, []);
+
+  const handleFilter = (novosFiltros) => {
+    setFiltros(novosFiltros);
+    loadData(true, novosFiltros, ordenacao);
+  };
+
+  const handleSort = (novaOrdenacao) => {
+    setOrdenacao(novaOrdenacao);
+    loadData(true, filtros, novaOrdenacao);
+  };
 
   const handleSaveEdition = async (rowId, valor) => {
     try {
@@ -107,6 +121,10 @@ function Dashboard() {
                     hasMore={hasMore}
                     onSaveEdition={handleSaveEdition}
                     loading={loading}
+                    filtros={filtros}
+                    ordenacao={ordenacao}
+                    onFilter={handleFilter}
+                    onSort={handleSort}
                   />
                 </div>
               </div>

@@ -87,8 +87,14 @@ export default function PurchaseTable({
   hasMore,
   onSaveEdition,
   loading,
+  filtros = {},
+  ordenacao = { coluna: null, direcao: 'asc' },
+  onFilter,
+  onSort,
 }) {
   const sentinelRef = useRef(null);
+  const [openMenuCol, setOpenMenuCol] = React.useState(null);
+  const [localFilter, setLocalFilter] = React.useState('');
 
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -103,6 +109,17 @@ export default function PurchaseTable({
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, [onLoadMore, hasMore]);
+
+  // Handle closing menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuCol(null);
+    if (openMenuCol) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [openMenuCol]);
 
   if (!data || data.length === 0)
     return <div className="p-4 text-center">Carregando...</div>;
@@ -125,9 +142,90 @@ export default function PurchaseTable({
             {colunasTabela.map((col) => (
               <th
                 key={col}
-                className={`py-2.5 px-3 font-semibold border-b border-border ${col === "Decis Compras" || col === "Valor Comprado" ? "bg-cell-highlight-bg text-cell-highlight-text" : ""}`}
+                className={`relative py-2.5 px-3 font-semibold border-b border-border hover:bg-black/5 cursor-pointer select-none transition-colors ${col === "Decis Compras" || col === "Valor Comprado" ? "bg-cell-highlight-bg text-cell-highlight-text" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (col === "Gráfico") return;
+                  if (openMenuCol === col) {
+                    setOpenMenuCol(null);
+                  } else {
+                    setOpenMenuCol(col);
+                    setLocalFilter(filtros[col] || '');
+                  }
+                }}
               >
-                {col}
+                <div className="flex items-center gap-1">
+                  {col}
+                  {ordenacao.coluna === col && (
+                    <span className="material-symbols-outlined text-[14px]">
+                      {ordenacao.direcao === 'asc' ? 'arrow_upward' : 'arrow_downward'}
+                    </span>
+                  )}
+                  {filtros[col] && (
+                    <span className="material-symbols-outlined text-[14px] text-primary">filter_alt</span>
+                  )}
+                </div>
+
+                {openMenuCol === col && col !== "Gráfico" && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 w-56 bg-white border border-border rounded-lg shadow-xl z-50 p-2 normal-case font-normal text-sm text-text-main"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="mb-2 text-xs font-semibold text-text-secondary uppercase">Ordenar</div>
+                    <button
+                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-bg-main mb-1 flex items-center gap-2 ${ordenacao.coluna === col && ordenacao.direcao === 'asc' ? 'bg-primary/10 text-primary' : ''}`}
+                      onClick={() => {
+                        onSort({ coluna: col, direcao: 'asc' });
+                        setOpenMenuCol(null);
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span> Crescente
+                    </button>
+                    <button
+                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-bg-main mb-3 flex items-center gap-2 ${ordenacao.coluna === col && ordenacao.direcao === 'desc' ? 'bg-primary/10 text-primary' : ''}`}
+                      onClick={() => {
+                        onSort({ coluna: col, direcao: 'desc' });
+                        setOpenMenuCol(null);
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">arrow_downward</span> Decrescente
+                    </button>
+
+                    <div className="mb-2 text-xs font-semibold text-text-secondary uppercase">Filtrar</div>
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        onFilter({ ...filtros, [col]: localFilter });
+                        setOpenMenuCol(null);
+                      }}
+                      className="flex gap-2"
+                    >
+                      <input 
+                        type="text" 
+                        value={localFilter}
+                        onChange={(e) => setLocalFilter(e.target.value)}
+                        placeholder="Buscar..."
+                        className="w-full bg-bg-main border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
+                      />
+                      <button type="submit" className="bg-primary text-white rounded px-2 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[16px]">search</span>
+                      </button>
+                    </form>
+                    {filtros[col] && (
+                      <button
+                        className="mt-2 w-full text-center text-xs text-error hover:underline"
+                        onClick={() => {
+                          const newFiltros = { ...filtros };
+                          delete newFiltros[col];
+                          onFilter(newFiltros);
+                          setOpenMenuCol(null);
+                        }}
+                      >
+                        Limpar Filtro
+                      </button>
+                    )}
+                  </div>
+                )}
               </th>
             ))}
           </tr>
