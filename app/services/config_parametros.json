@@ -17,5 +17,5 @@
         }
     },
     "teto_compra": 2000,
-    "estoque_seguranca_dias": 7
+    "estoque_seguranca_dias": 5
 }
