@@ -90,30 +90,8 @@ function Dashboard() {
               />
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-md items-start mt-8">
-                {/* Sidebar Familias */}
-                <div className="xl:col-span-3 bg-surface-card rounded-lg p-md shadow-card">
-                  <h3 className="font-bold text-lg mb-4 text-on-surface">
-                    Valor Comprado por Família
-                  </h3>
-                  <div className="space-y-2">
-                    {Object.entries(resumo).map(([familia, valor]) => (
-                      <div
-                        key={familia}
-                        className="flex justify-between items-center py-2 border-b border-border"
-                      >
-                        <span className="text-sm font-medium">{familia}</span>
-                        <span className="text-sm font-bold text-primary">
-                          {valor.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
                 {/* Table */}
-                <div className="xl:col-span-9 bg-surface-card rounded-lg shadow-card">
+                <div className="xl:col-span-12 bg-surface-card rounded-lg shadow-card">
                   <PurchaseTable
                     data={data}
                     edicoes={edicoes}

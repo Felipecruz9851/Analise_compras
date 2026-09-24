@@ -1,0 +1,21 @@
+{
+    "faixas_compra": {
+        "A": {
+            "dias_cobertura": 7,
+            "recebimentos_max": 3,
+            "ciclo_compra": 0
+        },
+        "B": {
+            "dias_cobertura": 20,
+            "recebimentos_max": 3,
+            "ciclo_compra": 0
+        },
+        "C": {
+            "dias_cobertura": 30,
+            "recebimentos_max": 3,
+            "ciclo_compra": 0
+        }
+    },
+    "teto_compra": 2000,
+    "estoque_seguranca_dias": 7
+}
