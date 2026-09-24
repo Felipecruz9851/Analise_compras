@@ -1,77 +1,149 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js';
 
-const mockData = [
-  {
-    id: 'EMB-0941',
-    description: 'Tambor Metálico 200L Tampa Removível',
-    family: 'Embalagens',
-    supplier: 'Metalúrgica Sul S/A',
-    stock: 120,
-    consumption: 450,
-    price: 249.00,
-    suggestedQty: 500
-  },
-  {
-    id: 'QUI-4012',
-    description: 'Polímero Granulado Farma',
-    family: 'Matéria-Prima Química',
-    supplier: 'PetroChem Brasil',
-    stock: 340,
-    consumption: 800,
-    price: 280.00,
-    suggestedQty: 750,
-    editedQty: 1000
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement);
+
+function ehColunaMes(col) {
+  return /^\d{4}-\d{2}$/.test(col);
+}
+
+const parseNumeroBR = (valor) => {
+  if (!valor) return 0;
+  const str = valor.toString().trim();
+  const lastCommaIndex = str.lastIndexOf(',');
+  const lastDotIndex = str.lastIndexOf('.');
+  if (lastCommaIndex > lastDotIndex) {
+    return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
   }
-];
+  return parseFloat(str) || 0;
+};
 
-export default function PurchaseTable() {
-  const [data, setData] = useState(mockData);
+const Sparkline = ({ labels, data }) => {
+  const chartData = {
+    labels: labels.slice(0, -1),
+    datasets: [{
+      data: data.slice(0, -1),
+      borderColor: '#1976d2',
+      borderWidth: 1.5,
+      pointRadius: 3,
+      tension: 0.3
+    }]
+  };
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: { x: { display: false }, y: { display: false } }
+  };
+  return <div style={{width: 200, height: 40}}><Line data={chartData} options={options} /></div>;
+};
+
+export default function PurchaseTable({ data, edicoes, onLoadMore, hasMore, onSaveEdition, loading }) {
+  const sentinelRef = useRef(null);
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        onLoadMore();
+      }
+    }, { threshold: 0.1 });
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [onLoadMore, hasMore]);
+
+  if (!data || data.length === 0) return <div className="p-4 text-center">Carregando...</div>;
+
+  const todasColunas = Object.keys(data[0]).filter(c => c !== "__rowId");
+  const colunasMes = todasColunas.filter(ehColunaMes).sort();
+  const colunasTabela = todasColunas.filter(c => !ehColunaMes(c) && c !== "Gráfico");
+  colunasTabela.splice(2, 0, "Gráfico");
 
   return (
-    <div className="w-full overflow-x-auto">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-bg-main text-text-secondary text-xs uppercase tracking-wider sticky top-0">
-            <th className="py-2.5 px-3 w-10 text-center"><input type="checkbox" className="accent-primary" /></th>
-            <th className="py-2.5 px-3 font-semibold">Código</th>
-            <th className="py-2.5 px-3 font-semibold">Descrição do Material</th>
-            <th className="py-2.5 px-3 font-semibold">Fornecedor</th>
-            <th className="py-2.5 px-3 font-semibold text-right">Estoque</th>
-            <th className="py-2.5 px-3 font-semibold text-right">Preço Unit.</th>
-            <th className="py-2.5 px-3 font-semibold text-center bg-cell-highlight-bg text-cell-highlight-text">Decisão</th>
-            <th className="py-2.5 px-3 font-semibold text-right">Valor Comprado</th>
+    <div className="w-full overflow-x-auto max-h-[800px] overflow-y-auto relative">
+      <table className="w-full text-left border-collapse whitespace-nowrap">
+        <thead className="bg-bg-main text-text-secondary text-xs uppercase tracking-wider sticky top-0 z-10 shadow-sm">
+          <tr>
+            <th className="py-2.5 px-3 w-10 text-center border-b border-border"><input type="checkbox" className="accent-primary" /></th>
+            {colunasTabela.map(col => (
+              <th key={col} className={`py-2.5 px-3 font-semibold border-b border-border ${(col === 'Decis Compras' || col === 'Valor Comprado') ? 'bg-cell-highlight-bg text-cell-highlight-text' : ''}`}>
+                {col}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-border text-sm text-text-main">
-          {data.map(item => {
-            const finalQty = item.editedQty || item.suggestedQty;
-            const isEdited = !!item.editedQty;
+          {data.map(linha => {
+            const rowId = linha.__rowId;
+            const foiEditado = edicoes[rowId] !== undefined;
+            const bgClass = foiEditado ? 'bg-cell-edited-bg/50' : 'hover:bg-row-alt';
+
             return (
-              <tr key={item.id} className={`hover:bg-row-alt transition-colors ${isEdited ? 'bg-cell-edited-bg/30' : ''}`}>
-                <td className="py-2 px-3 text-center"><input type="checkbox" defaultChecked className="accent-primary" /></td>
-                <td className={`py-2 px-3 font-bold ${isEdited ? 'text-cell-edited-text' : 'text-primary'}`}>{item.id}</td>
-                <td className="py-2 px-3">
-                  <div className="font-medium truncate max-w-[200px]">{item.description}</div>
-                  <span className="text-[10px] text-text-secondary">Família: {item.family}</span>
-                </td>
-                <td className="py-2 px-3 truncate max-w-[130px]">{item.supplier}</td>
-                <td className="py-2 px-3 text-right">{item.stock} un</td>
-                <td className="py-2 px-3 text-right">R$ {item.price.toFixed(2)}</td>
-                <td className="py-2 px-3 text-center">
-                  <input 
-                    type="number" 
-                    defaultValue={finalQty} 
-                    className={`w-20 h-7 text-center font-bold rounded border ${isEdited ? 'border-cell-edited-border text-cell-edited-text' : 'border-border'}`} 
-                  />
-                </td>
-                <td className={`py-2 px-3 font-bold text-right ${isEdited ? 'text-cell-edited-text' : 'text-primary'}`}>
-                  R$ {(finalQty * item.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </td>
+              <tr key={rowId} className={`transition-colors ${bgClass}`}>
+                <td className="py-2 px-3 text-center"><input type="checkbox" className="accent-primary" /></td>
+                {colunasTabela.map(col => {
+                  if (col === "Gráfico") {
+                    const valores = colunasMes.map(m => parseNumeroBR(linha[m]));
+                    return <td key={col} className="py-2 px-3"><Sparkline labels={colunasMes} data={valores} /></td>;
+                  } 
+                  
+                  if (col === 'Decis Compras') {
+                    const valorOriginal = parseNumeroBR(linha[col]);
+                    const valorFinal = foiEditado ? edicoes[rowId] : valorOriginal;
+                    
+                    return (
+                      <td key={col} className="py-2 px-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <input 
+                            type="number" 
+                            defaultValue={valorFinal} 
+                            onBlur={(e) => {
+                               const num = parseNumeroBR(e.target.value);
+                               if (num !== valorOriginal) {
+                                 onSaveEdition(rowId, num);
+                               } else if (foiEditado) {
+                                 onSaveEdition(rowId, null); // Reverte edição se voltar pro original
+                               }
+                            }}
+                            className={`w-24 h-7 text-center font-bold rounded border px-1 ${foiEditado ? 'border-cell-edited-border text-cell-edited-text bg-white' : 'border-border'}`} 
+                          />
+                          {foiEditado && (
+                            <button 
+                              onClick={() => { onSaveEdition(rowId, null); }} 
+                              className="w-6 h-6 rounded-full bg-cell-edited-border text-white flex items-center justify-center shadow-sm"
+                              title="Restaurar"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">undo</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  }
+
+                  let formatVal = linha[col] ?? '';
+                  if (col === 'Valor Comprado') {
+                     // Caso a coluna tenha sido editada, podemos sobrescrever com o novo valor, mas o ideal é que a recarga do zero da API traga o valor comprado já atualizado do backend. 
+                     // O backend recalcula o valor comprado baseado nas edições no Python? 
+                     // Sim, se a API `salvar_edicao` faz isso e `obter_slice` pega o novo cálculo.
+                     formatVal = parseNumeroBR(formatVal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                  }
+
+                  return (
+                    <td key={col} className={`py-2 px-3 truncate max-w-[200px] ${col === 'Valor Comprado' ? 'font-bold text-right text-primary' : ''} ${foiEditado && col === 'Valor Comprado' ? '!text-cell-edited-text' : ''}`} title={linha[col]}>
+                      {formatVal}
+                    </td>
+                  );
+                })}
               </tr>
             );
           })}
         </tbody>
       </table>
+      <div ref={sentinelRef} className="h-10 w-full flex items-center justify-center">
+        {loading && <span className="text-text-secondary text-sm">Carregando mais itens...</span>}
+      </div>
     </div>
   );
 }
