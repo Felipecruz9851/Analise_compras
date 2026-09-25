@@ -59,7 +59,7 @@ const Sparkline = ({ labels, data }) => {
         borderColor: "#1976d2",
         borderWidth: 1,
         pointRadius: 3,
-        tension: 0.2,
+        tension: 0.4,
       },
     ],
   };
