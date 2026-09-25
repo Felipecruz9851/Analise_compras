@@ -19,9 +19,11 @@ function Dashboard() {
   const [filtros, setFiltros] = useState({});
   const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: "asc" });
   const [apenasEditados, setApenasEditados] = useState(false);
+  const [apenasOcsProntas, setApenasOcsProntas] = useState(false);
+  const [totalOcsProntas, setTotalOcsProntas] = useState(0);
 
   const loadData = useCallback(
-    async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao, currentApenasEditados = apenasEditados) => {
+    async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao, currentApenasEditados = apenasEditados, currentApenasOcsProntas = apenasOcsProntas) => {
       if (loading || (!hasMore && !reset)) return;
       setLoading(true);
 
@@ -35,6 +37,7 @@ function Dashboard() {
           filtros: currentFiltros,
           ordenacao: currentOrdenacao,
           apenasEditados: currentApenasEditados,
+          apenasOcsProntas: currentApenasOcsProntas,
           correspondenciaExata: false,
           filtrosInvertidos: false,
           colunasInvertidas: {},
@@ -53,6 +56,9 @@ function Dashboard() {
           if (resp.resumo && currentStart === 0) {
             setResumo(resp.resumo);
             setTotalGeral(resp.total_geral);
+            if (resp.total_ocs_prontas !== undefined) {
+              setTotalOcsProntas(resp.total_ocs_prontas);
+            }
           }
           setEdicoes(resp.edicoes || {});
           setData((prev) => (reset ? resp.data : [...prev, ...resp.data]));
@@ -67,7 +73,7 @@ function Dashboard() {
         setLoading(false);
       }
     },
-    [startIndex, loading, hasMore, filtros, ordenacao, apenasEditados],
+    [startIndex, loading, hasMore, filtros, ordenacao, apenasEditados, apenasOcsProntas],
   );
 
   useEffect(() => {
@@ -76,18 +82,24 @@ function Dashboard() {
 
   const handleFilter = (novosFiltros) => {
     setFiltros(novosFiltros);
-    loadData(true, novosFiltros, ordenacao, apenasEditados);
+    loadData(true, novosFiltros, ordenacao, apenasEditados, apenasOcsProntas);
   };
 
   const handleSort = (novaOrdenacao) => {
     setOrdenacao(novaOrdenacao);
-    loadData(true, filtros, novaOrdenacao, apenasEditados);
+    loadData(true, filtros, novaOrdenacao, apenasEditados, apenasOcsProntas);
   };
 
   const toggleFilterEdicoes = () => {
     const nextApenasEditados = !apenasEditados;
     setApenasEditados(nextApenasEditados);
-    loadData(true, filtros, ordenacao, nextApenasEditados);
+    loadData(true, filtros, ordenacao, nextApenasEditados, apenasOcsProntas);
+  };
+
+  const toggleFilterOcs = () => {
+    const nextApenasOcsProntas = !apenasOcsProntas;
+    setApenasOcsProntas(nextApenasOcsProntas);
+    loadData(true, filtros, ordenacao, apenasEditados, nextApenasOcsProntas);
   };
 
   const handleSaveEdition = async (rowId, valor) => {
@@ -123,6 +135,9 @@ function Dashboard() {
                 edicoesCount={Object.keys(edicoes).length}
                 isFilteredEdicoes={apenasEditados}
                 onFilterEdicoes={toggleFilterEdicoes}
+                totalOcsProntas={totalOcsProntas}
+                isFilteredOcs={apenasOcsProntas}
+                onFilterOcs={toggleFilterOcs}
               />
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-md items-start mt-8">

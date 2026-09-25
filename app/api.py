@@ -167,6 +167,11 @@ def obter_slice(session, payload):
     if apenas_editados:
         df_filtrado = df_filtrado[df_filtrado["__rowId"].isin(session.edicoes.keys())]
 
+    apenas_ocs_prontas = payload.get("apenasOcsProntas", False)
+    if apenas_ocs_prontas:
+        decis_compras_num = pd.to_numeric(df_filtrado["Decis Compras"], errors='coerce').fillna(0)
+        df_filtrado = df_filtrado[decis_compras_num > 0]
+
     for col, val in filtros.items():
         if val:
             exata = colunas_exatas.get(col, correspondencia_exata_global)
@@ -205,6 +210,9 @@ def obter_slice(session, payload):
     resumo = soma_por_familia.to_dict()
     total_geral = soma_por_familia.sum()
 
+    decis_compras_calc = pd.to_numeric(df_calc["Decis Compras"], errors='coerce').fillna(0)
+    total_ocs_prontas = int((decis_compras_calc > 0).sum())
+
     slice_df = df_calc.iloc[start : start + size]
 
     return {
@@ -212,6 +220,7 @@ def obter_slice(session, payload):
         "data": slice_df.to_dict("records"),
         "resumo": resumo,
         "total_geral": float(total_geral),
+        "total_ocs_prontas": total_ocs_prontas,
         "edicoes": session.edicoes,
     }
 
