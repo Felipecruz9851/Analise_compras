@@ -21,6 +21,7 @@ function Dashboard() {
   const [apenasEditados, setApenasEditados] = useState(false);
   const [apenasOcsProntas, setApenasOcsProntas] = useState(false);
   const [totalOcsProntas, setTotalOcsProntas] = useState(0);
+  const [analiseNome, setAnaliseNome] = useState('');
 
   const loadData = useCallback(
     async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao, currentApenasEditados = apenasEditados, currentApenasOcsProntas = apenasOcsProntas) => {
@@ -58,6 +59,9 @@ function Dashboard() {
             setTotalGeral(resp.total_geral);
             if (resp.total_ocs_prontas !== undefined) {
               setTotalOcsProntas(resp.total_ocs_prontas);
+            }
+            if (resp.analise_nome) {
+              setAnaliseNome(resp.analise_nome);
             }
           }
           setEdicoes(resp.edicoes || {});
@@ -125,7 +129,7 @@ function Dashboard() {
     <div className="bg-surface-canvas text-on-surface font-body min-h-screen">
       <Sidebar resumo={resumo} totalGeral={totalGeral} />
       <div className="pl-72 flex flex-col min-h-screen">
-        <Header totalItens={totalItens} />
+        <Header totalItens={totalItens} analiseNome={analiseNome} />
         <main className="w-full pt-20 bg-surface-canvas flex-1">
           <div className="flex flex-col w-full">
             <div className="p-lg space-y-xl max-w-[1720px] mx-auto w-full">

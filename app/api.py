@@ -222,6 +222,7 @@ def obter_slice(session, payload):
         "total_geral": float(total_geral),
         "total_ocs_prontas": total_ocs_prontas,
         "edicoes": session.edicoes,
+        "analise_nome": session.analise_nome,
     }
 
 
