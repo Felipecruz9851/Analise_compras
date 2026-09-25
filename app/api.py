@@ -163,6 +163,10 @@ def obter_slice(session, payload):
 
     df_filtrado = df_trabalho
 
+    apenas_editados = payload.get("apenasEditados", False)
+    if apenas_editados:
+        df_filtrado = df_filtrado[df_filtrado["__rowId"].isin(session.edicoes.keys())]
+
     for col, val in filtros.items():
         if val:
             exata = colunas_exatas.get(col, correspondencia_exata_global)

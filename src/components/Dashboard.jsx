@@ -18,9 +18,10 @@ function Dashboard() {
   
   const [filtros, setFiltros] = useState({});
   const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: "asc" });
+  const [apenasEditados, setApenasEditados] = useState(false);
 
   const loadData = useCallback(
-    async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao) => {
+    async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao, currentApenasEditados = apenasEditados) => {
       if (loading || (!hasMore && !reset)) return;
       setLoading(true);
 
@@ -33,6 +34,7 @@ function Dashboard() {
           size: PAGE_SIZE,
           filtros: currentFiltros,
           ordenacao: currentOrdenacao,
+          apenasEditados: currentApenasEditados,
           correspondenciaExata: false,
           filtrosInvertidos: false,
           colunasInvertidas: {},
@@ -43,12 +45,16 @@ function Dashboard() {
 
         if (!resp || !resp.data || resp.data.length === 0) {
           setHasMore(false);
+          if (reset) {
+            setData([]);
+            setTotalItens(0);
+          }
         } else {
           if (resp.resumo && currentStart === 0) {
             setResumo(resp.resumo);
             setTotalGeral(resp.total_geral);
           }
-          setEdicoes((prev) => ({ ...prev, ...(resp.edicoes || {}) }));
+          setEdicoes(resp.edicoes || {});
           setData((prev) => (reset ? resp.data : [...prev, ...resp.data]));
           setStartIndex(currentStart + PAGE_SIZE);
           setTotalItens(resp.total);
@@ -61,7 +67,7 @@ function Dashboard() {
         setLoading(false);
       }
     },
-    [startIndex, loading, hasMore, filtros, ordenacao],
+    [startIndex, loading, hasMore, filtros, ordenacao, apenasEditados],
   );
 
   useEffect(() => {
@@ -70,12 +76,18 @@ function Dashboard() {
 
   const handleFilter = (novosFiltros) => {
     setFiltros(novosFiltros);
-    loadData(true, novosFiltros, ordenacao);
+    loadData(true, novosFiltros, ordenacao, apenasEditados);
   };
 
   const handleSort = (novaOrdenacao) => {
     setOrdenacao(novaOrdenacao);
-    loadData(true, filtros, novaOrdenacao);
+    loadData(true, filtros, novaOrdenacao, apenasEditados);
+  };
+
+  const toggleFilterEdicoes = () => {
+    const nextApenasEditados = !apenasEditados;
+    setApenasEditados(nextApenasEditados);
+    loadData(true, filtros, ordenacao, nextApenasEditados);
   };
 
   const handleSaveEdition = async (rowId, valor) => {
@@ -109,6 +121,8 @@ function Dashboard() {
                 totalGeral={totalGeral}
                 totalItens={totalItens}
                 edicoesCount={Object.keys(edicoes).length}
+                isFilteredEdicoes={apenasEditados}
+                onFilterEdicoes={toggleFilterEdicoes}
               />
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-md items-start mt-8">
