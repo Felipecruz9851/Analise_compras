@@ -126,13 +126,13 @@ function Dashboard() {
   };
 
   return (
-    <div className="bg-surface-canvas text-on-surface font-body min-h-screen">
+    <div className="bg-surface-canvas text-on-surface font-body h-screen overflow-hidden">
       <Sidebar resumo={resumo} totalGeral={totalGeral} />
-      <div className="pl-72 flex flex-col min-h-screen">
+      <div className="pl-72 flex flex-col h-screen">
         <Header totalItens={totalItens} analiseNome={analiseNome} />
-        <main className="w-full pt-20 bg-surface-canvas flex-1">
-          <div className="flex flex-col w-full">
-            <div className="p-lg space-y-xl max-w-[1720px] mx-auto w-full">
+        <main className="w-full pt-20 bg-surface-canvas flex-1 flex flex-col min-h-0">
+          <div className="p-lg flex flex-col gap-8 max-w-[1720px] mx-auto w-full flex-1 min-h-0">
+            <div className="flex-none">
               <MetricsCards
                 totalGeral={totalGeral}
                 totalItens={totalItens}
@@ -143,24 +143,21 @@ function Dashboard() {
                 isFilteredOcs={apenasOcsProntas}
                 onFilterOcs={toggleFilterOcs}
               />
+            </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-md items-start mt-8">
-                {/* Table */}
-                <div className="xl:col-span-12 bg-surface-card rounded-lg shadow-card">
-                  <PurchaseTable
-                    data={data}
-                    edicoes={edicoes}
-                    onLoadMore={() => loadData(false)}
-                    hasMore={hasMore}
-                    onSaveEdition={handleSaveEdition}
-                    loading={loading}
-                    filtros={filtros}
-                    ordenacao={ordenacao}
-                    onFilter={handleFilter}
-                    onSort={handleSort}
-                  />
-                </div>
-              </div>
+            <div className="flex-1 min-h-0 bg-surface-card rounded-lg shadow-card overflow-hidden">
+              <PurchaseTable
+                data={data}
+                edicoes={edicoes}
+                onLoadMore={() => loadData(false)}
+                hasMore={hasMore}
+                onSaveEdition={handleSaveEdition}
+                loading={loading}
+                filtros={filtros}
+                ordenacao={ordenacao}
+                onFilter={handleFilter}
+                onSort={handleSort}
+              />
             </div>
           </div>
         </main>

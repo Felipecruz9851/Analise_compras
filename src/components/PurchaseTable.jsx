@@ -30,8 +30,8 @@ const valueLabelsPlugin = {
   afterDatasetsDraw(chart, args, options) {
     const { ctx } = chart;
     ctx.save();
-    ctx.font = "10px Arial";
-    ctx.fillStyle = "#1976d2";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillStyle = "#1565c0";
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
 
@@ -57,20 +57,20 @@ const Sparkline = ({ labels, data }) => {
       {
         data: data.slice(0, -1),
         borderColor: "#1976d2",
-        borderWidth: 1.5,
+        borderWidth: 1,
         pointRadius: 3,
-        tension: 0.3,
+        tension: 0.2,
       },
     ],
   };
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: { padding: { top: 25, bottom: 8, left: 15, right: 15 } },
+    layout: { padding: { top: 5, bottom: -5, left: 0, right: 0 } },
     plugins: { legend: { display: false }, tooltip: { enabled: false } },
     scales: {
-      x: { display: false },
-      y: { display: false, grace: "20%" },
+      x: { display: true },
+      y: { display: false, grace: "30%" },
     },
   };
   return (
@@ -88,13 +88,13 @@ export default function PurchaseTable({
   onSaveEdition,
   loading,
   filtros = {},
-  ordenacao = { coluna: null, direcao: 'asc' },
+  ordenacao = { coluna: null, direcao: "asc" },
   onFilter,
   onSort,
 }) {
   const sentinelRef = useRef(null);
   const [openMenuCol, setOpenMenuCol] = React.useState(null);
-  const [localFilter, setLocalFilter] = React.useState('');
+  const [localFilter, setLocalFilter] = React.useState("");
 
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -114,10 +114,10 @@ export default function PurchaseTable({
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuCol(null);
     if (openMenuCol) {
-      document.addEventListener('click', handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, [openMenuCol]);
 
@@ -132,7 +132,7 @@ export default function PurchaseTable({
   colunasTabela.splice(2, 0, "Gráfico");
 
   return (
-    <div className="w-full overflow-x-auto max-h-[800px] overflow-y-auto relative">
+    <div className="w-full h-full overflow-x-auto overflow-y-auto relative">
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead className="bg-bg-main text-text-secondary text-xs uppercase tracking-wider sticky top-0 z-10 shadow-sm">
           <tr>
@@ -150,7 +150,7 @@ export default function PurchaseTable({
                     setOpenMenuCol(null);
                   } else {
                     setOpenMenuCol(col);
-                    setLocalFilter(filtros[col] || '');
+                    setLocalFilter(filtros[col] || "");
                   }
                 }}
               >
@@ -158,41 +158,55 @@ export default function PurchaseTable({
                   {col}
                   {ordenacao.coluna === col && (
                     <span className="material-symbols-outlined text-[14px]">
-                      {ordenacao.direcao === 'asc' ? 'arrow_upward' : 'arrow_downward'}
+                      {ordenacao.direcao === "asc"
+                        ? "arrow_upward"
+                        : "arrow_downward"}
                     </span>
                   )}
                   {filtros[col] && (
-                    <span className="material-symbols-outlined text-[14px] text-primary">filter_alt</span>
+                    <span className="material-symbols-outlined text-[14px] text-primary">
+                      filter_alt
+                    </span>
                   )}
                 </div>
 
                 {openMenuCol === col && col !== "Gráfico" && (
-                  <div 
+                  <div
                     className="absolute top-full left-0 mt-1 w-56 bg-white border border-border rounded-lg shadow-xl z-50 p-2 normal-case font-normal text-sm text-text-main"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="mb-2 text-xs font-semibold text-text-secondary uppercase">Ordenar</div>
+                    <div className="mb-2 text-xs font-semibold text-text-secondary uppercase">
+                      Ordenar
+                    </div>
                     <button
-                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-bg-main mb-1 flex items-center gap-2 ${ordenacao.coluna === col && ordenacao.direcao === 'asc' ? 'bg-primary/10 text-primary' : ''}`}
+                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-bg-main mb-1 flex items-center gap-2 ${ordenacao.coluna === col && ordenacao.direcao === "asc" ? "bg-primary/10 text-primary" : ""}`}
                       onClick={() => {
-                        onSort({ coluna: col, direcao: 'asc' });
+                        onSort({ coluna: col, direcao: "asc" });
                         setOpenMenuCol(null);
                       }}
                     >
-                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span> Crescente
+                      <span className="material-symbols-outlined text-[16px]">
+                        arrow_upward
+                      </span>{" "}
+                      Crescente
                     </button>
                     <button
-                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-bg-main mb-3 flex items-center gap-2 ${ordenacao.coluna === col && ordenacao.direcao === 'desc' ? 'bg-primary/10 text-primary' : ''}`}
+                      className={`w-full text-left px-2 py-1.5 rounded hover:bg-bg-main mb-3 flex items-center gap-2 ${ordenacao.coluna === col && ordenacao.direcao === "desc" ? "bg-primary/10 text-primary" : ""}`}
                       onClick={() => {
-                        onSort({ coluna: col, direcao: 'desc' });
+                        onSort({ coluna: col, direcao: "desc" });
                         setOpenMenuCol(null);
                       }}
                     >
-                      <span className="material-symbols-outlined text-[16px]">arrow_downward</span> Decrescente
+                      <span className="material-symbols-outlined text-[16px]">
+                        arrow_downward
+                      </span>{" "}
+                      Decrescente
                     </button>
 
-                    <div className="mb-2 text-xs font-semibold text-text-secondary uppercase">Filtrar</div>
-                    <form 
+                    <div className="mb-2 text-xs font-semibold text-text-secondary uppercase">
+                      Filtrar
+                    </div>
+                    <form
                       onSubmit={(e) => {
                         e.preventDefault();
                         onFilter({ ...filtros, [col]: localFilter });
@@ -200,15 +214,20 @@ export default function PurchaseTable({
                       }}
                       className="flex gap-2"
                     >
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={localFilter}
                         onChange={(e) => setLocalFilter(e.target.value)}
                         placeholder="Buscar..."
                         className="w-full bg-bg-main border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                       />
-                      <button type="submit" className="bg-primary text-white rounded px-2 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[16px]">search</span>
+                      <button
+                        type="submit"
+                        className="bg-primary text-white rounded px-2 flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          search
+                        </span>
                       </button>
                     </form>
                     {filtros[col] && (
@@ -240,7 +259,7 @@ export default function PurchaseTable({
 
             return (
               <tr key={rowId} className={`transition-colors ${bgClass}`}>
-                <td className="py-2 px-3 text-center">
+                <td className="py-0.5 px-3 text-center">
                   <input type="checkbox" className="accent-primary" />
                 </td>
                 {colunasTabela.map((col) => {
@@ -249,7 +268,7 @@ export default function PurchaseTable({
                       parseNumeroBR(linha[m]),
                     );
                     return (
-                      <td key={col} className="py-2 px-3">
+                      <td key={col} className="py-0.5 px-3">
                         <Sparkline labels={colunasMes} data={valores} />
                       </td>
                     );
@@ -262,39 +281,39 @@ export default function PurchaseTable({
                       : valorOriginal;
 
                     return (
-                      <td key={col} className="py-2 px-3 text-center">
+                      <td key={col} className="py-0.5 px-3 text-center">
                         <div className="flex items-center justify-center gap-1">
-                            <input
-                              key={`input-${rowId}-${foiEditado ? 'editado' : 'original'}-${valorFinal}`}
-                              type="number"
-                              defaultValue={valorFinal}
-                              onBlur={(e) => {
-                                const num = parseNumeroBR(e.target.value);
-                                if (num !== valorFinal) {
-                                  // Só salva se o valor digitado for diferente do que já está no estado!
-                                  if (num === valorOriginal) {
-                                    onSaveEdition(rowId, null);
-                                  } else {
-                                    onSaveEdition(rowId, num);
-                                  }
-                                }
-                              }}
-                              className={`w-24 h-7 text-center font-bold rounded border px-1 ${foiEditado ? "border-cell-edited-border text-cell-edited-text bg-white" : "border-border"}`}
-                            />
-                            {foiEditado && (
-                              <button
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
+                          <input
+                            key={`input-${rowId}-${foiEditado ? "editado" : "original"}-${valorFinal}`}
+                            type="number"
+                            defaultValue={valorFinal}
+                            onBlur={(e) => {
+                              const num = parseNumeroBR(e.target.value);
+                              if (num !== valorFinal) {
+                                // Só salva se o valor digitado for diferente do que já está no estado!
+                                if (num === valorOriginal) {
                                   onSaveEdition(rowId, null);
-                                }}
-                                className="w-6 h-6 rounded-full bg-cell-edited-border text-white flex items-center justify-center shadow-sm"
-                                title="Restaurar"
-                              >
-                                <span className="material-symbols-outlined text-[14px]">
-                                  undo
-                                </span>
-                              </button>
-                            )}
+                                } else {
+                                  onSaveEdition(rowId, num);
+                                }
+                              }
+                            }}
+                            className={`w-24 h-6 text-sm text-center font-bold rounded border px-1 ${foiEditado ? "border-cell-edited-border text-cell-edited-text bg-white" : "border-border"}`}
+                          />
+                          {foiEditado && (
+                            <button
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                onSaveEdition(rowId, null);
+                              }}
+                              className="w-6 h-6 rounded-full bg-cell-edited-border text-white flex items-center justify-center shadow-sm"
+                              title="Restaurar"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">
+                                undo
+                              </span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     );
@@ -302,19 +321,34 @@ export default function PurchaseTable({
 
                   let formatVal = linha[col] ?? "";
                   if (col === "Valor Comprado") {
-                    // Caso a coluna tenha sido editada, podemos sobrescrever com o novo valor, mas o ideal é que a recarga do zero da API traga o valor comprado já atualizado do backend.
-                    // O backend recalcula o valor comprado baseado nas edições no Python?
-                    // Sim, se a API `salvar_edicao` faz isso e `obter_slice` pega o novo cálculo.
                     formatVal = parseNumeroBR(formatVal).toLocaleString(
                       "pt-BR",
                       { style: "currency", currency: "BRL" },
                     );
                   }
 
+                  if (
+                    col === "Descrição" ||
+                    col === "Den. Item" ||
+                    col === "Descricao"
+                  ) {
+                    return (
+                      <td
+                        key={col}
+                        className="py-0.5 px-3 align-middle"
+                        title={linha[col]}
+                      >
+                        <div className="whitespace-normal min-w-[290px] max-w-[290px] line-clamp-3 text-sm">
+                          {formatVal}
+                        </div>
+                      </td>
+                    );
+                  }
+
                   return (
                     <td
                       key={col}
-                      className={`py-2 px-3 truncate max-w-[200px] ${col === "Valor Comprado" ? "font-bold text-right text-primary" : ""} ${foiEditado && col === "Valor Comprado" ? "!text-cell-edited-text" : ""}`}
+                      className={`py-0.5 px-3 truncate max-w-[200px] ${col === "Valor Comprado" ? "font-bold text-right text-primary" : ""} ${foiEditado && col === "Valor Comprado" ? "!text-cell-edited-text" : ""}`}
                       title={linha[col]}
                     >
                       {formatVal}
