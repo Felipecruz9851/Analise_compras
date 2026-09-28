@@ -2,7 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { apiCall } from "../services/api";
 
-export default function Header({ totalItens, analiseNome, filtrosPayload }) {
+export default function Header({
+  totalItens,
+  analiseNome,
+  filtrosPayload,
+  hasFilters,
+  onClearFilters,
+}) {
   const [loading, setLoading] = useState(false);
   const [exportsModalOpen, setExportsModalOpen] = useState(false);
   const [exportsList, setExportsList] = useState([]);
@@ -102,6 +108,18 @@ export default function Header({ totalItens, analiseNome, filtrosPayload }) {
           <span className="font-bold text-primary">{totalItens}</span>
         </span>
         <span className="text-sm text-text-secondary mr-2">AO VIVO</span>
+        {hasFilters && (
+          <button
+            onClick={onClearFilters}
+            className="text-text-secondary hover:text-error text-sm font-semibold transition-colors flex items-center gap-1 bg-transparent px-3 py-2 rounded-lg hover:bg-error/10"
+            title="Limpar todos os filtros"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              filter_alt_off
+            </span>
+            Limpar Filtros
+          </button>
+        )}
         {totalItens > 0 && (
           <>
             <div className="relative" ref={menuRef}>

@@ -183,15 +183,15 @@ def obter_slice(session, payload):
                         val_num = float(str(val).replace(",", "."))
                         mask = df_filtrado[col].astype(float) == val_num
                     except:
-                        mask = df_filtrado[col].astype(str).str.lower() == val.lower()
+                        mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
                 else:
-                    mask = df_filtrado[col].astype(str).str.lower() == val.lower()
+                    mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
             else:
                 mask = (
                     df_filtrado[col]
                     .astype(str)
                     .str.lower()
-                    .str.contains(val.lower(), na=False, regex=False)
+                    .str.contains(str(val).lower(), na=False, regex=False)
                 )
 
             invertido = colunas_invertidas.get(col, filtros_invertidos_global)
@@ -1161,4 +1161,5 @@ def gerar_csv_visivel(session, payload):
         "html": str(html_path.absolute()),
         "csv": str(csv_path.absolute()),
     }
+
 

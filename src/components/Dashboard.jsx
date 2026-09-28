@@ -23,6 +23,33 @@ function Dashboard() {
   const [totalOcsProntas, setTotalOcsProntas] = useState(0);
   const [analiseNome, setAnaliseNome] = useState("");
 
+  const getFiltrosTratados = (filtrosBrutos) => {
+    const cleanFiltros = {};
+    const colunasExatas = {};
+    const colunasInvertidas = {};
+
+    for (const [col, val] of Object.entries(filtrosBrutos)) {
+      if (!val) continue;
+      let cleanVal = val.trim();
+
+      if (cleanVal.startsWith("==")) {
+        colunasExatas[col] = true;
+        cleanVal = cleanVal.substring(2).trim();
+      } else if (cleanVal.startsWith("!==")) {
+        colunasInvertidas[col] = true;
+        colunasExatas[col] = true;
+        cleanVal = cleanVal.substring(3).trim();
+      } else if (cleanVal.startsWith("!=")) {
+        colunasInvertidas[col] = true;
+        cleanVal = cleanVal.substring(2).trim();
+      }
+
+      cleanFiltros[col] = cleanVal;
+    }
+
+    return { cleanFiltros, colunasExatas, colunasInvertidas };
+  };
+
   const loadData = useCallback(
     async (
       reset = false,
@@ -37,18 +64,21 @@ function Dashboard() {
       const currentStart = reset ? 0 : startIndex;
       const PAGE_SIZE = 50;
 
+      const { cleanFiltros, colunasExatas, colunasInvertidas } =
+        getFiltrosTratados(currentFiltros);
+
       try {
         const resp = await apiCall("obter_slice", {
           start: currentStart,
           size: PAGE_SIZE,
-          filtros: currentFiltros,
+          filtros: cleanFiltros,
           ordenacao: currentOrdenacao,
           apenasEditados: currentApenasEditados,
           apenasOcsProntas: currentApenasOcsProntas,
           correspondenciaExata: false,
           filtrosInvertidos: false,
-          colunasInvertidas: {},
-          colunasExatas: {},
+          colunasInvertidas: colunasInvertidas,
+          colunasExatas: colunasExatas,
           data_ini: null,
           data_fim: null,
         });
@@ -100,6 +130,8 @@ function Dashboard() {
 
   const handleFilter = (novosFiltros) => {
     setFiltros(novosFiltros);
+    // Removemos a chamada direta aqui usando estados antigos e passamos os novos estados
+    // Mas wait, loadData usa o estado loading! Se loading=true, ele retorna cedo!
     loadData(true, novosFiltros, ordenacao, apenasEditados, apenasOcsProntas);
   };
 
@@ -132,22 +164,33 @@ function Dashboard() {
         }
         return next;
       });
-      // Recarrega do zero para atualizar totais
       loadData(true);
     } catch (e) {
-      console.error("Erro ao salvar edição", e);
+      console.error("Erro ao salvar edicao", e);
     }
   };
 
+  const { cleanFiltros, colunasExatas, colunasInvertidas } =
+    getFiltrosTratados(filtros);
   const filtrosPayload = {
-    filtros,
+    filtros: cleanFiltros,
     ordenacao,
     apenasEditados,
     apenasOcsProntas,
     correspondenciaExata: false,
     filtrosInvertidos: false,
-    colunasInvertidas: {},
-    colunasExatas: {},
+    colunasInvertidas,
+    colunasExatas,
+  };
+
+  const hasFilters =
+    Object.keys(filtros).length > 0 || apenasEditados || apenasOcsProntas;
+
+  const handleClearAllFilters = () => {
+    setFiltros({});
+    setApenasEditados(false);
+    setApenasOcsProntas(false);
+    loadData(true, {}, ordenacao, false, false);
   };
 
   return (
@@ -158,9 +201,11 @@ function Dashboard() {
           totalItens={totalItens}
           analiseNome={analiseNome}
           filtrosPayload={filtrosPayload}
+          hasFilters={hasFilters}
+          onClearFilters={handleClearAllFilters}
         />
         <main className="w-full pt-20 bg-surface-canvas flex-1 flex flex-col min-h-0">
-          <div className="p-lg flex flex-col gap-8 max-w-[1720px] mx-auto w-full flex-1 min-h-0">
+          <div className="p-lg flex flex-col gap-8 max-w-[1720px] mx-auto w-full flex-1 min-h-0 relative">
             <div className="flex-none">
               <MetricsCards
                 totalGeral={totalGeral}
@@ -187,6 +232,28 @@ function Dashboard() {
                 onFilter={handleFilter}
                 onSort={handleSort}
               />
+            </div>
+
+            <div className="absolute bottom-2 right-10 flex items-end justify-end group z-30">
+              <div className="w-8 h-8 rounded-full bg-surface-card border border-border shadow-sm flex items-center justify-center text-text-secondary cursor-help hover:bg-gray-50 transition-colors">
+                <span className="material-symbols-outlined text-[18px]">
+                  info
+                </span>
+              </div>
+
+              <div className="absolute bottom-0 right-10 bg-surface-card rounded-lg shadow-xl border border-border px-4 py-2 flex items-center justify-end gap-4 text-[11px] text-text-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap mr-2 pointer-events-none">
+                <strong>Filtros:</strong>
+                <span>
+                  <code className="bg-black/5 px-1 rounded">==</code> exato
+                </span>
+                <span>
+                  <code className="bg-black/5 px-1 rounded">!=</code> não contém
+                </span>
+                <span>
+                  <code className="bg-black/5 px-1 rounded">!==</code> dif.
+                  exato
+                </span>
+              </div>
             </div>
           </div>
         </main>

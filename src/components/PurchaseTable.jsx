@@ -59,7 +59,7 @@ const Sparkline = ({ labels, data }) => {
         borderColor: "#1976d2",
         borderWidth: 1,
         pointRadius: 3,
-        tension: 0.4,
+        tension: 0.3,
       },
     ],
   };
@@ -121,8 +121,14 @@ export default function PurchaseTable({
     };
   }, [openMenuCol]);
 
-  if (!data || data.length === 0)
-    return <div className="p-4 text-center">Carregando...</div>;
+  if (!data || data.length === 0) {
+    if (loading) return <div className="p-4 text-center">Carregando...</div>;
+    return (
+      <div className="p-4 text-center text-text-secondary">
+        Nenhum registro encontrado.
+      </div>
+    );
+  }
 
   const todasColunas = Object.keys(data[0]).filter((c) => c !== "__rowId");
   const colunasMes = todasColunas.filter(ehColunaMes).sort();
