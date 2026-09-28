@@ -47,6 +47,8 @@ def call_method(method: str, req: CallPayload, response: Response):
         return salvar_edicao(session, req.payload)
     elif method == "gerar_ocs":
         return gerar_ocs(session, req.payload)
+    elif method == "gerar_csv_visivel":
+        return gerar_csv_visivel(session, req.payload)
     elif method == "abre_pasta":
         return abre_pasta(session, req.payload)
     elif method == "gerar_pickles":
@@ -1016,3 +1018,147 @@ def _gerar_html_historico(session, data, resumo, total_geral):
   </script>
 </body>
 </html>"""
+
+
+def gerar_csv_visivel(session, payload):
+    if session.df_ativo is None:
+        return {"erro": "sem dados"}
+
+    df = session.df_ativo
+    filtros = payload.get("filtros", {})
+    ordenacao = payload.get("ordenacao", {})
+    correspondencia_exata_global = payload.get("correspondenciaExata", False)
+    filtros_invertidos_global = payload.get("filtrosInvertidos", False)
+    colunas_invertidas = payload.get("colunasInvertidas", {})
+    colunas_exatas = payload.get("colunasExatas", {})
+
+    df_trabalho = df.copy()
+
+    if session.edicoes:
+        for row_id, valor in session.edicoes.items():
+            mask = df_trabalho["__rowId"] == row_id
+            if mask.any():
+                df_trabalho.loc[mask, "Decis Compras"] = valor
+                if "Valor Unitário" in df_trabalho.columns:
+                    df_trabalho.loc[mask, "Valor Comprado"] = (
+                        df_trabalho.loc[mask, "Valor Unitário"] * float(valor)
+                    )
+
+    df_filtrado = df_trabalho
+
+    apenas_editados = payload.get("apenasEditados", False)
+    if apenas_editados:
+        df_filtrado = df_filtrado[df_filtrado["__rowId"].isin(session.edicoes.keys())]
+
+    apenas_ocs_prontas = payload.get("apenasOcsProntas", False)
+    if apenas_ocs_prontas:
+        import pandas as pd
+        decis_compras_num = pd.to_numeric(df_filtrado["Decis Compras"], errors='coerce').fillna(0)
+        df_filtrado = df_filtrado[decis_compras_num > 0]
+
+    for col, val in filtros.items():
+        if val:
+            exata = colunas_exatas.get(col, correspondencia_exata_global)
+            if exata:
+                if str(val).strip().lstrip("-").replace(".", "", 1).isdigit():
+                    try:
+                        val_num = float(str(val).replace(",", "."))
+                        mask = df_filtrado[col].astype(float) == val_num
+                    except:
+                        mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
+                else:
+                    mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
+            else:
+                mask = (
+                    df_filtrado[col]
+                    .astype(str)
+                    .str.lower()
+                    .str.contains(str(val).lower(), na=False, regex=False)
+                )
+
+            invertido = colunas_invertidas.get(col, filtros_invertidos_global)
+            df_filtrado = df_filtrado[~mask] if invertido else df_filtrado[mask]
+
+    if ordenacao.get("coluna"):
+        df_filtrado = df_filtrado.sort_values(
+            by=ordenacao["coluna"],
+            ascending=ordenacao.get("direcao", "asc") == "asc",
+        )
+
+    from datetime import datetime
+    from pathlib import Path
+    import pandas as pd
+    
+    stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nome_analise = session.analise_nome or "analise"
+    nome_base = f"OCs Visivel {nome_analise} - {stamp}"
+
+    exports_dir = Path("exports")
+    exports_dir.mkdir(exist_ok=True)
+    
+    # 1. Gerar o HTML GERAL ignorando os filtros (usando a base inteira, assim como na gerar_ocs)
+    df_html = session.df_base.copy()
+    if session.edicoes:
+        for row_id, valor in session.edicoes.items():
+            mask = df_html["__rowId"] == row_id
+            if mask.any():
+                df_html.loc[mask, "Decis Compras"] = valor
+                if (
+                    "Valor Unitário" in df_html.columns
+                    and "Valor Comprado" in df_html.columns
+                ):
+                    unit = df_html.loc[mask, "Valor Unitário"]
+                    df_html.loc[mask, "Valor Comprado"] = unit * float(valor)
+
+    soma_fam = (
+        df_html.groupby("Família")["Valor Comprado"].sum().sort_values(ascending=False)
+    )
+    resumo_html = soma_fam.to_dict()
+    total_geral_html = float(soma_fam.sum())
+
+    html_content = _gerar_html_historico(
+        session, df_html.to_dict("records"), resumo_html, total_geral_html
+    )
+
+    html_path = exports_dir / f"{nome_base}.html"
+    html_path.write_text(html_content, encoding="utf-8")
+
+    # 2. Gerar o CSV no mesmo formato da base (garantindo que Decis Compras > 0 caso a tela não estivesse filtrada)
+    df_filtrado_csv = df_filtrado.copy()
+    decis_compras_num = pd.to_numeric(df_filtrado_csv["Decis Compras"], errors='coerce').fillna(0)
+    df_csv = df_filtrado_csv[decis_compras_num > 0]
+    
+    if len(df_csv) > 0:
+        df_csv = df_csv[["Item", "Data OC", "Decis Compras", "texto OC"]].copy()
+    else:
+        df_csv = pd.DataFrame(columns=["Item", "Data OC", "Decis Compras", "texto OC"])
+
+    df_csv = df_csv.assign(
+        **{
+            "texto OC1": "",
+            "texto OC2": "",
+            "texto OC3": "",
+            "texto OC4": "",
+        }
+    )[
+        [
+            "Item",
+            "Data OC",
+            "Decis Compras",
+            "texto OC",
+            "texto OC1",
+            "texto OC2",
+            "texto OC3",
+            "texto OC4",
+        ]
+    ]
+
+    csv_path = exports_dir / f"{nome_base}.csv"
+    df_csv.to_csv(csv_path, index=False, sep=";", decimal=",")
+
+    return {
+        "status": "ok",
+        "html": str(html_path.absolute()),
+        "csv": str(csv_path.absolute()),
+    }
+

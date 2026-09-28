@@ -52,10 +52,10 @@ const valueLabelsPlugin = {
 
 const Sparkline = ({ labels, data }) => {
   const chartData = {
-    labels: labels.slice(0, -1),
+    labels: labels.slice(0, 5),
     datasets: [
       {
-        data: data.slice(0, -1),
+        data: data.slice(0, 5),
         borderColor: "#1976d2",
         borderWidth: 1,
         pointRadius: 3,

@@ -15,16 +15,22 @@ function Dashboard() {
   const [startIndex, setStartIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  
+
   const [filtros, setFiltros] = useState({});
   const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: "asc" });
   const [apenasEditados, setApenasEditados] = useState(false);
   const [apenasOcsProntas, setApenasOcsProntas] = useState(false);
   const [totalOcsProntas, setTotalOcsProntas] = useState(0);
-  const [analiseNome, setAnaliseNome] = useState('');
+  const [analiseNome, setAnaliseNome] = useState("");
 
   const loadData = useCallback(
-    async (reset = false, currentFiltros = filtros, currentOrdenacao = ordenacao, currentApenasEditados = apenasEditados, currentApenasOcsProntas = apenasOcsProntas) => {
+    async (
+      reset = false,
+      currentFiltros = filtros,
+      currentOrdenacao = ordenacao,
+      currentApenasEditados = apenasEditados,
+      currentApenasOcsProntas = apenasOcsProntas,
+    ) => {
       if (loading || (!hasMore && !reset)) return;
       setLoading(true);
 
@@ -77,7 +83,15 @@ function Dashboard() {
         setLoading(false);
       }
     },
-    [startIndex, loading, hasMore, filtros, ordenacao, apenasEditados, apenasOcsProntas],
+    [
+      startIndex,
+      loading,
+      hasMore,
+      filtros,
+      ordenacao,
+      apenasEditados,
+      apenasOcsProntas,
+    ],
   );
 
   useEffect(() => {
@@ -125,11 +139,26 @@ function Dashboard() {
     }
   };
 
+  const filtrosPayload = {
+    filtros,
+    ordenacao,
+    apenasEditados,
+    apenasOcsProntas,
+    correspondenciaExata: false,
+    filtrosInvertidos: false,
+    colunasInvertidas: {},
+    colunasExatas: {},
+  };
+
   return (
     <div className="bg-surface-canvas text-on-surface font-body h-screen overflow-hidden">
       <Sidebar resumo={resumo} totalGeral={totalGeral} />
       <div className="pl-72 flex flex-col h-screen">
-        <Header totalItens={totalItens} analiseNome={analiseNome} />
+        <Header
+          totalItens={totalItens}
+          analiseNome={analiseNome}
+          filtrosPayload={filtrosPayload}
+        />
         <main className="w-full pt-20 bg-surface-canvas flex-1 flex flex-col min-h-0">
           <div className="p-lg flex flex-col gap-8 max-w-[1720px] mx-auto w-full flex-1 min-h-0">
             <div className="flex-none">
