@@ -26,7 +26,7 @@ import pickle
 from pathlib import Path
 import pandas as pd
 
-analise = "Compra est NEC conf"
+analise = "compra por necessidade"
 dfs = {}
 with open(f"snapshot_{analise}.pkl", "rb") as f:
     dfs = pickle.load(f)
@@ -49,7 +49,7 @@ data = datetime.now() - relativedelta(months=4)
 mes = data.month
 ano = data.year
 arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
-df_apont = pd.read_csv(arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig")
+df_apont = pd.read_csv(arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig", low_memory=False)
 
 df_apont = sanitizar_dataframe(df_apont)
 
@@ -82,7 +82,7 @@ import pickle
 from pathlib import Path
 import pandas as pd
 
-analise = "Compra est NEC conf"
+analise = "Geral"
 dfs = {}
 with open(f"snapshot_{analise}.pkl", "rb") as f:
     dfs = pickle.load(f)

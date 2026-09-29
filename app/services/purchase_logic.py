@@ -39,7 +39,7 @@ def compra_necessidade(dfs):
 
     for col in colunas_para_normalizar:
         df[col] = pd.to_numeric(df[col], errors="coerce")
-    
+
     # Busca estoque Rejeitado
 
     est_r = dfs.get("estoque_R").copy()
@@ -423,7 +423,7 @@ def compra_necessidade(dfs):
     return df
 
 
-def compra_estoque_nec_conf(dfs):
+def abr_ace(dfs):
 
     import pandas as pd
     import numpy as np
@@ -456,9 +456,7 @@ def compra_estoque_nec_conf(dfs):
 
     # --- CÁLCULO COMPRA ---
     df["Falta"] = df["Neces"] - (
-        df["Estoque Produção"]
-        + df["Estoque Padrão"]
-        + df["OC"]
+        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
     )
 
     df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
@@ -575,9 +573,8 @@ def compra_estoque_nec_conf(dfs):
 
     df = df.where(pd.notnull(df), None)
 
-    
-
     return df
+
 
 def calcular(analise, dfs):
     """
@@ -590,11 +587,13 @@ def calcular(analise, dfs):
 
     if analise == "compra por necessidade":
         analise_compra = compra_necessidade(dfs)
-    elif analise == "Compra est NEC conf":
-        analise_compra = compra_estoque_nec_conf(dfs)
+    elif analise == "ABR - ACE":
+        analise_compra = abr_ace(dfs)
+    elif analise == "FND - FER":
+        analise_compra = fnd_fer(dfs)
+    elif analise == "Geral":
+        analise_compra = geral(dfs)
 
     else:
-        raise NotImplementedError(
-            "Análise 'Compra est NEC conf' ainda não implementada"
-        )
+        raise NotImplementedError(f"Análise '{analise}' ainda não implementada")
     return analise_compra

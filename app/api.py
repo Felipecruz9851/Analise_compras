@@ -27,15 +27,19 @@ def listar_analises():
 
 from fastapi import Response
 
+
 @router.post("/call/{method}")
 def call_method(method: str, req: CallPayload, response: Response):
     session_id = session_id_var.get()
-    
+
     if method == "rodar_analise":
         import uuid
+
         session_id = str(uuid.uuid4())
         session_id_var.set(session_id)
-        response.set_cookie(key="session_id", value=session_id, httponly=True, samesite="lax")
+        response.set_cookie(
+            key="session_id", value=session_id, httponly=True, samesite="lax"
+        )
 
     session = get_session(session_id)
 
@@ -80,7 +84,9 @@ def call_method(method: str, req: CallPayload, response: Response):
     else:
         return {"erro": "Método não permitido ou inexistente"}
 
+
 import json
+
 
 def obter_parametros():
     config_path = Path("app/services/config_parametros.json")
@@ -91,6 +97,7 @@ def obter_parametros():
             return json.load(f)
     except Exception as e:
         return {"erro": str(e)}
+
 
 def salvar_parametros(payload):
     config_path = Path("app/services/config_parametros.json")
@@ -104,12 +111,14 @@ def salvar_parametros(payload):
 
 def excluir_sessao(session):
     import threading
+
     session.lock = threading.Lock()
     session.df_base = None
     session.df_ativo = None
     session.edicoes = {}
     session.analise_nome = None
     return {"status": "ok", "mensagem": "Sessão ativa excluída com sucesso!"}
+
 
 def rodar_analise(session, payload):
     if session.lock.locked():
@@ -171,7 +180,9 @@ def obter_slice(session, payload):
 
     apenas_ocs_prontas = payload.get("apenasOcsProntas", False)
     if apenas_ocs_prontas:
-        decis_compras_num = pd.to_numeric(df_filtrado["Decis Compras"], errors='coerce').fillna(0)
+        decis_compras_num = pd.to_numeric(
+            df_filtrado["Decis Compras"], errors="coerce"
+        ).fillna(0)
         df_filtrado = df_filtrado[decis_compras_num > 0]
 
     for col, val in filtros.items():
@@ -183,7 +194,9 @@ def obter_slice(session, payload):
                         val_num = float(str(val).replace(",", "."))
                         mask = df_filtrado[col].astype(float) == val_num
                     except:
-                        mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
+                        mask = (
+                            df_filtrado[col].astype(str).str.lower() == str(val).lower()
+                        )
                 else:
                     mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
             else:
@@ -212,7 +225,9 @@ def obter_slice(session, payload):
     resumo = soma_por_familia.to_dict()
     total_geral = soma_por_familia.sum()
 
-    decis_compras_calc = pd.to_numeric(df_calc["Decis Compras"], errors='coerce').fillna(0)
+    decis_compras_calc = pd.to_numeric(
+        df_calc["Decis Compras"], errors="coerce"
+    ).fillna(0)
     total_ocs_prontas = int((decis_compras_calc > 0).sum())
 
     slice_df = df_calc.iloc[start : start + size]
@@ -453,7 +468,7 @@ def executar_carrega_dados(session, payload=None):
     csv_dir.mkdir(exist_ok=True)
 
     try:
-        analise_apoio = "Compra est NEC conf"
+        analise_apoio = "Geral"
         pkl_path = Path(f"snapshot_{analise_apoio}.pkl")
         if not pkl_path.exists():
             return {
@@ -472,7 +487,7 @@ def executar_carrega_dados(session, payload=None):
         arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
         if arquivo_apont.exists():
             df_apont = pd.read_csv(
-                arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig"
+                arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig", low_memory=False
             )
             df_apont = sanitizar_dataframe(df_apont)
             df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
@@ -488,6 +503,9 @@ def executar_carrega_dados(session, payload=None):
             apoio_comp = apoio_comp.reindex(
                 columns=apoio_comp.columns.drop("Baixa").tolist() + ["Baixa"]
             )
+            coluna = "Neces (30 dias)"
+            colunas = [col for col in apoio_comp.columns if col != coluna] + [coluna]
+            apoio_comp = apoio_comp[colunas]
 
         apoio_comp.to_csv(
             "CSV/apoio.csv", index=False, sep=";", decimal=",", encoding="utf-8-sig"
@@ -518,7 +536,6 @@ def executar_carrega_dados(session, payload=None):
         import pickle
 
         analise = "compra por necessidade"
-        # analise = "Compra est NEC conf"
         dfs = {}
         with open(f"snapshot_{analise}.pkl", "rb") as f:
             dfs = pickle.load(f)
@@ -754,9 +771,11 @@ def executar_carrega_dados(session, payload=None):
                     ~consumo["Ordem Cons"].isin(cache_raiz)
                 ].drop_duplicates("Ordem Cons")
                 novos = 0
-                
+
                 # Otimização pesada (zip em vez de iterrows)
-                for ordem_cons, pedido in zip(pendentes["Ordem Cons"], pendentes["Pedido"]):
+                for ordem_cons, pedido in zip(
+                    pendentes["Ordem Cons"], pendentes["Pedido"]
+                ):
                     resultado = achar_pai_no_cache(ordem_cons, pedido)
                     if resultado:
                         cache_raiz[ordem_cons] = resultado
@@ -865,7 +884,7 @@ def _gerar_html_historico(session, data, resumo, total_geral):
 
     colunas_mes = [c for c in colunas if re.match(r"^\d{4}-\d{2}$", c)]
     colunas_tabela = [c for c in colunas if c not in colunas_mes]
-    
+
     # Inserir as colunas de meses no lugar onde ficava o "Gráfico" (posição 2)
     for i, col_mes in enumerate(colunas_mes):
         colunas_tabela.insert(2 + i, col_mes)
@@ -1040,9 +1059,9 @@ def gerar_csv_visivel(session, payload):
             if mask.any():
                 df_trabalho.loc[mask, "Decis Compras"] = valor
                 if "Valor Unitário" in df_trabalho.columns:
-                    df_trabalho.loc[mask, "Valor Comprado"] = (
-                        df_trabalho.loc[mask, "Valor Unitário"] * float(valor)
-                    )
+                    df_trabalho.loc[mask, "Valor Comprado"] = df_trabalho.loc[
+                        mask, "Valor Unitário"
+                    ] * float(valor)
 
     df_filtrado = df_trabalho
 
@@ -1053,7 +1072,10 @@ def gerar_csv_visivel(session, payload):
     apenas_ocs_prontas = payload.get("apenasOcsProntas", False)
     if apenas_ocs_prontas:
         import pandas as pd
-        decis_compras_num = pd.to_numeric(df_filtrado["Decis Compras"], errors='coerce').fillna(0)
+
+        decis_compras_num = pd.to_numeric(
+            df_filtrado["Decis Compras"], errors="coerce"
+        ).fillna(0)
         df_filtrado = df_filtrado[decis_compras_num > 0]
 
     for col, val in filtros.items():
@@ -1065,7 +1087,9 @@ def gerar_csv_visivel(session, payload):
                         val_num = float(str(val).replace(",", "."))
                         mask = df_filtrado[col].astype(float) == val_num
                     except:
-                        mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
+                        mask = (
+                            df_filtrado[col].astype(str).str.lower() == str(val).lower()
+                        )
                 else:
                     mask = df_filtrado[col].astype(str).str.lower() == str(val).lower()
             else:
@@ -1088,14 +1112,14 @@ def gerar_csv_visivel(session, payload):
     from datetime import datetime
     from pathlib import Path
     import pandas as pd
-    
+
     stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     nome_analise = session.analise_nome or "analise"
     nome_base = f"OCs Visivel {nome_analise} - {stamp}"
 
     exports_dir = Path("exports")
     exports_dir.mkdir(exist_ok=True)
-    
+
     # 1. Gerar o HTML GERAL ignorando os filtros (usando a base inteira, assim como na gerar_ocs)
     df_html = session.df_base.copy()
     if session.edicoes:
@@ -1125,9 +1149,11 @@ def gerar_csv_visivel(session, payload):
 
     # 2. Gerar o CSV no mesmo formato da base (garantindo que Decis Compras > 0 caso a tela não estivesse filtrada)
     df_filtrado_csv = df_filtrado.copy()
-    decis_compras_num = pd.to_numeric(df_filtrado_csv["Decis Compras"], errors='coerce').fillna(0)
+    decis_compras_num = pd.to_numeric(
+        df_filtrado_csv["Decis Compras"], errors="coerce"
+    ).fillna(0)
     df_csv = df_filtrado_csv[decis_compras_num > 0]
-    
+
     if len(df_csv) > 0:
         df_csv = df_csv[["Item", "Data OC", "Decis Compras", "texto OC"]].copy()
     else:
@@ -1161,5 +1187,3 @@ def gerar_csv_visivel(session, payload):
         "html": str(html_path.absolute()),
         "csv": str(csv_path.absolute()),
     }
-
-
