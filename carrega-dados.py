@@ -11,14 +11,11 @@ from time import perf_counter
 #     sys.path.insert(0, BASE_DIR)
 
 
-# username = "felipe.cruz"
-# password = "#Gladoscruz.9851"
-
-# for analise in ANALISES:
-#     dfs = coletar_dados(username, password, analise)
-#     with open(f"snapshot_{analise}.pkl", "wb") as f:
-#         pickle.dump(dfs, f)
-#     print(f"Snapshot salvo para {analise}.")
+for analise in ANALISES:
+    dfs = coletar_dados(username, password, analise)
+    with open(f"snapshot_{analise}.pkl", "wb") as f:
+        pickle.dump(dfs, f)
+    print(f"Snapshot salvo para {analise}.")
 
 
 # Gerar apoio
@@ -49,7 +46,9 @@ data = datetime.now() - relativedelta(months=4)
 mes = data.month
 ano = data.year
 arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
-df_apont = pd.read_csv(arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig", low_memory=False)
+df_apont = pd.read_csv(
+    arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig", low_memory=False
+)
 
 df_apont = sanitizar_dataframe(df_apont)
 

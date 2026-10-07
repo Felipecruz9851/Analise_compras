@@ -487,7 +487,11 @@ def executar_carrega_dados(session, payload=None):
         arquivo_apont = Path(f"apont-{ano}-{mes:02d}.csv")
         if arquivo_apont.exists():
             df_apont = pd.read_csv(
-                arquivo_apont, sep=";", decimal=",", encoding="utf-8-sig", low_memory=False
+                arquivo_apont,
+                sep=";",
+                decimal=",",
+                encoding="utf-8-sig",
+                low_memory=False,
             )
             df_apont = sanitizar_dataframe(df_apont)
             df_apont = df_apont[["Item", "Qtde."]].groupby("Item", as_index=False).sum()
@@ -504,8 +508,11 @@ def executar_carrega_dados(session, payload=None):
                 columns=apoio_comp.columns.drop("Baixa").tolist() + ["Baixa"]
             )
             coluna = "Neces (30 dias)"
-            colunas = [col for col in apoio_comp.columns if col != coluna] + [coluna]
-            apoio_comp = apoio_comp[colunas]
+            if coluna in apoio_comp.columns:
+                colunas = [col for col in apoio_comp.columns if col != coluna] + [
+                    coluna
+                ]
+                apoio_comp = apoio_comp[colunas]
 
         apoio_comp.to_csv(
             "CSV/apoio.csv", index=False, sep=";", decimal=",", encoding="utf-8-sig"
