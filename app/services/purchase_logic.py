@@ -42,6 +42,8 @@ def compra_necessidade(dfs):
 
     # Busca estoque Rejeitado
 
+    if dfs.get("estoque_R") is None:
+        raise ValueError("Grupo 'estoque_R' ausente no dicionário dfs.")
     est_r = dfs.get("estoque_R").copy()
     print(est_r.columns.to_list())
     est_r = est_r[["Item", "Qtde."]]
@@ -582,8 +584,8 @@ def calcular(analise, dfs):
     e retorna UM ÚNICO DataFrame (para o pipeline gerar o JSON)
     """
 
-    if dfs is None:
-        raise ValueError("Grupo 'apoio_compras' não encontrado no dicionário dfs")
+    if not dfs or dfs.get("apoio_compras") is None:
+        raise ValueError("Dados incompletos ou vazios retornados pela extração (grupo 'apoio_compras' ausente). Verifique as credenciais ou a conexão com o sistema PCP.")
 
     if analise == "compra por necessidade":
         analise_compra = compra_necessidade(dfs)

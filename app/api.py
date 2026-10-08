@@ -478,6 +478,11 @@ def executar_carrega_dados(session, payload=None):
         with open(pkl_path, "rb") as f:
             dfs = pickle.load(f)
 
+        if not dfs or dfs.get("apoio_compras") is None or dfs.get("conf") is None:
+            return {
+                "erro": f"Dados de apoio_compras ou conf ausentes no snapshot '{analise_apoio}'. Verifique se a geração de dados foi concluída com sucesso e gere os dados novamente."
+            }
+
         apoio_comp = dfs.get("apoio_compras").copy()
 
         # Histórico de consumo do quarto mês completo
@@ -548,6 +553,11 @@ def executar_carrega_dados(session, payload=None):
             dfs = pickle.load(f)
         print(f"Snapshot carregado para {analise}.")
         print(dfs.keys())
+
+        if not dfs or dfs.get("ordens") is None or dfs.get("cons") is None or dfs.get("estoque") is None:
+            return {
+                "erro": f"Dados ausentes no snapshot '{analise}'. Verifique se a geração de dados foi concluída com sucesso e gere os dados novamente."
+            }
 
         # Cálculo com grafos
         import pandas as pd
