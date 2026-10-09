@@ -13,6 +13,9 @@ from time import perf_counter
 
 for analise in ANALISES:
     dfs = coletar_dados(username, password, analise)
+    if not dfs:
+        print(f"Erro: Dados não atualizados para {analise}. O sistema retornou uma extração vazia.")
+        continue
     with open(f"snapshot_{analise}.pkl", "wb") as f:
         pickle.dump(dfs, f)
     print(f"Snapshot salvo para {analise}.")

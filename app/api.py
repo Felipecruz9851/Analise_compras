@@ -125,11 +125,18 @@ def rodar_analise(session, payload):
         return {"erro": "Processo já em execução"}
 
     with session.lock:
-        resultado = executar_pipeline(
-            payload["username"],
-            payload["password"],
-            payload["analise"],
-        )
+        try:
+            resultado = executar_pipeline(
+                payload["username"],
+                payload["password"],
+                payload["analise"],
+            )
+        except RuntimeError as e:
+            if "credenciais inválidas" in str(e).lower() or "login falhou" in str(e).lower():
+                return {"erro": "Senha incorreta ou usuário inválido no sistema PCP."}
+            return {"erro": str(e)}
+        except Exception as e:
+            return {"erro": f"Erro inesperado durante a análise: {str(e)}"}
 
         df = pd.DataFrame(resultado)
 
@@ -356,7 +363,18 @@ def gerar_pickles(session, payload=None):
     start = perf_counter()
     snapshots = []
     for analise in settings.ANALISES:
-        dfs = coletar_dados(username, password, analise)
+        try:
+            dfs = coletar_dados(username, password, analise)
+        except RuntimeError as e:
+            if "credenciais inválidas" in str(e).lower() or "login falhou" in str(e).lower():
+                return {"erro": "Senha incorreta ou usuário inválido no sistema PCP."}
+            return {"erro": str(e)}
+        except Exception as e:
+            return {"erro": f"Erro inesperado: {str(e)}"}
+
+        if not dfs:
+            return {"erro": "Erro: Dados não atualizados. O sistema retornou uma extração vazia."}
+
         fname = f"snapshot_{analise}.pkl"
         if os.path.exists(fname):
             os.remove(fname)

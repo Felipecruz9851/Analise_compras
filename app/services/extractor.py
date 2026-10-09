@@ -444,6 +444,8 @@ class Extractor:
     # ----------------------------
 
     def executar(self, analise: str):
+        # Valida as credenciais antes de enfileirar as tarefas
+        self.login()
 
         tarefas = self.gerar_tarefas(analise)
 
