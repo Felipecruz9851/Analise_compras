@@ -59,7 +59,7 @@ export default function Login({ onAnalysisReady }) {
     setLoadingMsg("Executando análise...");
     try {
       const payload = {
-        username: user,
+        username: "",
         password: pass,
         analise: analiseSelecionada,
       };
@@ -77,7 +77,10 @@ export default function Login({ onAnalysisReady }) {
     setLoading(true);
     setLoadingMsg("Coletando dados...");
     try {
-      const resp = await apiCall("gerar_pickles", { username: user, password: pass });
+      const resp = await apiCall("gerar_pickles", {
+        username: user,
+        password: pass,
+      });
       if (resp && resp.erro) throw new Error(resp.erro);
       await loadPickles();
       alert("✅ Dados gerados com sucesso!");

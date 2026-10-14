@@ -4,7 +4,7 @@ import uuid
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -40,10 +40,8 @@ class SessionMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SessionMiddleware)
 
+# API routes
 app.include_router(api_router, prefix="/api")
-
-# Serve the UI static files
-app.mount("/ui", StaticFiles(directory=os.path.join(BASE_DIR, "app", "ui")), name="ui")
 
 # Serve the exports directory for downloads
 exports_dir = os.path.join(BASE_DIR, "exports")
@@ -55,9 +53,28 @@ csv_dir = os.path.join(BASE_DIR, "CSV")
 os.makedirs(csv_dir, exist_ok=True)
 app.mount("/csv_files", StaticFiles(directory=csv_dir), name="csv_files")
 
+# Serve the legacy UI static files
+ui_dir = os.path.join(BASE_DIR, "app", "ui")
+if os.path.exists(ui_dir):
+    app.mount("/ui", StaticFiles(directory=ui_dir), name="ui")
 
-@app.get("/")
-def read_root():
+# Serve the React frontend (dist)
+dist_dir = os.path.join(BASE_DIR, "dist")
+dist_assets = os.path.join(dist_dir, "assets")
+if os.path.exists(dist_assets):
+    app.mount("/assets", StaticFiles(directory=dist_assets), name="react_assets")
+
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    file_path = os.path.join(dist_dir, full_path)
+    if full_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+
+    index_path = os.path.join(dist_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+
     return RedirectResponse(url="/ui/login.html")
 
 

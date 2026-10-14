@@ -23,6 +23,40 @@ function Dashboard() {
   const [totalOcsProntas, setTotalOcsProntas] = useState(0);
   const [analiseNome, setAnaliseNome] = useState("");
 
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem("analise_compras_sidebar_open");
+      return saved !== null ? saved === "true" : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const [showMetrics, setShowMetrics] = useState(() => {
+    try {
+      const saved = localStorage.getItem("analise_compras_show_metrics");
+      return saved !== null ? saved === "true" : true;
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("analise_compras_sidebar_open", String(sidebarOpen));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("analise_compras_show_metrics", String(showMetrics));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [showMetrics]);
+
   const getFiltrosTratados = (filtrosBrutos) => {
     const cleanFiltros = {};
     const colunasExatas = {};
@@ -195,31 +229,47 @@ function Dashboard() {
 
   return (
     <div className="bg-surface-canvas text-on-surface font-body h-screen overflow-hidden">
-      <Sidebar resumo={resumo} totalGeral={totalGeral} />
-      <div className="pl-72 flex flex-col h-screen">
+      <Sidebar
+        resumo={resumo}
+        totalGeral={totalGeral}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen((prev) => !prev)}
+        onClose={() => setSidebarOpen(false)}
+      />
+      <div
+        className={`flex flex-col h-screen transition-[padding] duration-300 ease-in-out ${
+          sidebarOpen ? "pl-72" : "pl-0"
+        }`}
+      >
         <Header
           totalItens={totalItens}
           analiseNome={analiseNome}
           filtrosPayload={filtrosPayload}
           hasFilters={hasFilters}
           onClearFilters={handleClearAllFilters}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+          showMetrics={showMetrics}
+          onToggleMetrics={() => setShowMetrics((prev) => !prev)}
         />
-        <main className="w-full pt-20 bg-surface-canvas flex-1 flex flex-col min-h-0">
-          <div className="p-lg flex flex-col gap-8 max-w-[1720px] mx-auto w-full flex-1 min-h-0 relative">
-            <div className="flex-none">
-              <MetricsCards
-                totalGeral={totalGeral}
-                totalItens={totalItens}
-                edicoesCount={Object.keys(edicoes).length}
-                isFilteredEdicoes={apenasEditados}
-                onFilterEdicoes={toggleFilterEdicoes}
-                totalOcsProntas={totalOcsProntas}
-                isFilteredOcs={apenasOcsProntas}
-                onFilterOcs={toggleFilterOcs}
-              />
-            </div>
+        <main className="w-full pt-14 bg-surface-canvas flex-1 flex flex-col min-h-0">
+          <div className="px-3.5 py-2.5 flex flex-col gap-2 max-w-[1720px] mx-auto w-full flex-1 min-h-0 relative">
+            {showMetrics && (
+              <div className="flex-none">
+                <MetricsCards
+                  totalGeral={totalGeral}
+                  totalItens={totalItens}
+                  edicoesCount={Object.keys(edicoes).length}
+                  isFilteredEdicoes={apenasEditados}
+                  onFilterEdicoes={toggleFilterEdicoes}
+                  totalOcsProntas={totalOcsProntas}
+                  isFilteredOcs={apenasOcsProntas}
+                  onFilterOcs={toggleFilterOcs}
+                />
+              </div>
+            )}
 
-            <div className="flex-1 min-h-0 bg-surface-card rounded-lg shadow-card overflow-hidden">
+            <div className="flex-1 min-h-0 bg-surface-card rounded-lg shadow-sm border border-border overflow-hidden">
               <PurchaseTable
                 data={data}
                 edicoes={edicoes}
@@ -234,14 +284,14 @@ function Dashboard() {
               />
             </div>
 
-            <div className="absolute bottom-2 right-10 flex items-end justify-end group z-30">
-              <div className="w-8 h-8 rounded-full bg-surface-card border border-border shadow-sm flex items-center justify-center text-text-secondary cursor-help hover:bg-gray-50 transition-colors">
-                <span className="material-symbols-outlined text-[18px]">
+            <div className="absolute bottom-2 right-4 flex items-end justify-end group z-30">
+              <div className="w-7 h-7 rounded-full bg-surface-card border border-border shadow-sm flex items-center justify-center text-text-secondary cursor-help hover:bg-gray-50 transition-colors">
+                <span className="material-symbols-outlined text-[16px]">
                   info
                 </span>
               </div>
 
-              <div className="absolute bottom-0 right-10 bg-surface-card rounded-lg shadow-xl border border-border px-4 py-2 flex items-center justify-end gap-4 text-[11px] text-text-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap mr-2 pointer-events-none">
+              <div className="absolute bottom-0 right-8 bg-surface-card rounded-lg shadow-xl border border-border px-3 py-1.5 flex items-center justify-end gap-3 text-[11px] text-text-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap mr-2 pointer-events-none">
                 <strong>Filtros:</strong>
                 <span>
                   <code className="bg-black/5 px-1 rounded">==</code> exato

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { apiCall } from "../services/api";
+import logoLider from "../logo_lider.png";
 
 export default function Header({
   totalItens,
@@ -8,6 +9,10 @@ export default function Header({
   filtrosPayload,
   hasFilters,
   onClearFilters,
+  sidebarOpen = true,
+  onToggleSidebar,
+  showMetrics = true,
+  onToggleMetrics,
 }) {
   const [loading, setLoading] = useState(false);
   const [exportsModalOpen, setExportsModalOpen] = useState(false);
@@ -98,49 +103,108 @@ export default function Header({
   };
 
   return (
-    <header className="fixed top-0 left-72 right-0 h-20 bg-surface-card/95 backdrop-blur-xl z-40 border-b border-border shadow-sm px-lg flex items-center justify-between">
-      <h2 className="text-xl font-bold text-text-main">
-        Análise de matéria prima - {analiseNome || "Carregando..."}
-      </h2>
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-text-secondary flex items-center gap-2">
-          <span>Total Registros:</span>
+    <header
+      className={`fixed top-0 right-0 h-14 bg-surface-card/95 backdrop-blur-xl z-40 border-b border-border shadow-sm px-4 flex items-center justify-between transition-all duration-300 ease-in-out ${
+        sidebarOpen ? "left-72" : "left-0"
+      }`}
+    >
+      {/* Canto superior esquerdo: Botão de toggle e Logo Líder (quando sidebar oculta) */}
+      <div className="flex items-center gap-2.5 shrink-0 z-10">
+        <button
+          onClick={onToggleSidebar}
+          className="p-1.5 rounded-lg text-text-secondary hover:text-text-main hover:bg-black/5 transition-colors flex items-center justify-center shrink-0"
+          title={sidebarOpen ? "Ocultar barra lateral" : "Exibir barra lateral"}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[22px]">
+            {sidebarOpen ? "dock_to_left" : "menu"}
+          </span>
+        </button>
+
+        {!sidebarOpen && (
+          <img
+            src={logoLider}
+            alt="Logo Líder"
+            className="max-h-8 w-auto shrink-0"
+          />
+        )}
+      </div>
+
+      {/* Título da página centralizado */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 pointer-events-none max-w-[35%] xl:max-w-[48%] text-center">
+        <h2
+          className="text-base font-bold text-text-main truncate pointer-events-auto"
+          title={`Análise de matéria prima - ${analiseNome || "Carregando..."}`}
+        >
+          Análise de matéria prima - {analiseNome || "Carregando..."}
+        </h2>
+      </div>
+
+      {/* Canto direito: controles e ações */}
+      <div className="flex items-center gap-2.5 shrink-0 z-10 ml-auto">
+        <span className="text-xs text-text-secondary flex items-center gap-1">
+          <span>Registros:</span>
           <span className="font-bold text-primary">{totalItens}</span>
         </span>
-        <span className="text-sm text-text-secondary mr-2">AO VIVO</span>
+
+        {onToggleMetrics && (
+          <button
+            onClick={onToggleMetrics}
+            className={`text-xs font-semibold px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
+              showMetrics
+                ? "bg-primary/10 border-primary/30 text-primary"
+                : "border-border text-text-secondary hover:bg-black/5"
+            }`}
+            title={
+              showMetrics
+                ? "Ocultar cartões de resumo"
+                : "Exibir cartões de resumo"
+            }
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[15px]">
+              {showMetrics ? "visibility" : "visibility_off"}
+            </span>
+            <span>Métricas</span>
+          </button>
+        )}
+
         {hasFilters && (
           <button
             onClick={onClearFilters}
-            className="text-text-secondary hover:text-error text-sm font-semibold transition-colors flex items-center gap-1 bg-transparent px-3 py-2 rounded-lg hover:bg-error/10"
+            className="text-text-secondary hover:text-error text-xs font-semibold transition-colors flex items-center gap-1 bg-transparent px-2 py-1 rounded-lg hover:bg-error/10"
             title="Limpar todos os filtros"
+            type="button"
           >
-            <span className="material-symbols-outlined text-[18px]">
+            <span className="material-symbols-outlined text-[15px]">
               filter_alt_off
             </span>
             Limpar Filtros
           </button>
         )}
+
         {totalItens > 0 && (
           <>
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setOcsMenuOpen(!ocsMenuOpen)}
                 disabled={loading}
-                className="bg-primary hover:bg-primary-light text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-btn-hover disabled:opacity-50 transition-colors flex items-center gap-2"
+                className="bg-primary hover:bg-primary-light text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm disabled:opacity-50 transition-colors flex items-center gap-1"
+                type="button"
               >
                 {loading ? "Processando..." : "Gerar OCs"}
-                <span className="material-symbols-outlined text-[18px]">
+                <span className="material-symbols-outlined text-[15px]">
                   expand_more
                 </span>
               </button>
               {ocsMenuOpen && (
-                <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-border rounded-lg shadow-xl z-50 py-1 text-sm text-text-main">
+                <div className="absolute top-full right-0 mt-1 w-56 bg-white border border-border rounded-lg shadow-xl z-50 py-1 text-xs text-text-main">
                   <button
                     onClick={() => {
                       setOcsMenuOpen(false);
                       handleGerarOCs();
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-bg-main transition-colors"
+                    className="w-full text-left px-3.5 py-2 hover:bg-bg-main transition-colors font-medium"
                   >
                     Executar normalmente
                   </button>
@@ -149,7 +213,7 @@ export default function Header({
                       setOcsMenuOpen(false);
                       handleGerarCsvVisivel();
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-bg-main transition-colors"
+                    className="w-full text-left px-3.5 py-2 hover:bg-bg-main transition-colors font-medium"
                   >
                     Gerar CSV apenas visível
                   </button>
@@ -158,7 +222,8 @@ export default function Header({
             </div>
             <button
               onClick={abrirExports}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-btn-hover transition-colors"
+              className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors"
+              type="button"
             >
               Exportações
             </button>

@@ -103,7 +103,8 @@ class Extractor:
         if "PHPSESSID" not in self.session.cookies:
             raise RuntimeError("Login falhou: sessão não criada")
 
-        if "login" in response.url.lower():
+        # Verifica pela URL ou se o HTML de resposta ainda contém o formulário de login
+        if "login" in response.url.lower() or "name=\"logar\"" in response.text.lower() or "senha incorreta" in response.text.lower():
             raise RuntimeError("Login falhou: credenciais inválidas")
 
         self._logged_in = True

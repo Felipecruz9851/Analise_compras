@@ -27,7 +27,7 @@ const parseNumeroBR = (valor) => {
 
 const valueLabelsPlugin = {
   id: "valueLabels",
-  afterDatasetsDraw(chart, args, options) {
+  afterDatasetsDraw(chart, _args, _options) {
     const { ctx } = chart;
     ctx.save();
     ctx.font = "bold 11px sans-serif";
