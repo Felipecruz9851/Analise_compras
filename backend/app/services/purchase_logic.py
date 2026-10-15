@@ -428,7 +428,7 @@ def compra_necessidade(dfs):
     return df
 
 
-def abr_ace(dfs):
+def geral(dfs):
 
     import pandas as pd
     import numpy as np
@@ -591,7 +591,9 @@ def calcular(analise, dfs):
     """
 
     if not dfs or dfs.get("apoio_compras") is None:
-        raise ValueError("Dados incompletos ou vazios retornados pela extração (grupo 'apoio_compras' ausente). Verifique as credenciais ou a conexão com o sistema PCP.")
+        raise ValueError(
+            "Dados incompletos ou vazios retornados pela extração (grupo 'apoio_compras' ausente). Verifique as credenciais ou a conexão com o sistema PCP."
+        )
 
     if analise == "compra por necessidade":
         analise_compra = compra_necessidade(dfs)
