@@ -14,6 +14,8 @@ tags: [codigo, frontend, javascript, react, tabela, edicao]
 * `handleCellEdit(rowId, valor)`: Persiste imediatamente no servidor a quantidade comprada ajustada pelo usuário via `salvar_edicao`.
 * `handleSort(coluna)`: Aplica ordenação ascendente/descendente na coluna selecionada.
 * `handleFilterChange(coluna, valor)`: Atualiza critérios de filtragem e reinicia a paginação para a primeira página.
+* `ehColunaMes(col)` & Sparkline: Detecta colunas com formato `AAAA-MM`, remove-as da listagem de texto plano e renderiza o minigráfico Sparkline agrupado na coluna `Gráfico` (posição 2).
+* Projeção Dinâmica: Renderiza automaticamente todas as colunas fornecidas pelo backend (35+ colunas da análise geral e de necessidade), aplicando largura expandida para `Descrição` e formatação monetária para `Valor Comprado`.
 
 ## Dependências (Grafo)
 **⬅️ Quem chama este módulo (Entrada):**

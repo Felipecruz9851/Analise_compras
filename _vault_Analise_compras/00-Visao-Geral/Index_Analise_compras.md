@@ -39,6 +39,7 @@ graph TD
         Logic --> GraphCalc["processor.py: calc_data\n(BFS Resolução Multinível OP/Item Pai)"]
         Logic --> Settings["backend/app/settings.py\n(Prazos Expedição & Feriados)"]
         Logic --> CalcEst["backend/app/services/calc_est.py\n(Motor Vetorizado de Regras)"]
+        Logic --> AnaliseEst["backend/app/services/analise_estoque.py\n(Motor Geral de Estoque & Excel)"]
     end
 
     subgraph Storage["Persistência & Dados (backend/data/)"]
@@ -72,6 +73,7 @@ graph TD
 - [[02-Backend-API/Session_Manager]]: Gerenciador de sessões em memória com TTL e thread-safety (`backend/app/session_manager.py`).
 
 ### 03. Domínio e Cálculos (`backend/app/services/`)
+- [[03-Dominio-Calculos/Motor_Analise_Estoque_Geral]]: Motor de inteligência de compras e análise de estoque geral baseado na planilha corporativa (`backend/app/services/analise_estoque.py`).
 - [[03-Dominio-Calculos/Regra_Compra_Necessidade]]: Algoritmo MRP para falta, lote mínimo/econômico e data ideal (`backend/app/services/purchase_logic.py`).
 - [[03-Dominio-Calculos/Regra_Rateio_Consumo_Grafo]]: Resolução em grafo BFS da hierarquia de itens de manufatura (`backend/app/services/processor.py`).
 - [[03-Dominio-Calculos/Regra_Calculo_Estoque_Regras]]: Motor declarativo de regras de estoque e cobertura (`backend/app/services/calc_est.py`).

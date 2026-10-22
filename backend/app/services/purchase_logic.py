@@ -3,7 +3,7 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-from app.services.analise_estoque import processar_analise_compras
+from app.services.analise_estoque import detectar_meses, processar_analise_compras
 from app.services.processor import calc_data, sanitizar_dataframe
 from app.settings import BASE_DIR, DATA_DIR, carregar_feriados, prazo_por_representante
 from dateutil.relativedelta import relativedelta
@@ -443,7 +443,7 @@ def geral(dfs):
 
     # 2) Converte coluna F para data
     df_entrega[col_f] = pd.to_datetime(
-        df_entrega[col_f], errors="coerce", dayfirst=True
+        df_entrega[col_f], errors="coerce"
     )
 
     # 3) Remove linhas sem data válida
@@ -463,8 +463,6 @@ def geral(dfs):
     # =========================
     # Busca histórico de consumo quarto mes completo
     # =========================
-
-
 
     data = datetime.now() - relativedelta(months=4)
     mes = data.month
@@ -488,66 +486,123 @@ def geral(dfs):
             df.insert(2, nome_col, pd.NA)
     df_apoio = df
 
+    meses_historicos, mes_atual = detectar_meses(df_apoio.columns)
     df = processar_analise_compras(df_apoio, df_entrega)
 
-    df = df.rename(
-        columns={
-            "Familia": "Família",
-            "VALOR-COMPRA": "Valor Comprado",
-            "VALOR-ESTOQUE": "Valor Estoque",
-            "Decisão de compra": "Decis Compras",
-        }
-    )
-    hoje = datetime.now()
-
+    # Mapeamento dinâmico dos meses calculados
     mapa_meses = {
-        "Cons mês atual": hoje.strftime("%Y-%m"),
-        "Cons 4": (hoje - relativedelta(months=1)).strftime("%Y-%m"),
-        "Cons 3": (hoje - relativedelta(months=2)).strftime("%Y-%m"),
-        "Cons 2": (hoje - relativedelta(months=3)).strftime("%Y-%m"),
-        "Cons 1": (hoje - relativedelta(months=4)).strftime("%Y-%m"),
+        "Cons 1": meses_historicos[0],
+        "Cons 2": meses_historicos[1],
+        "Cons 3": meses_historicos[2],
+        "Cons 4": meses_historicos[3],
+        "Cons mês atual": mes_atual,
     }
-
     df = df.rename(columns=mapa_meses)
 
+    # Normalização e renomeação dos campos para interface e compatibilidade
+    mapa_colunas = {
+        "Desc": "Descrição",
+        "Obs.": "Observação",
+        "Neces.": "Neces",
+        "OC.": "OC",
+        "Estoque prod.": "Estoque Produção",
+        "Lote min.": "Lote Mínimo",
+        "Lote mult.": "Lote Econom",
+        "Prazo cadastrado": "Prazo Fornecedor",
+        "Familia": "Família",
+        "Saldo virtual": "Saldo Virtual",
+        "Valor unitário": "Valor Unitário",
+        "Cons diário": "Média Diária",
+        "Decisão de compra": "Decis Compras",
+        "VALOR-COMPRA": "Valor Comprado",
+    }
+    df = df.rename(columns=mapa_colunas)
 
-    print(f"colunas teste \n #################### \n {df.columns.tolist()}")
+    # Campos derivados complementares
+    if "Valor Estoque" not in df.columns:
+        if "Estoque Padrão" in df.columns and "Valor Unitário" in df.columns:
+            df["Valor Estoque"] = (df["Estoque Padrão"] * df["Valor Unitário"]).round(2)
+        elif "Valor Estoque" in df_apoio.columns:
+            df["Valor Estoque"] = df["Item"].map(df_apoio.set_index("Item")["Valor Estoque"]).fillna(0.0)
 
-    # =========================
-    # FINAL
-    # =========================
+    feriados = carregar_feriados()
+    feriados_pd = pd.to_datetime(feriados)
+    feriados_np = np.array(feriados_pd, dtype="datetime64[D]")
 
-    df = df.drop(columns=["Ponto", "Dispon"], errors="ignore")
+    prazo_dias = (
+        pd.to_numeric(df["Prazo Fornecedor"], errors="coerce")
+        .fillna(0)
+        .astype(int)
+    )
+    df["Data OC"] = pd.to_datetime("today").normalize() + pd.to_timedelta(
+        prazo_dias, unit="D"
+    )
+    datas = df["Data OC"].values.astype("datetime64[D]")
+    df["Data OC"] = np.busday_offset(
+        datas, offsets=0, roll="forward", holidays=feriados_np
+    )
+    df["Data OC"] = pd.to_datetime(df["Data OC"]).dt.strftime("%d/%m/%Y")
+
     df["texto OC"] = ""
+    df["Falta"] = np.maximum(
+        0.0,
+        df["Neces"] - (df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"])
+    ).round(2)
 
-    colunas_mes = [col for col in df.columns if re.match(r"^\d{4}-\d{2}$", col)]
+    for extra_col in [
+        "Última Data Entrada",
+        "Última Data Saída",
+        "Estoque Rejeitado",
+        "raiz_Item Final",
+        "raiz_Pedido",
+    ]:
+        if extra_col in df_apoio.columns and extra_col not in df.columns:
+            df[extra_col] = df["Item"].map(df_apoio.set_index("Item")[extra_col]).fillna("")
+
+    # =========================
+    # SELEÇÃO E ORDENAÇÃO DE COLUNAS
+    # =========================
+    colunas_mes = [*meses_historicos, mes_atual]
     colunas_desejadas = [
         "Item",
         "Descrição",
         *colunas_mes,
-        # "Baixa",
-        # "Neces",
-        # "Estoque Padrão",
-        # "Estoque Produção",
         "Decis Compras",
         "Valor Comprado",
-        # "Saldo Virtual",
-        # "Data OC",
-        # "Lote Mínimo",
-        # "Lote Econom",
-        # "Valor Unitário",
-        # "OC",
-        # "Valor Estoque",
-        # "Média Diária",
-        # "Observação",
-        # "Última Data Entrada",
-        # "Última Data Saída",
-        # "raiz_Item Final",
-        # "raiz_Pedido",
-        # "Estoque Rejeitado",
+        "Analisar",
+        "Ponto de pedido",
+        "Status",
+        "Faixa de compra",
+        "Saldo Virtual",
+        "Dias de saldo virtual",
+        "Cobertura mínima (dias)",
+        "Sugestão de compra (dias)",
+        "Compra com ajuste (dias)",
+        "QTD COMPRA",
+        "Média mens + Necessidade",
+        "Média Diária",
+        "Neces",
+        "Estoque Padrão",
+        "Estoque Produção",
+        "OC",
+        "Falta",
+        "Lote Mínimo",
+        "Lote Econom",
+        "Valor Unitário",
+        "Valor Estoque",
+        "Prazo Fornecedor",
+        "Média prazos de entrega (5 - 3 últimos)",
+        "Data OC",
+        "Dif est-cob",
+        "Fator de ajuste",
+        "Dias de ajuste",
+        "Repres. De cons. Mensal",
+        "Baixa",
+        "Observação",
+        "Última Data Entrada",
+        "Última Data Saída",
         "Família",
-        # "Falta",
-        # "texto OC",
+        "texto OC",
     ]
 
     df = df[[col for col in colunas_desejadas if col in df.columns]]
