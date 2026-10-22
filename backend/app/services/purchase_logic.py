@@ -1,18 +1,18 @@
 import re
-import pandas as pd
+from datetime import datetime
+
 import numpy as np
-from datetime import date, timedelta
+import pandas as pd
+from app.services.analise_estoque import processar_analise_compras
 from app.services.processor import calc_data, sanitizar_dataframe
-from app.settings import carregar_feriados, prazo_por_representante, DATA_DIR, BASE_DIR
+from app.settings import BASE_DIR, DATA_DIR, carregar_feriados, prazo_por_representante
+from dateutil.relativedelta import relativedelta
 from pandas.tseries.offsets import CustomBusinessDay
-import re
-from pathlib import Path
 
 
 def compra_necessidade(dfs):
-    import pandas as pd
     import numpy as np
-    from pandas.tseries.offsets import CustomBusinessDay
+    import pandas as pd
 
     feriados = carregar_feriados()
     df = dfs.get("apoio_compras").copy()
@@ -139,7 +139,6 @@ def compra_necessidade(dfs):
     # =========================
 
     for _, row_base in df.iterrows():
-
         item = row_base["Item"]
         saldo = row_base["Decis Compras"]
 
@@ -308,7 +307,6 @@ def compra_necessidade(dfs):
     # --- 5. Filtro mármore ---
 
     if not df.empty and "Família" in df.columns:
-
         # Mapa (Item, raiz_Pedido) → raiz_fábrica a partir do df_consumo
         fab_map = (
             df_consumo.dropna(subset=["raiz_Fábrica"])
@@ -351,7 +349,7 @@ def compra_necessidade(dfs):
     # =========================
 
     from datetime import datetime
-    from dateutil.relativedelta import relativedelta
+
 
     data = datetime.now() - relativedelta(months=4)
     mes = data.month
@@ -429,87 +427,44 @@ def compra_necessidade(dfs):
 
 
 def geral(dfs):
+    df_apoio = sanitizar_dataframe(dfs.get("apoio_compras").copy())
+    df_entrega = sanitizar_dataframe(dfs.get("conf").copy())
 
-    import pandas as pd
-    import numpy as np
-    from pandas.tseries.offsets import CustomBusinessDay
+    col_a = df_entrega.columns[0]  # Item
+    col_d = df_entrega.columns[3]  # Empresa
+    col_f = df_entrega.columns[5]  # Data
+    col_l = df_entrega.columns[11]
 
-    feriados = carregar_feriados()
-    df = sanitizar_dataframe(dfs.get("apoio_compras").copy())
-    # --- NORMALIZAÇÃO ---
-    for c in df.columns:
-        if df[c].dtype == object:
-            df[c] = (
-                df[c]
-                .str.replace(".", "", regex=False)
-                .str.replace(",", ".", regex=False)
-            )
-
-    colunas_para_normalizar = [
-        "Neces",
-        "Estoque Padrão",
-        "Lote Mínimo",
-        "Dispon",
-        "Lote Econom",
-        "Estoque Produção",
-        "OC",
-        "Valor Unitário",
+    # 1) Mantém apenas D == 11
+    df_entrega = df_entrega[df_entrega[col_d].astype(str).str.strip() == "11"]
+    df_entrega = df_entrega[
+        df_entrega[col_l].notna() & (df_entrega[col_l].astype(str).str.strip() != "")
     ]
 
-    for col in colunas_para_normalizar:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    # --- CÁLCULO COMPRA ---
-    df["Falta"] = df["Neces"] - (
-        df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"]
+    # 2) Converte coluna F para data
+    df_entrega[col_f] = pd.to_datetime(
+        df_entrega[col_f], errors="coerce", dayfirst=True
     )
 
-    df[["Lote Mínimo", "Lote Econom"]] = df[["Lote Mínimo", "Lote Econom"]].replace(
-        0, 1
-    )
+    # 3) Remove linhas sem data válida
+    df_entrega = df_entrega[df_entrega[col_f].notna()].dropna(subset=[col_f])
 
-    df["Decis Compras"] = np.where(
-        df["Falta"] <= 0,
-        0,
-        np.where(
-            df["Falta"] <= df["Lote Mínimo"],
-            df["Lote Mínimo"],
-            df["Lote Mínimo"]
-            + np.ceil((df["Falta"] - df["Lote Mínimo"]) / df["Lote Econom"])
-            * df["Lote Econom"],
-        ),
-    )
+    # 4) Ordena pelos mais recentes
+    df_entrega = df_entrega.sort_values(by=col_f, ascending=False)
 
-    df["Valor Comprado"] = df["Decis Compras"] * df["Valor Unitário"]
+    # 5) Mantém somente os 5 mais recentes por item
+    df_entrega = df_entrega.groupby(col_a, group_keys=False).head(5)
 
-    # --- DATA OC ---
-    df["Prazo Fornecedor"] = (
-        pd.to_numeric(df["Prazo Fornecedor"], errors="coerce").fillna(0).astype(int)
-    )
+    # 6) Ordenação final
+    df_entrega = df_entrega.sort_values(by=[col_a, col_f], ascending=[True, False])
 
-    df["Data OC"] = pd.to_datetime("today").normalize() + pd.to_timedelta(
-        df["Prazo Fornecedor"], unit="D"
-    )
-
-    feriados_pd = pd.to_datetime(feriados)
-    bd = CustomBusinessDay(holidays=feriados_pd)
-
-    import numpy as np
-
-    feriados_np = np.array(feriados_pd, dtype="datetime64[D]")
-
-    datas = df["Data OC"].values.astype("datetime64[D]")
-
-    df["Data OC"] = np.busday_offset(
-        datas, offsets=0, roll="forward", holidays=feriados_np
-    )
+    df = df_apoio
 
     # =========================
     # Busca histórico de consumo quarto mes completo
     # =========================
 
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
+
 
     data = datetime.now() - relativedelta(months=4)
     mes = data.month
@@ -531,6 +486,32 @@ def geral(dfs):
             df.insert(2, nome_col, col)
         else:
             df.insert(2, nome_col, pd.NA)
+    df_apoio = df
+
+    df = processar_analise_compras(df_apoio, df_entrega)
+
+    df = df.rename(
+        columns={
+            "Familia": "Família",
+            "VALOR-COMPRA": "Valor Comprado",
+            "VALOR-ESTOQUE": "Valor Estoque",
+            "Decisão de compra": "Decis Compras",
+        }
+    )
+    hoje = datetime.now()
+
+    mapa_meses = {
+        "Cons mês atual": hoje.strftime("%Y-%m"),
+        "Cons 4": (hoje - relativedelta(months=1)).strftime("%Y-%m"),
+        "Cons 3": (hoje - relativedelta(months=2)).strftime("%Y-%m"),
+        "Cons 2": (hoje - relativedelta(months=3)).strftime("%Y-%m"),
+        "Cons 1": (hoje - relativedelta(months=4)).strftime("%Y-%m"),
+    }
+
+    df = df.rename(columns=mapa_meses)
+
+
+    print(f"colunas teste \n #################### \n {df.columns.tolist()}")
 
     # =========================
     # FINAL
@@ -544,32 +525,30 @@ def geral(dfs):
         "Item",
         "Descrição",
         *colunas_mes,
-        "Baixa",
-        "Neces",
-        "Estoque Padrão",
-        "Estoque Produção",
+        # "Baixa",
+        # "Neces",
+        # "Estoque Padrão",
+        # "Estoque Produção",
         "Decis Compras",
         "Valor Comprado",
-        "Saldo Virtual",
-        "Data OC",
-        "Lote Mínimo",
-        "Lote Econom",
-        "Valor Unitário",
-        "OC",
-        "Valor Estoque",
-        "Média Diária",
-        "Observação",
-        "Última Data Entrada",
-        "Última Data Saída",
-        "raiz_Item Final",
-        "raiz_Pedido",
-        "Estoque Rejeitado",
+        # "Saldo Virtual",
+        # "Data OC",
+        # "Lote Mínimo",
+        # "Lote Econom",
+        # "Valor Unitário",
+        # "OC",
+        # "Valor Estoque",
+        # "Média Diária",
+        # "Observação",
+        # "Última Data Entrada",
+        # "Última Data Saída",
+        # "raiz_Item Final",
+        # "raiz_Pedido",
+        # "Estoque Rejeitado",
         "Família",
-        "Falta",
-        "texto OC",
+        # "Falta",
+        # "texto OC",
     ]
-
-    df["Data OC"] = df["Data OC"].dt.strftime("%d/%m/%Y")
 
     df = df[[col for col in colunas_desejadas if col in df.columns]]
 
@@ -603,7 +582,6 @@ def calcular(analise, dfs):
         analise_compra = fnd_fer(dfs)
     elif analise == "Geral":
         analise_compra = geral(dfs)
-
     else:
         raise NotImplementedError(f"Análise '{analise}' ainda não implementada")
     return analise_compra

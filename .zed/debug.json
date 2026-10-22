@@ -1,0 +1,12 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "label": "Python Debug (Venv)",
+    "command": "powershell -Command \"if (Test-Path .venv/Scripts/python.exe) { .venv/Scripts/python.exe -m pdb '$ZED_FILE' } else { python -m pdb '$ZED_FILE' }\"",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false
+  }
+]
