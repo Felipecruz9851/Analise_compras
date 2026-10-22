@@ -1,0 +1,631 @@
+c:\Users\engli\Desktop\Analise_compras\backend\app\api.py
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:192:11 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:193:35 - error: Operator ">" not supported for types "Series | ArrowExtensionArray | BooleanArray | ExtensionArray | FloatingArray | IntegerArray | Index | Self@Index | DatetimeIndex | TimedeltaIndex | Any | Unknown" and "Literal[0]"
+    Operator ">" not supported for types "ExtensionArray" and "Literal[0]" (reportOperatorIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:237:7 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:238:29 - error: Operator ">" not supported for types "Series | ArrowExtensionArray | BooleanArray | ExtensionArray | FloatingArray | IntegerArray | Index | Self@Index | DatetimeIndex | TimedeltaIndex | Any | Unknown" and "Literal[0]"
+    Operator ">" not supported for types "ExtensionArray" and "Literal[0]" (reportOperatorIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "str"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "bytes"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "date"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "datetime"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "datetime64[date | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "timedelta64[timedelta | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "bool"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "int"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "float"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "Timestamp"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "Timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "Interval[Unknown]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "complex"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "integer[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "floating[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:527:49 - error: Cannot access attribute "set_index" for class "complexfloating[Any, Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:560:28 - error: Cannot access attribute "notna" for class "NDArray[Any]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:560:66 - error: Cannot access attribute "str" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "str" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:563:19 - error: No overloads for "dropna" match the provided arguments
+    Argument types: (list[Unknown | Self@Index]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:563:19 - error: No overloads for "dropna" match the provided arguments
+    Argument types: (list[Any]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:563:42 - error: Cannot access attribute "notna" for class "NDArray[Any]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:563:51 - error: Cannot access attribute "dropna" for class "NDArray[Any]"
+    Attribute "dropna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:564:42 - error: Argument of type "Unknown | Self@Index" cannot be assigned to parameter "by" of type "IndexLabel" in function "sort_values"
+    Type "Unknown | Self@Index" is not assignable to type "IndexLabel"
+      Type "Self@Index" is not assignable to type "IndexLabel"
+        "Index*" is incompatible with protocol "Hashable"
+          "__hash__" is an incompatible type
+          "__hash__" is not defined as a ClassVar in protocol
+            Type "None" is not assignable to type "() -> int"
+        "Index*" is not assignable to "Sequence[Hashable]" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "float"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "Number"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "number[Any, int | float | complex]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "int"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "ArrowExtensionArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "NAType"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "NaTType"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "Timestamp"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "Timedelta"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "BooleanArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "FloatingArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "IntegerArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "ExtensionArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:609:34 - error: Cannot access attribute "notna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:736:33 - error: Cannot access attribute "map" for class "NDArray[Any]"
+    Attribute "map" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:755:52 - error: Cannot access attribute "unique" for class "NDArray[Any]"
+    Attribute "unique" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:756:46 - error: Cannot access attribute "dropna" for class "NDArray[Any]"
+    Attribute "dropna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:761:17 - error: No overloads for "drop_duplicates" match the provided arguments
+    Argument types: (Literal['Ordem Cons']) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:761:45 - error: Cannot access attribute "isin" for class "NDArray[Any]"
+    Attribute "isin" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:761:50 - error: Argument of type "set[Unknown]" cannot be assigned to parameter "values" of type "Series | DataFrame | Sequence[Unknown] | Mapping[Unknown, Unknown]" in function "isin"
+    Type "set[Unknown]" is not assignable to type "Series | DataFrame | Sequence[Unknown] | Mapping[Unknown, Unknown]"
+      "set[Unknown]" is not assignable to "Series"
+      "set[Unknown]" is not assignable to "DataFrame"
+      "set[Unknown]" is not assignable to "Sequence[Unknown]"
+      "set[Unknown]" is not assignable to "Mapping[Unknown, Unknown]" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:762:18 - error: Cannot access attribute "drop_duplicates" for class "NDArray[Any]"
+    Attribute "drop_duplicates" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:767:40 - error: Cannot access attribute "to_dict" for class "NDArray[Any]"
+    Attribute "to_dict" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:775:21 - error: No overloads for "drop_duplicates" match the provided arguments
+    Argument types: (list[str]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:775:63 - error: Cannot access attribute "drop_duplicates" for class "NDArray[Any]"
+    Attribute "drop_duplicates" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:812:29 - error: No overloads for "drop_duplicates" match the provided arguments
+    Argument types: (Literal['Ordem Cons']) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:813:44 - error: Cannot access attribute "isin" for class "NDArray[Any]"
+    Attribute "isin" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:814:19 - error: Cannot access attribute "drop_duplicates" for class "NDArray[Any]"
+    Attribute "drop_duplicates" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:831:18 - error: Cannot access attribute "map" for class "NDArray[Any]"
+    Attribute "map" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:831:22 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "func" of type "PythonFuncType" in function "map"
+    Type "dict[Unknown, Unknown]" is not assignable to type "PythonFuncType" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1118:11 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1119:35 - error: Operator ">" not supported for types "Series | ArrowExtensionArray | BooleanArray | ExtensionArray | FloatingArray | IntegerArray | Index | Self@Index | DatetimeIndex | TimedeltaIndex | Any | Unknown" and "Literal[0]"
+    Operator ">" not supported for types "ExtensionArray" and "Literal[0]" (reportOperatorIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1193:7 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\api.py:1194:30 - error: Operator ">" not supported for types "Series | ArrowExtensionArray | BooleanArray | ExtensionArray | FloatingArray | IntegerArray | Index | Self@Index | DatetimeIndex | TimedeltaIndex | Any | Unknown" and "Literal[0]"
+    Operator ">" not supported for types "ExtensionArray" and "Literal[0]" (reportOperatorIssue)
+c:\Users\engli\Desktop\Analise_compras\backend\app\context.py
+  c:\Users\engli\Desktop\Analise_compras\backend\app\context.py:3:35 - error: Type "ContextVar[None]" is not assignable to declared type "ContextVar[str]"
+    "ContextVar[None]" is not assignable to "ContextVar[str]"
+      Type parameter "_T@ContextVar" is invariant, but "None" is not the same as "str" (reportAssignmentType)
+c:\Users\engli\Desktop\Analise_compras\backend\app\services\pipeline.py
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\pipeline.py:76:12 - error: No overloads for "to_dict" match the provided arguments
+    Argument types: (Literal['records']) (reportCallIssue)
+c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "float"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "Number"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "number[Any, int | float | complex]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "int"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "ArrowExtensionArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "NAType"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "NaTType"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "Timestamp"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "Timedelta"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "BooleanArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "FloatingArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "IntegerArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "ExtensionArray"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:77:26 - error: Cannot access attribute "notna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:204:25 - error: Cannot access attribute "map" for class "NDArray[Any]"
+    Attribute "map" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:221:44 - error: Cannot access attribute "unique" for class "NDArray[Any]"
+    Attribute "unique" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:222:38 - error: Cannot access attribute "dropna" for class "NDArray[Any]"
+    Attribute "dropna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:227:9 - error: No overloads for "drop_duplicates" match the provided arguments
+    Argument types: (Literal['Ordem Cons']) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:227:37 - error: Cannot access attribute "isin" for class "NDArray[Any]"
+    Attribute "isin" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:227:42 - error: Argument of type "set[Unknown]" cannot be assigned to parameter "values" of type "Series | DataFrame | Sequence[Unknown] | Mapping[Unknown, Unknown]" in function "isin"
+    Type "set[Unknown]" is not assignable to type "Series | DataFrame | Sequence[Unknown] | Mapping[Unknown, Unknown]"
+      "set[Unknown]" is not assignable to "Series"
+      "set[Unknown]" is not assignable to "DataFrame"
+      "set[Unknown]" is not assignable to "Sequence[Unknown]"
+      "set[Unknown]" is not assignable to "Mapping[Unknown, Unknown]" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:228:10 - error: Cannot access attribute "drop_duplicates" for class "NDArray[Any]"
+    Attribute "drop_duplicates" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:233:32 - error: Cannot access attribute "to_dict" for class "NDArray[Any]"
+    Attribute "to_dict" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:241:13 - error: No overloads for "drop_duplicates" match the provided arguments
+    Argument types: (list[str]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:241:55 - error: Cannot access attribute "drop_duplicates" for class "NDArray[Any]"
+    Attribute "drop_duplicates" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:274:21 - error: No overloads for "drop_duplicates" match the provided arguments
+    Argument types: (Literal['Ordem Cons']) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:274:52 - error: Cannot access attribute "isin" for class "NDArray[Any]"
+    Attribute "isin" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:274:70 - error: Cannot access attribute "drop_duplicates" for class "NDArray[Any]"
+    Attribute "drop_duplicates" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:295:10 - error: Cannot access attribute "map" for class "NDArray[Any]"
+    Attribute "map" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\processor.py:295:14 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "func" of type "PythonFuncType" in function "map"
+    Type "dict[Unknown, Unknown]" is not assignable to type "PythonFuncType" (reportArgumentType)
+c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:85:64 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:93:37 - error: Argument of type "DatetimeIndex" cannot be assigned to parameter "holidays" of type "list[Unknown] | None" in function "__init__"
+    Type "DatetimeIndex" is not assignable to type "list[Unknown] | None"
+      "DatetimeIndex" is not assignable to "list[Unknown]"
+      "DatetimeIndex" is not assignable to "None" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:131:15 - error: No overloads for "sort_values" match the provided arguments
+    Argument types: (Literal['Ordem Cons'], Literal[False]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:219:25 - error: No overloads for "sort_values" match the provided arguments
+    Argument types: (Literal['Ordem Cons'], Literal[False]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:254:29 - error: Cannot access attribute "fillna" for class "NDArray[Any]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:258:10 - error: Cannot access attribute "fillna" for class "NDArray[Any]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:296:39 - error: Cannot access attribute "map" for class "NDArray[Any]"
+    Attribute "map" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:298:63 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:314:13 - error: No overloads for "dropna" match the provided arguments
+    Argument types: (list[str]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:35 - error: Cannot access attribute "map" for class "NDArray[Any]"
+    Attribute "map" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:39 - error: Argument of type "Series | Unknown | Self@DataFrame | Any" cannot be assigned to parameter "func" of type "((...) -> Unknown) | Mapping[Unknown, Unknown] | Series | None" in function "map"
+    Type "Series | Unknown | Self@DataFrame | Any" is not assignable to type "((...) -> Unknown) | Mapping[Unknown, Unknown] | Series | None"
+      Type "Self@DataFrame" is not assignable to type "((...) -> Unknown) | Mapping[Unknown, Unknown] | Series | None"
+        Type "Self@DataFrame" is not assignable to type "(...) -> Unknown"
+        "DataFrame*" is not assignable to "Mapping[Unknown, Unknown]"
+        "DataFrame*" is not assignable to "Series"
+        "DataFrame*" is not assignable to "None" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:39 - error: Argument of type "Series | Unknown | Self@DataFrame | Any" cannot be assigned to parameter "func" of type "PythonFuncType" in function "map"
+    Type "Series | Unknown | DataFrame* | Any" is not assignable to type "PythonFuncType"
+      Type "DataFrame*" is not assignable to type "PythonFuncType" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "str"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "bytes"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "date"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "datetime"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "datetime64[date | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "timedelta64[timedelta | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "bool"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "int"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "float"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "Timestamp"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "Timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "Interval[Unknown]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "complex"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "integer[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "floating[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:369:48 - error: Cannot access attribute "set_index" for class "complexfloating[Any, Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:416:35 - error: Cannot access attribute "dt" for class "NDArray[Any]"
+    Attribute "dt" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:420:23 - error: Cannot access attribute "select_dtypes" for class "NDArray[Any]"
+    Attribute "select_dtypes" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:423:19 - error: Cannot access attribute "select_dtypes" for class "NDArray[Any]"
+    Attribute "select_dtypes" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:424:27 - error: Cannot access attribute "dt" for class "NDArray[Any]"
+    Attribute "dt" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:426:13 - error: Cannot access attribute "where" for class "NDArray[Any]"
+    Attribute "where" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "float"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "Number"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "number[Any, int | float | complex]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "int"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "NAType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "NaTType"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "Timestamp"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "Timedelta"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:487:64 - error: Cannot access attribute "fillna" for class "ndarray[_AnyShape, dtype[signedinteger[_64Bit]]]"
+    Attribute "fillna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:495:37 - error: Argument of type "DatetimeIndex" cannot be assigned to parameter "holidays" of type "list[Unknown] | None" in function "__init__"
+    Type "DatetimeIndex" is not assignable to type "list[Unknown] | None"
+      "DatetimeIndex" is not assignable to "list[Unknown]"
+      "DatetimeIndex" is not assignable to "None" (reportArgumentType)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "str"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "bytes"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "date"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "datetime"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "datetime64[date | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "timedelta64[timedelta | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "bool"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "int"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "float"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "Timestamp"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "Timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "Interval[Unknown]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "complex"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "integer[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "floating[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:527:48 - error: Cannot access attribute "set_index" for class "complexfloating[Any, Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:601:26 - error: "abr_ace" is not defined (reportUndefinedVariable)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\services\purchase_logic.py:603:26 - error: "fnd_fer" is not defined (reportUndefinedVariable)
+c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:115:62 - error: Cannot access attribute "str" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "str" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:118:61 - error: Cannot access attribute "str" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "str" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:123:26 - error: Cannot access attribute "str" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "str" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:133:27 - error: No overloads for "sort_values" match the provided arguments
+    Argument types: (Unknown, Unknown) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:133:39 - error: Cannot access attribute "sort_values" for class "NDArray[Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:144:28 - error: No overloads for "sort_values" match the provided arguments
+    Argument types: (Literal[False]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:145:21 - error: Cannot access attribute "groupby" for class "NDArray[Any]"
+    Attribute "groupby" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "str"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "bytes"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "date"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "datetime"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "timedelta"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "datetime64[date | int | None]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "timedelta64[timedelta | int | None]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "bool"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "int"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "float"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "Timestamp"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "Timedelta"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "Interval[Unknown]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "complex"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "integer[Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "floating[Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:147:14 - error: Cannot access attribute "sort_values" for class "complexfloating[Any, Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:153:28 - error: Cannot access attribute "iloc" for class "NDArray[Any]"
+    Attribute "iloc" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:211:20 - error: No overloads for "sort_values" match the provided arguments
+    Argument types: (Literal[False]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "str"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "bytes"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "date"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "datetime"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "timedelta"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "datetime64[date | int | None]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "timedelta64[timedelta | int | None]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "bool"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "int"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "float"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "Timestamp"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "Timedelta"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "Interval[Unknown]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "complex"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "integer[Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "floating[Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:214:14 - error: Cannot access attribute "sort_values" for class "complexfloating[Any, Any]"
+    Attribute "sort_values" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\app\ui\webview_app.py:232:25 - error: Cannot access attribute "assign" for class "NDArray[Any]"
+    Attribute "assign" is unknown (reportAttributeAccessIssue)
+c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "str"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "bytes"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "date"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "datetime"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "datetime64[date | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "timedelta64[timedelta | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "bool"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "int"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "float"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "Timestamp"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "Timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "Interval[Unknown]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "complex"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "integer[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "floating[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:62:45 - error: Cannot access attribute "set_index" for class "complexfloating[Any, Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "str"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "bytes"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "date"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "datetime"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "datetime64[date | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "timedelta64[timedelta | int | None]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "bool"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "int"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "float"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "Timestamp"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "Timedelta"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "Interval[Unknown]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "complex"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "integer[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "floating[Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:111:45 - error: Cannot access attribute "set_index" for class "complexfloating[Any, Any]"
+    Attribute "set_index" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:147:23 - error: Cannot access attribute "notna" for class "NDArray[Any]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:147:56 - error: Cannot access attribute "str" for class "ndarray[_AnyShape, dtype[Any]]"
+    Attribute "str" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:153:10 - error: No overloads for "dropna" match the provided arguments
+    Argument types: (list[Unknown | Self@Index]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:153:10 - error: No overloads for "dropna" match the provided arguments
+    Argument types: (list[Any]) (reportCallIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:153:23 - error: Cannot access attribute "notna" for class "NDArray[Any]"
+    Attribute "notna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:153:32 - error: Cannot access attribute "dropna" for class "NDArray[Any]"
+    Attribute "dropna" is unknown (reportAttributeAccessIssue)
+  c:\Users\engli\Desktop\Analise_compras\backend\scripts\carrega_dados.py:156:28 - error: Argument of type "Unknown | Self@Index" cannot be assigned to parameter "by" of type "IndexLabel" in function "sort_values"
+    Type "Unknown | Self@Index" is not assignable to type "IndexLabel"
+      Type "Self@Index" is not assignable to type "IndexLabel"
+        "Index*" is incompatible with protocol "Hashable"
+          "__hash__" is an incompatible type
+          "__hash__" is not defined as a ClassVar in protocol
+            Type "None" is not assignable to type "() -> int"
+        "Index*" is not assignable to "Sequence[Hashable]" (reportArgumentType)
+297 errors, 0 warnings, 0 informations
