@@ -1,7 +1,7 @@
 ---
 modulo: "Motor_Analise_Estoque_Geral"
 tipo: "dominio"
-data_atualizacao: 2026-10-22
+data_atualizacao: 2026-10-23
 tags: [regras-negocio, calculo, analise-estoque, geral, excel, purchase-logic]
 ---
 
@@ -53,12 +53,13 @@ tags: [regras-negocio, calculo, analise-estoque, geral, excel, purchase-logic]
   - `Valor Comprado = Decis Compras * Valor Unitário`.
 
 ### 4. Enriquecimento de Dados e Compatibilidade Frontend
-- **Colunas Complementares:**
+- **Colunas Complementares e Resiliência a Duplicatas ERP:**
   - `Valor Estoque = Estoque Padrão * Valor Unitário`.
   - `Data OC`: data útil calculada somando `Prazo Fornecedor` à data corrente, ajustada pelo calendário de dias úteis e feriados corporativos (`np.busday_offset`).
   - `Falta`: `max(0, Neces - (Estoque Produção + Estoque Padrão + OC))`.
   - `texto OC`: inicializado vazio para exportação de ordens no ERP.
-  - Metadados: `Última Data Entrada`, `Última Data Saída`, `Família`.
+  - Metadados: `Última Data Entrada`, `Última Data Saída`, `Estoque Rejeitado`, `Família`.
+  - **Tratamento de Chaves Duplicadas (`InvalidIndexError`):** Itens com duplicidade cadastral no ERP são vinculados mantendo o alinhamento posicional 1:1 com `df_apoio`, com fallback via `drop_duplicates(subset=['Item'])` para garantir que o pandas nunca execute `reindex` ou `map` sobre índices não-únicos.
 - **Exposição na Tabela (`PurchaseTable.jsx`):**
   - Todas as 35+ colunas são mantidas após o filtro de `colunas_desejadas`.
   - As 5 colunas de mês (`AAAA-MM`) são agrupadas dinamicamente na coluna de sparkline `Gráfico`.

@@ -518,12 +518,26 @@ def geral(dfs):
     }
     df = df.rename(columns=mapa_colunas)
 
+    is_aligned = len(df) == len(df_apoio) and (
+        df["Item"].values == df_apoio["Item"].astype(str).str.strip().values
+    ).all()
+
     # Campos derivados complementares
     if "Valor Estoque" not in df.columns:
         if "Estoque Padrão" in df.columns and "Valor Unitário" in df.columns:
             df["Valor Estoque"] = (df["Estoque Padrão"] * df["Valor Unitário"]).round(2)
         elif "Valor Estoque" in df_apoio.columns:
-            df["Valor Estoque"] = df["Item"].map(df_apoio.set_index("Item")["Valor Estoque"]).fillna(0.0)
+            if is_aligned:
+                df["Valor Estoque"] = pd.to_numeric(
+                    df_apoio["Valor Estoque"].astype(str).str.replace(".", "", regex=False).str.replace(",", ".", regex=False),
+                    errors="coerce"
+                ).fillna(0.0).values
+            else:
+                serie_val = df_apoio.drop_duplicates(subset=["Item"], keep="last").set_index("Item")["Valor Estoque"]
+                df["Valor Estoque"] = pd.to_numeric(
+                    df["Item"].map(serie_val).astype(str).str.replace(".", "", regex=False).str.replace(",", ".", regex=False),
+                    errors="coerce"
+                ).fillna(0.0)
 
     feriados = carregar_feriados()
     feriados_pd = pd.to_datetime(feriados)
@@ -557,7 +571,11 @@ def geral(dfs):
         "raiz_Pedido",
     ]:
         if extra_col in df_apoio.columns and extra_col not in df.columns:
-            df[extra_col] = df["Item"].map(df_apoio.set_index("Item")[extra_col]).fillna("")
+            if is_aligned:
+                df[extra_col] = df_apoio[extra_col].fillna("").values
+            else:
+                serie_extra = df_apoio.drop_duplicates(subset=["Item"], keep="last").set_index("Item")[extra_col]
+                df[extra_col] = df["Item"].map(serie_extra).fillna("")
 
     # =========================
     # SELEÇÃO E ORDENAÇÃO DE COLUNAS
