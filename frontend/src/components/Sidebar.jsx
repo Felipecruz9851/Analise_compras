@@ -50,6 +50,8 @@ export default function Sidebar({ resumo = {}, isOpen = true, onToggle, onClose 
                       {valor.toLocaleString("pt-BR", {
                         style: "currency",
                         currency: "BRL",
+                        minimumFractionDigits: 3,
+                        maximumFractionDigits: 3,
                       })}
                     </span>
                   </div>

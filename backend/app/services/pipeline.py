@@ -2,7 +2,7 @@ from datetime import datetime
 import uuid
 from app.services.extractor import Extractor
 from app.services.processor import juntar_tabelas
-from app.services.purchase_logic import calcular
+from app.services.purchase_logic import calcular, calcular_com_apoio_30
 from app import settings
 import pandas as pd
 import pickle
@@ -61,7 +61,7 @@ def executar_pipeline(username, password, analise):
 
     dfs = coletar_dados(username, password, analise)
 
-    df = calcular(analise, dfs)
+    df = calcular_com_apoio_30(analise, dfs)
     df = df.fillna("")
 
     duracao = perf_counter() - inicio

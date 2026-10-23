@@ -42,7 +42,7 @@ export default function MetricsCards({
             Total Geral Comprado
           </p>
           <h3 className="text-sm sm:text-base font-bold text-text-main truncate mt-0.5">
-            {totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            {Number(totalGeral || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 3, maximumFractionDigits: 3 })}
           </h3>
         </div>
         <span className="material-symbols-outlined text-[18px] text-primary/70 shrink-0 ml-2">

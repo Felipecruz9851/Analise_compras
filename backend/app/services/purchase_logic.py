@@ -17,14 +17,21 @@ def compra_necessidade(dfs):
     feriados = carregar_feriados()
     df = dfs.get("apoio_compras").copy()
 
-    # --- NORMALIZAÇÃO ---
-    for c in df.columns:
-        if df[c].dtype == object:
-            df[c] = (
-                df[c]
-                .str.replace(".", "", regex=False)
-                .str.replace(",", ".", regex=False)
-            )
+    # --- NORMALIZAÇÃO SEGURA ---
+    def _converter_valor_seguro(val):
+        if pd.isna(val) or val is None or val == "":
+            return 0.0
+        if isinstance(val, (int, float, np.number)):
+            return float(val)
+        s = str(val).strip()
+        if not s:
+            return 0.0
+        if "," in s:
+            s = s.replace(".", "").replace(",", ".")
+        try:
+            return float(s)
+        except (ValueError, TypeError):
+            return 0.0
 
     colunas_para_normalizar = [
         "Neces",
@@ -38,7 +45,10 @@ def compra_necessidade(dfs):
     ]
 
     for col in colunas_para_normalizar:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+        if col in df.columns:
+            if df[col].dtype == object:
+                df[col] = df[col].map(_converter_valor_seguro)
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
 
     # Busca estoque Rejeitado
 
@@ -416,7 +426,7 @@ def compra_necessidade(dfs):
     df = df[[col for col in colunas_desejadas if col in df.columns]]
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df[numeric_cols] = df[numeric_cols].round(2)
+    df[numeric_cols] = df[numeric_cols].round(3)
 
     for col in df.select_dtypes(include=["datetime64[ns]"]):
         df[col] = df[col].dt.strftime("%Y-%m-%d")
@@ -525,7 +535,7 @@ def geral(dfs):
     # Campos derivados complementares
     if "Valor Estoque" not in df.columns:
         if "Estoque Padrão" in df.columns and "Valor Unitário" in df.columns:
-            df["Valor Estoque"] = (df["Estoque Padrão"] * df["Valor Unitário"]).round(2)
+            df["Valor Estoque"] = (df["Estoque Padrão"] * df["Valor Unitário"]).round(3)
         elif "Valor Estoque" in df_apoio.columns:
             if is_aligned:
                 df["Valor Estoque"] = pd.to_numeric(
@@ -561,7 +571,7 @@ def geral(dfs):
     df["Falta"] = np.maximum(
         0.0,
         df["Neces"] - (df["Estoque Produção"] + df["Estoque Padrão"] + df["OC"])
-    ).round(2)
+    ).round(3)
 
     for extra_col in [
         "Última Data Entrada",
@@ -626,7 +636,7 @@ def geral(dfs):
     df = df[[col for col in colunas_desejadas if col in df.columns]]
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df[numeric_cols] = df[numeric_cols].round(2)
+    df[numeric_cols] = df[numeric_cols].round(3)
 
     for col in df.select_dtypes(include=["datetime64[ns]"]):
         df[col] = df[col].dt.strftime("%Y-%m-%d")
@@ -658,3 +668,69 @@ def calcular(analise, dfs):
     else:
         raise NotImplementedError(f"Análise '{analise}' ainda não implementada")
     return analise_compra
+
+
+def calcular_com_apoio_30(analise, dfs):
+    """
+    Executa a orquestração de cálculo desacoplada.
+    1. Executa o cálculo base para o horizonte geral.
+    2. Fallback: Se a coluna 'Neces (30 dias)' não existir em apoio_compras, retorna o DataFrame base.
+    3. Se existir, recalcula no mesmo motor com 'Neces' substituído e faz o merge das colunas '_N30'.
+    """
+    df_base = calcular(analise, dfs)
+
+    if not dfs or dfs.get("apoio_compras") is None:
+        return df_base
+
+    df_apoio = dfs["apoio_compras"]
+    col_30 = None
+    for cand in ["Neces (30 dias)", "Neces(30 dias)", "Neces 30", "Neces_30"]:
+        if cand in df_apoio.columns:
+            col_30 = cand
+            break
+
+    if col_30 is None:
+        return df_base
+
+    try:
+        # Clona dicionário de DataFrames e apoio_compras para isolar os cálculos
+        dfs_30 = dfs.copy()
+        df_apoio_30 = df_apoio.copy()
+        df_apoio_30["Neces"] = df_apoio_30[col_30]
+        dfs_30["apoio_compras"] = df_apoio_30
+
+        df_30 = calcular(analise, dfs_30)
+
+        colunas_impactadas = [
+            "Neces",
+            "Decis Compras",
+            "Valor Comprado",
+            "Saldo Virtual",
+            "Falta",
+            "Ponto de pedido",
+            "Sugestão de compra (dias)",
+            "Compra com ajuste (dias)",
+            "Cobertura mínima (dias)",
+            "Dias de saldo virtual",
+            "Média mens + Necessidade",
+            "Analisar",
+            "Status",
+        ]
+
+        is_aligned = len(df_base) == len(df_30) and (
+            df_base["Item"].values == df_30["Item"].values
+        ).all()
+
+        for col in colunas_impactadas:
+            if col in df_30.columns:
+                col_n30 = f"{col}_N30"
+                if is_aligned:
+                    df_base[col_n30] = df_30[col].values
+                else:
+                    mapa_30 = df_30.drop_duplicates(subset=["Item"], keep="last").set_index("Item")[col]
+                    df_base[col_n30] = df_base["Item"].map(mapa_30)
+
+    except Exception as e:
+        print(f"Aviso: Não foi possível processar cálculo secundário de 30 dias: {e}")
+
+    return df_base

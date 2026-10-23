@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import pandas as pd
+import numpy as np
 from datetime import date
 from pathlib import Path
 import os
@@ -49,6 +50,10 @@ def call_method(method: str, req: CallPayload, response: Response):
         return obter_slice(session, req.payload)
     elif method == "salvar_edicao":
         return salvar_edicao(session, req.payload)
+    elif method == "aplicar_30d_em_massa":
+        return aplicar_30d_em_massa(session, req.payload)
+    elif method == "restaurar_edicoes_em_massa":
+        return restaurar_edicoes_em_massa(session, req.payload)
     elif method == "gerar_ocs":
         return gerar_ocs(session, req.payload)
     elif method == "gerar_csv_visivel":
@@ -151,6 +156,55 @@ def rodar_analise(session, payload):
         return {"status": "ok", "total": len(df)}
 
 
+def aplicar_edicoes_no_dataframe(df_alvo: pd.DataFrame, session) -> pd.DataFrame:
+    """
+    Aplica as edições de session.edicoes de forma vetorizada e thread-safe.
+    Evita concorrência e substitui loops O(N) por mapeamento direto no Pandas.
+    Arredonda todos os valores calculados para 3 casas decimais.
+    """
+    with session.lock:
+        if not session.edicoes:
+            return df_alvo
+        edicoes_map = dict(session.edicoes)
+
+    s_edicoes = pd.Series(edicoes_map)
+    s_row_ids = df_alvo["__rowId"].astype(str)
+
+    novas_decisoes = s_row_ids.map(s_edicoes)
+    mask_editados = novas_decisoes.notna()
+
+    if mask_editados.any():
+        df_alvo.loc[mask_editados, "Decis Compras"] = pd.to_numeric(
+            novas_decisoes[mask_editados], errors="coerce"
+        ).fillna(0.0).round(3).values
+
+        if "Valor Unitário" in df_alvo.columns:
+            s_unit = df_alvo.loc[mask_editados, "Valor Unitário"]
+            if pd.api.types.is_numeric_dtype(s_unit):
+                units = s_unit.astype(float).fillna(0.0)
+            else:
+                def _converter_u(val):
+                    if pd.isna(val) or val is None or val == "":
+                        return 0.0
+                    if isinstance(val, (int, float, np.number)):
+                        return float(val)
+                    s = str(val).strip()
+                    if "," in s:
+                        s = s.replace(".", "").replace(",", ".")
+                    try:
+                        return float(s)
+                    except (ValueError, TypeError):
+                        return 0.0
+                units = s_unit.map(_converter_u).astype(float)
+
+            decisoes = pd.to_numeric(df_alvo.loc[mask_editados, "Decis Compras"], errors="coerce").fillna(0.0)
+            df_alvo.loc[mask_editados, "Valor Comprado"] = (
+                units * decisoes
+            ).round(3).values
+
+    return df_alvo
+
+
 def obter_slice(session, payload):
     if session.df_ativo is None:
         return {"erro": "sem dados"}
@@ -167,23 +221,14 @@ def obter_slice(session, payload):
     colunas_invertidas = payload.get("colunasInvertidas", {})
     colunas_exatas = payload.get("colunasExatas", {})
 
-    df_trabalho = df.copy()
-
-    if session.edicoes:
-        for row_id, valor in session.edicoes.items():
-            mask = df_trabalho["__rowId"] == row_id
-            if mask.any():
-                df_trabalho.loc[mask, "Decis Compras"] = valor
-                if "Valor Unitário" in df_trabalho.columns:
-                    df_trabalho.loc[mask, "Valor Comprado"] = (
-                        df_trabalho.loc[mask, "Valor Unitário"] * valor
-                    )
-
+    df_trabalho = aplicar_edicoes_no_dataframe(df.copy(), session)
     df_filtrado = df_trabalho
 
     apenas_editados = payload.get("apenasEditados", False)
     if apenas_editados:
-        df_filtrado = df_filtrado[df_filtrado["__rowId"].isin(session.edicoes.keys())]
+        with session.lock:
+            ed_keys = set(str(k) for k in session.edicoes.keys())
+        df_filtrado = df_filtrado[df_filtrado["__rowId"].astype(str).isin(ed_keys)]
 
     apenas_ocs_prontas = payload.get("apenasOcsProntas", False)
     if apenas_ocs_prontas:
@@ -227,17 +272,31 @@ def obter_slice(session, payload):
     total = len(df_calc)
 
     soma_por_familia = (
-        df_calc.groupby("Família")["Valor Comprado"].sum().sort_values(ascending=False)
+        df_calc.groupby("Família")["Valor Comprado"].sum().round(3).sort_values(ascending=False)
     )
-    resumo = soma_por_familia.to_dict()
-    total_geral = soma_por_familia.sum()
+    resumo = {k: round(float(v), 3) for k, v in soma_por_familia.to_dict().items()}
+    total_geral = round(float(soma_por_familia.sum()), 3)
 
     decis_compras_calc = pd.to_numeric(
         df_calc["Decis Compras"], errors="coerce"
     ).fillna(0)
     total_ocs_prontas = int((decis_compras_calc > 0).sum())
 
-    slice_df = df_calc.iloc[start : start + size]
+    slice_df = df_calc.iloc[start : start + size].copy()
+    num_cols_slice = slice_df.select_dtypes(include=[np.number]).columns
+    slice_df[num_cols_slice] = slice_df[num_cols_slice].round(3)
+
+    has_30d = "Decis Compras_N30" in df_calc.columns
+    total_geral_n30 = 0.0
+    total_ocs_prontas_n30 = 0
+    if has_30d:
+        if "Valor Comprado_N30" in df_calc.columns:
+            total_geral_n30 = round(float(pd.to_numeric(df_calc["Valor Comprado_N30"], errors="coerce").fillna(0).sum()), 3)
+        decis_30_calc = pd.to_numeric(df_calc["Decis Compras_N30"], errors="coerce").fillna(0)
+        total_ocs_prontas_n30 = int((decis_30_calc > 0).sum())
+
+    with session.lock:
+        edicoes_snapshot = dict(session.edicoes)
 
     return {
         "total": total,
@@ -245,7 +304,10 @@ def obter_slice(session, payload):
         "resumo": resumo,
         "total_geral": float(total_geral),
         "total_ocs_prontas": total_ocs_prontas,
-        "edicoes": session.edicoes,
+        "has_30d": has_30d,
+        "total_geral_n30": float(total_geral_n30),
+        "total_ocs_prontas_n30": total_ocs_prontas_n30,
+        "edicoes": edicoes_snapshot,
         "analise_nome": session.analise_nome,
     }
 
@@ -257,10 +319,48 @@ def salvar_edicao(session, payload):
     if row_id is None:
         return {"erro": "rowId inválido"}
 
-    if valor is None:
+    str_id = str(row_id)
+    with session.lock:
+        session.edicoes.pop(str_id, None)
         session.edicoes.pop(row_id, None)
-    else:
-        session.edicoes[row_id] = valor
+        try:
+            session.edicoes.pop(int(row_id), None)
+        except (ValueError, TypeError):
+            pass
+
+        if valor is not None:
+            try:
+                session.edicoes[str_id] = round(float(valor), 3)
+            except (ValueError, TypeError):
+                session.edicoes[str_id] = valor
+
+    return {"status": "ok"}
+
+
+def aplicar_30d_em_massa(session, payload=None):
+    if session.df_ativo is None:
+        return {"erro": "Sem dados carregados"}
+
+    df = session.df_ativo
+    if "Decis Compras_N30" not in df.columns:
+        return {"erro": "Coluna de 30 dias não encontrada nesta análise"}
+
+    s_30 = pd.to_numeric(df["Decis Compras_N30"], errors="coerce").fillna(0).round(3)
+    novas_edicoes = {str(k): round(float(v), 3) for k, v in zip(df["__rowId"], s_30)}
+
+    with session.lock:
+        session.edicoes.clear()
+        session.edicoes.update(novas_edicoes)
+
+    return {"status": "ok", "total_alterados": len(novas_edicoes)}
+
+
+def restaurar_edicoes_em_massa(session, payload=None):
+    if session.df_ativo is None:
+        return {"erro": "Sem dados carregados"}
+
+    with session.lock:
+        session.edicoes.clear()
 
     return {"status": "ok"}
 
@@ -277,19 +377,7 @@ def gerar_ocs(session, payload=None):
 
     exports_dir = settings.EXPORTS_DIR
 
-    df_html = session.df_base.copy()
-
-    if session.edicoes:
-        for row_id, valor in session.edicoes.items():
-            mask = df_html["__rowId"] == row_id
-            if mask.any():
-                df_html.loc[mask, "Decis Compras"] = valor
-                if (
-                    "Valor Unitário" in df_html.columns
-                    and "Valor Comprado" in df_html.columns
-                ):
-                    unit = df_html.loc[mask, "Valor Unitário"]
-                    df_html.loc[mask, "Valor Comprado"] = unit * float(valor)
+    df_html = aplicar_edicoes_no_dataframe(session.df_base.copy(), session)
 
     soma_fam = (
         df_html.groupby("Família")["Valor Comprado"].sum().sort_values(ascending=False)
@@ -1091,23 +1179,15 @@ def gerar_csv_visivel(session, payload):
     colunas_invertidas = payload.get("colunasInvertidas", {})
     colunas_exatas = payload.get("colunasExatas", {})
 
-    df_trabalho = df.copy()
-
-    if session.edicoes:
-        for row_id, valor in session.edicoes.items():
-            mask = df_trabalho["__rowId"] == row_id
-            if mask.any():
-                df_trabalho.loc[mask, "Decis Compras"] = valor
-                if "Valor Unitário" in df_trabalho.columns:
-                    df_trabalho.loc[mask, "Valor Comprado"] = df_trabalho.loc[
-                        mask, "Valor Unitário"
-                    ] * float(valor)
+    df_trabalho = aplicar_edicoes_no_dataframe(df.copy(), session)
 
     df_filtrado = df_trabalho
 
     apenas_editados = payload.get("apenasEditados", False)
     if apenas_editados:
-        df_filtrado = df_filtrado[df_filtrado["__rowId"].isin(session.edicoes.keys())]
+        with session.lock:
+            edicoes_keys = set(str(k) for k in session.edicoes.keys())
+        df_filtrado = df_filtrado[df_filtrado["__rowId"].astype(str).isin(edicoes_keys)]
 
     apenas_ocs_prontas = payload.get("apenasOcsProntas", False)
     if apenas_ocs_prontas:
@@ -1160,18 +1240,7 @@ def gerar_csv_visivel(session, payload):
     exports_dir = settings.EXPORTS_DIR
 
     # 1. Gerar o HTML GERAL ignorando os filtros (usando a base inteira, assim como na gerar_ocs)
-    df_html = session.df_base.copy()
-    if session.edicoes:
-        for row_id, valor in session.edicoes.items():
-            mask = df_html["__rowId"] == row_id
-            if mask.any():
-                df_html.loc[mask, "Decis Compras"] = valor
-                if (
-                    "Valor Unitário" in df_html.columns
-                    and "Valor Comprado" in df_html.columns
-                ):
-                    unit = df_html.loc[mask, "Valor Unitário"]
-                    df_html.loc[mask, "Valor Comprado"] = unit * float(valor)
+    df_html = aplicar_edicoes_no_dataframe(session.df_base.copy(), session)
 
     soma_fam = (
         df_html.groupby("Família")["Valor Comprado"].sum().sort_values(ascending=False)

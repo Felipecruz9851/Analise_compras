@@ -89,3 +89,7 @@ graph TD
 ### 05. Automações (`backend/scripts/`)
 - [[05-Automacoes/Script_Carrega_Dados]]: Pipeline batch de extração e tratamento local de CSVs e snapshots (`backend/scripts/carrega_dados.py`).
 - [[05-Automacoes/Script_Extracao_Feriados]]: Crawler automático de feriados corporativos da intranet PCP (`backend/app/feriados.py`).
+
+### 06. Documentação & Conhecimento (`documentacao/`)
+- **`documentacao/vault/`**: Vault central do Obsidian com notas técnicas, especificações dos componentes e o diário de bordo (`Analise_compras-logbook/`).
+- **`documentacao/referencias/`**: Documentos de apoio, especificações de negócio (DOCX), regras legadas e assets/guias de UI/UX.

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MetricsCards from "./MetricsCards";
-import PurchaseTable from "./PurchaseTable";
+import PurchaseTable, { parseNumeroBR } from "./PurchaseTable";
 import { apiCall } from "../services/api";
 
 function Dashboard() {
@@ -22,6 +22,7 @@ function Dashboard() {
   const [apenasOcsProntas, setApenasOcsProntas] = useState(false);
   const [totalOcsProntas, setTotalOcsProntas] = useState(0);
   const [analiseNome, setAnaliseNome] = useState("");
+  const [has30d, setHas30d] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try {
@@ -92,7 +93,7 @@ function Dashboard() {
       currentApenasEditados = apenasEditados,
       currentApenasOcsProntas = apenasOcsProntas,
     ) => {
-      if (loading || (!hasMore && !reset)) return;
+      if (!reset && (loading || !hasMore)) return;
       setLoading(true);
 
       const currentStart = reset ? 0 : startIndex;
@@ -133,6 +134,9 @@ function Dashboard() {
             if (resp.analise_nome) {
               setAnaliseNome(resp.analise_nome);
             }
+          }
+          if (resp.has_30d !== undefined) {
+            setHas30d(resp.has_30d);
           }
           setEdicoes(resp.edicoes || {});
           setData((prev) => (reset ? resp.data : [...prev, ...resp.data]));
@@ -187,20 +191,115 @@ function Dashboard() {
   };
 
   const handleSaveEdition = async (rowId, valor) => {
+    const strRowId = String(rowId);
+
+    // 1. Atualização otimista imediata no estado local do React
+    setEdicoes((prev) => {
+      const next = { ...prev };
+      if (valor === null || valor === undefined) {
+        delete next[strRowId];
+        delete next[rowId];
+      } else {
+        next[strRowId] = valor;
+      }
+      return next;
+    });
+
+    setData((prevData) =>
+      prevData.map((item) => {
+        if (String(item.__rowId) === strRowId) {
+          const unit = parseNumeroBR(item["Valor Unitário"]);
+          const orig = item._originalDecis !== undefined ? item._originalDecis : parseNumeroBR(item["Decis Compras"]);
+          const decisAtual = (valor === null || valor === undefined) ? orig : parseNumeroBR(valor);
+          const novoValorComprado = Math.round((unit * decisAtual) * 1000) / 1000;
+          return {
+            ...item,
+            _originalDecis: orig,
+            "Decis Compras": Math.round(decisAtual * 1000) / 1000,
+            "Valor Comprado": novoValorComprado,
+          };
+        }
+        return item;
+      })
+    );
+
+    // 2. Persistência no backend em segundo plano e atualização de totalizadores
     try {
       await apiCall("salvar_edicao", { rowId, valor });
-      setEdicoes((prev) => {
-        const next = { ...prev };
-        if (valor === null || valor === undefined) {
-          delete next[rowId];
-        } else {
-          next[rowId] = valor;
-        }
-        return next;
+
+      const { cleanFiltros, colunasExatas, colunasInvertidas } =
+        getFiltrosTratados(filtros);
+      const resp = await apiCall("obter_slice", {
+        start: 0,
+        size: 50,
+        filtros: cleanFiltros,
+        ordenacao,
+        apenasEditados,
+        apenasOcsProntas,
+        correspondenciaExata: false,
+        filtrosInvertidos: false,
+        colunasInvertidas,
+        colunasExatas,
+        data_ini: null,
+        data_fim: null,
       });
-      loadData(true);
+
+      if (resp && resp.resumo) {
+        setResumo(resp.resumo);
+        setTotalGeral(resp.total_geral);
+        if (resp.total_ocs_prontas !== undefined) {
+          setTotalOcsProntas(resp.total_ocs_prontas);
+        }
+      }
     } catch (e) {
       console.error("Erro ao salvar edicao", e);
+    }
+  };
+
+  const handleAplicar30dEmMassa = async () => {
+    if (
+      !window.confirm(
+        "Deseja aplicar a sugestão de cálculo de 30 dias em todas as decisões de compra sob análise?",
+      )
+    ) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await apiCall("aplicar_30d_em_massa");
+      if (res && res.status === "ok") {
+        await loadData(true);
+      } else if (res && res.erro) {
+        alert("Erro: " + res.erro);
+      }
+    } catch (e) {
+      alert("Erro ao aplicar cálculo de 30 dias: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestaurarTodasEdicoes = async () => {
+    if (
+      !window.confirm(
+        "Deseja restaurar todas as decisões de compra para os valores calculados originais?",
+      )
+    ) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await apiCall("restaurar_edicoes_em_massa");
+      if (res && res.status === "ok") {
+        setEdicoes({});
+        await loadData(true);
+      } else if (res && res.erro) {
+        alert("Erro: " + res.erro);
+      }
+    } catch (e) {
+      alert("Erro ao restaurar decisões: " + e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,6 +350,10 @@ function Dashboard() {
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
           showMetrics={showMetrics}
           onToggleMetrics={() => setShowMetrics((prev) => !prev)}
+          has30d={has30d}
+          edicoesCount={Object.keys(edicoes).length}
+          onAplicar30dEmMassa={handleAplicar30dEmMassa}
+          onRestaurarTodasEdicoes={handleRestaurarTodasEdicoes}
         />
         <main className="w-full pt-14 bg-surface-canvas flex-1 flex flex-col min-h-0">
           <div className="px-3.5 py-2.5 flex flex-col gap-2 max-w-[1720px] mx-auto w-full flex-1 min-h-0 relative">

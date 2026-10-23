@@ -121,11 +121,26 @@ def processar_analise_compras(
         'Estoque Padrão', 'Estoque Produção', 'OC', 'Neces',
         'Prazo Fornecedor', 'Valor Unitário', 'Lote Mínimo', 'Lote Econom'
     ]
+    def _converter_valor_seguro(val):
+        if pd.isna(val) or val is None or val == "":
+            return 0.0
+        if isinstance(val, (int, float, np.number)):
+            return float(val)
+        s = str(val).strip()
+        if not s:
+            return 0.0
+        if "," in s:
+            s = s.replace(".", "").replace(",", ".")
+        try:
+            return float(s)
+        except (ValueError, TypeError):
+            return 0.0
+
     for c in num_cols_apoio:
         if c in df_apoio.columns:
             if df_apoio[c].dtype == object:
-                df_apoio[c] = df_apoio[c].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
-            df_apoio[c] = pd.to_numeric(df_apoio[c], errors='coerce').fillna(0.0)
+                df_apoio[c] = df_apoio[c].map(_converter_valor_seguro)
+            df_apoio[c] = pd.to_numeric(df_apoio[c], errors="coerce").fillna(0.0)
 
     # 2. Processamento do histórico de entregas → média de prazo por item
     # Calcula a partir das 5 entregas mais recentes de cada item.
@@ -135,6 +150,7 @@ def processar_analise_compras(
 
     if 'Data Entrada' in df_entrega_clean.columns and 'Prazo' in df_entrega_clean.columns:
         df_entrega_clean['Data Entrada'] = pd.to_datetime(df_entrega_clean['Data Entrada'], errors='coerce')
+        df_entrega_clean['Prazo'] = pd.to_numeric(df_entrega_clean['Prazo'], errors='coerce')
         df_entrega_sorted = df_entrega_clean.sort_values(
             by=['Item', 'Data Entrada'], ascending=[True, False]
         )
@@ -219,269 +235,184 @@ def processar_analise_compras(
     # Dias de saldo virtual
     res['Dias de saldo virtual'] = np.where(res['Cons diário'] == 0, "-", res['Saldo virtual'] / res['Cons diário'])
 
-    # Média mens + Necessidade
+    # Média mens + Necessidade (Vetorizado)
     # Excel: IF(Baixa="S", AVERAGEIF(Cons1:Neces,"<>0"), AVERAGEIF(Cons1:Cons4,"<>0")), IFERROR → 0
     # Neces. só entra na média quando Baixa == "S".
     cons_neces_matrix = res[['Cons 1', 'Cons 2', 'Cons 3', 'Cons 4', 'Neces.']].values
-    media_mens_list = []
-    for row, bx in zip(cons_neces_matrix, baixa):
-        vals = row if bx == "S" else row[:4]
-        nz = [v for v in vals if v != 0]
-        media_mens_list.append(np.mean(nz) if len(nz) > 0 else 0.0)
-    res['Média mens + Necessidade'] = media_mens_list
+    mask_s = (baixa == "S").values
+    valid_cols = np.ones(cons_neces_matrix.shape, dtype=bool)
+    valid_cols[:, 4] = mask_s
+    is_nz = (cons_neces_matrix != 0) & valid_cols
+    count_nz = is_nz.sum(axis=1)
+    sum_nz = np.where(is_nz, cons_neces_matrix, 0.0).sum(axis=1)
+    safe_count = np.where(count_nz == 0, 1, count_nz)
+    res['Média mens + Necessidade'] = np.where(count_nz > 0, sum_nz / safe_count, 0.0)
 
-    # Analisar e Status
-    analisar_list = []
-    status_list = []
-    for idx, r in res.iterrows():
-        desc = str(r['Desc']).strip()
-        starts_special = desc.startswith('#') or desc.startswith('$') or desc.startswith('~*')
-        starts_hash = desc.startswith('#')
-        saldo = float(r['Saldo virtual'])
-        neces = float(r['Neces.'])
-        media_neces = float(r['Média mens + Necessidade'])
+    # Analisar e Status (Vetorizado)
+    desc_series = res['Desc'].str.strip()
+    starts_hash = desc_series.str.startswith('#').values
+    starts_special = (starts_hash | desc_series.str.startswith('$') | desc_series.str.startswith('~*')).values
 
-        # Cons 1 a Neces (5 colunas)
-        cons_neces_vals = [r['Cons 1'], r['Cons 2'], r['Cons 3'], r['Cons 4'], neces]
+    saldo = res['Saldo virtual'].values
+    neces = res['Neces.'].values
+    media_neces = res['Média mens + Necessidade'].values
 
-        # Lógica Analisar
-        # Excel: IF(Saldo virtual <= Média mens + Necessidade, "ANALIZAR", ...)
-        # A comparação com a média vem antes do teste de divisão por zero,
-        # logo Saldo=0 e Média=0 resulta em "ANALIZAR" (e não "ANALIZAR#").
-        if saldo <= media_neces:
-            analisar = "ANALIZAR"
-        elif starts_special:
-            analisar = "ANALIZAR"
-        else:
-            if media_neces == 0:
-                # Divisão por zero → IFERROR do Excel
-                analisar = "ANALIZAR#"
-            else:
-                max_val = max(cons_neces_vals)
-                # SMALL(range, COUNTIF(range, 0) + 1) -> Menor valor não nulo
-                non_zeros = [v for v in cons_neces_vals if v != 0]
-                min_non_zero = min(non_zeros) if non_zeros else 0
+    # Status
+    c14_mat = res[['Cons 1', 'Cons 2', 'Cons 3', 'Cons 4']].values
+    zeros_c14 = (c14_mat == 0).sum(axis=1)
 
-                diff1 = abs(max_val - media_neces)
-                diff2 = abs(min_non_zero - media_neces)
-                if max(diff1, diff2) / media_neces > 0.7:
-                    analisar = "ANALIZAR"
-                else:
-                    analisar = "-"
-        analisar_list.append(analisar)
+    cond_st_z1 = starts_hash & (saldo >= 0)
+    cond_st_yat = starts_special
+    cond_st_x = (zeros_c14 == 0)
+    cond_st_z2 = (zeros_c14 == 4) & (neces == 0) & (saldo > 0)
 
-        # Lógica Status
-        zeros_c14 = sum(1 for v in [r['Cons 1'], r['Cons 2'], r['Cons 3'], r['Cons 4']] if v == 0)
+    status_arr = np.select(
+        [cond_st_z1, cond_st_yat, cond_st_x, cond_st_z2],
+        ["Z", "Y@", "X", "Z"],
+        default="Y"
+    )
+    res['Status'] = status_arr
 
-        if starts_hash and saldo >= 0:
-            status = "Z"
-        elif starts_special:
-            status = "Y@"
-        elif zeros_c14 == 0:
-            status = "X"
-        elif zeros_c14 == 4 and neces == 0 and saldo > 0:
-            status = "Z"
-        else:
-            status = "Y"
-        status_list.append(status)
+    # Analisar
+    mat_nz = np.where(cons_neces_matrix == 0, np.inf, cons_neces_matrix)
+    min_nz = mat_nz.min(axis=1)
+    min_non_zero = np.where(np.isinf(min_nz), 0.0, min_nz)
+    max_val = cons_neces_matrix.max(axis=1)
 
-    res['Analisar'] = analisar_list
-    res['Status'] = status_list
+    diff1 = np.abs(max_val - media_neces)
+    diff2 = np.abs(min_non_zero - media_neces)
+    max_diff = np.maximum(diff1, diff2)
 
-    # Indice de consumo
-    ind_cons_list = []
-    for idx, r in res.iterrows():
-        st = r['Status']
-        if st in ['Y', 'Z']:
-            ind_cons_list.append(0.0)
-        else:
-            c1, c2, c3, c4 = r['Cons 1'], r['Cons 2'], r['Cons 3'], r['Cons 4']
-            c_arr = [c1, c2, c3, c4]
-            avg_c = np.mean(c_arr)
-            if avg_c == 0:
-                ind_cons_list.append(0.0)
-            else:
-                val = ((c4 - c1) / avg_c) * (1.0 + (max(c_arr) - min(c_arr)) / avg_c)
-                ind_cons_list.append(val)
-    res['Indice de consumo'] = ind_cons_list
+    cond_an_1 = saldo <= media_neces
+    cond_an_2 = starts_special
+    cond_an_zero = media_neces == 0
+    safe_media = np.where(media_neces == 0, 1.0, media_neces)
+    cond_an_3 = (max_diff / safe_media) > 0.7
 
-    # Ajuste cons
-    aj_cons_list = []
-    for ic in res['Indice de consumo']:
-        if ic < -1: aj_cons_list.append(-0.3)
-        elif ic < -0.2: aj_cons_list.append(-0.1)
-        elif ic <= 0.2: aj_cons_list.append(0.0)
-        elif ic <= 1.3: aj_cons_list.append(0.2)
-        else: aj_cons_list.append(0.3)
-    res['Ajuste cons'] = aj_cons_list
+    analisar_arr = np.select(
+        [cond_an_1 | cond_an_2, cond_an_zero, cond_an_3],
+        ["ANALIZAR", "ANALIZAR#", "ANALIZAR"],
+        default="-"
+    )
+    res['Analisar'] = analisar_arr
 
-    # Indice futuro
-    ind_fut_list = []
-    for idx, r in res.iterrows():
-        avg_c = avg_cons4.iloc[idx]
-        nec = r['Neces.']
-        if 1 + avg_c == 0:
-            ind_fut_list.append(1.0)
-        else:
-            ind_fut_list.append((1.0 + nec) / (1.0 + avg_c))
-    res['Indice futuro'] = ind_fut_list
+    # Indice de consumo (Vetorizado)
+    mask_calc_ind = ~np.isin(status_arr, ['Y', 'Z'])
+    c1 = c14_mat[:, 0]
+    c4 = c14_mat[:, 3]
+    avg_c = c14_mat.mean(axis=1)
+    max_c = c14_mat.max(axis=1)
+    min_c = c14_mat.min(axis=1)
+    safe_avg_c = np.where(avg_c == 0, 1.0, avg_c)
 
-    # Ajuste futuro (com arredondamento de precisão flutuante para compatibilidade com o Excel)
-    aj_fut_list = []
-    for ifut in res['Indice futuro']:
-        val = round(ifut, 6)
-        if 0.8 <= val <= 1.2: aj_fut_list.append(0.0)
-        elif val > 1.2: aj_fut_list.append(0.2)
-        elif val < 0.8: aj_fut_list.append(-0.2)
-        else: aj_fut_list.append(0.0)
-    res['Ajuste futuro'] = aj_fut_list
+    ind_cons = np.where(
+        mask_calc_ind & (avg_c != 0),
+        ((c4 - c1) / safe_avg_c) * (1.0 + (max_c - min_c) / safe_avg_c),
+        0.0
+    )
+    res['Indice de consumo'] = ind_cons
 
-    # Indice de entrega
-    ind_ent_list = []
-    for idx, r in res.iterrows():
-        m_ent = r['Média prazos de entrega (5 - 3 últimos)']
-        p_cad = r['Prazo cadastrado']
-        if p_cad == 0:
-            ind_ent_list.append(0.0)
-        else:
-            ind_ent_list.append(m_ent / p_cad)
-    res['Indice de entrega'] = ind_ent_list
+    # Ajuste cons (Vetorizado)
+    res['Ajuste cons'] = np.select(
+        [ind_cons < -1, ind_cons < -0.2, ind_cons <= 0.2, ind_cons <= 1.3],
+        [-0.3, -0.1, 0.0, 0.2],
+        default=0.3
+    )
 
-    # Ajuste de entrega
-    res['Ajuste de entrega'] = res['Indice de entrega'] - 1.0
+    # Indice futuro (Vetorizado)
+    avg_c4_val = avg_cons4.values
+    denom_fut = 1.0 + avg_c4_val
+    ind_fut = np.where(denom_fut == 0, 1.0, (1.0 + neces) / denom_fut)
+    res['Indice futuro'] = ind_fut
 
-    # Fator de ajuste
+    val_fut = np.round(ind_fut, 6)
+    res['Ajuste futuro'] = np.select(
+        [(val_fut >= 0.8) & (val_fut <= 1.2), val_fut > 1.2, val_fut < 0.8],
+        [0.0, 0.2, -0.2],
+        default=0.0
+    )
+
+    # Indice de entrega (Vetorizado)
+    m_ent = res['Média prazos de entrega (5 - 3 últimos)'].values
+    p_cad = res['Prazo cadastrado'].values
+    safe_pcad = np.where(p_cad == 0, 1.0, p_cad)
+    ind_ent = np.where(p_cad == 0, 0.0, m_ent / safe_pcad)
+    res['Indice de entrega'] = ind_ent
+    res['Ajuste de entrega'] = ind_ent - 1.0
+
+    # Fator de ajuste & Cobertura mínima (Vetorizado)
     res['Fator de ajuste'] = res['Ajuste cons'] + res['Ajuste futuro'] + res['Ajuste de entrega']
+    val_cob = est_seg_dias * (1.0 + res['Fator de ajuste'].values) + p_cad
+    res['Cobertura mínima (dias)'] = np.floor(val_cob + 0.5).astype(float)
+    res['Dias de ajuste'] = res['Cobertura mínima (dias)'] - (est_seg_dias + p_cad)
 
-    # Cobertura mínima (dias)
-    # O Excel usa ROUND() que arredonda x.5 sempre para cima.
-    # O Python round() usa banker's rounding (x.5 arredonda para par).
-    # Para replicar o Excel: adicionar epsilon antes de int() quando o residual é exatamente .5.
-    def excel_round(x):
-        """Arredondamento matemático (0.5 → cima), compativel com ROUND() do Excel."""
-        return float(math.floor(x + 0.5))
+    # Dif est-cob (Vetorizado)
+    dsv_vals = res['Dias de saldo virtual'].values
+    dsv_is_dash = (dsv_vals == "-")
+    dsv_float = np.array([float(x) if x != "-" else 0.0 for x in dsv_vals])
+    cob = res['Cobertura mínima (dias)'].values
+    res['Dif est-cob'] = np.where(dsv_is_dash, np.round(cob), np.round(cob - dsv_float))
 
-    res['Cobertura mínima (dias)'] = (
-        est_seg_dias * (1.0 + res['Fator de ajuste']) + res['Prazo cadastrado']
-    ).apply(excel_round)
-
-    # Dias de ajuste
-    res['Dias de ajuste'] = res['Cobertura mínima (dias)'] - (est_seg_dias + res['Prazo cadastrado'])
-
-    # Dif est-cob
-    dif_est_list = []
-    for idx, r in res.iterrows():
-        cob = r['Cobertura mínima (dias)']
-        dsv = r['Dias de saldo virtual']
-        if dsv == "-":
-            dif_est_list.append(np.round(cob))
-        else:
-            dif_est_list.append(np.round(cob - float(dsv)))
-    res['Dif est-cob'] = dif_est_list
-
-    # Valor unitário
+    # Faixa de compra (Vetorizado)
     res['Valor unitário'] = df_apoio['Valor Unitário'] if 'Valor Unitário' in df_apoio.columns else 0.0
+    fam = res['Familia'].values
+    v_unit = res['Valor unitário'].values
+    c_dia = res['Cons diário'].values
+    cond_b1 = (fam == "LAM")
+    cond_c = (v_unit * 90.0 * c_dia <= teto_compra)
+    cond_b2 = (v_unit * 30.0 * c_dia <= teto_compra)
+    res['Faixa de compra'] = np.select([cond_b1, cond_c, cond_b2], ["B", "C", "B"], default="A")
 
-    # Faixa de compra
-    faixa_list = []
-    for idx, r in res.iterrows():
-        fam = r['Familia']
-        v_unit = r['Valor unitário']
-        c_dia = r['Cons diário']
-        if fam == "LAM":
-            faixa_list.append("B")
-        elif v_unit * 90.0 * c_dia <= teto_compra:
-            faixa_list.append("C")
-        elif v_unit * 30.0 * c_dia <= teto_compra:
-            faixa_list.append("B")
-        else:
-            faixa_list.append("A")
-    res['Faixa de compra'] = faixa_list
-
-    # Repres. De cons. Mensal
+    # Repres. De cons. Mensal & % Cons. / período
     res['Repres. De cons. Mensal'] = res['Valor unitário'] * res['Cons diário'] * 30.0
-
-    # % Cons. / período
     tot_repres = res['Repres. De cons. Mensal'].sum()
     res['% Cons. / período'] = res['Repres. De cons. Mensal'] / tot_repres if tot_repres != 0 else 0.0
 
-    # Ponto de pedido
-    ponto_list = []
-    for idx, r in res.iterrows():
-        desc_str = str(r['Desc'])
-        first_char = desc_str[0] if len(desc_str) > 0 else ''
-        sv = r['Saldo virtual']
-        st = r['Status']
-        dsv = r['Dias de saldo virtual']
-        cob = r['Cobertura mínima (dias)']
+    # Ponto de pedido (Vetorizado)
+    cond_ok1 = starts_hash & (saldo > 0)
+    cond_ok2 = (status_arr == "Z")
+    cond_comprar = (~dsv_is_dash) & (dsv_float <= cob + 7.0)
+    res['Ponto de pedido'] = np.select([cond_ok1, cond_ok2, cond_comprar], ["ok", "ok", "comprar"], default="ok")
 
-        if first_char == '#' and sv > 0:
-            ponto_list.append("ok")
-        elif st == "Z":
-            ponto_list.append("ok")
-        elif dsv != "-" and float(dsv) <= cob + 7.0:
-            ponto_list.append("comprar")
-        else:
-            ponto_list.append("ok")
-    res['Ponto de pedido'] = ponto_list
+    # Sugestão de compra (dias) (Vetorizado)
+    dias_cob_map = {k: float(v['Dias_cob']) for k, v in capa_faixas.items()}
+    ciclo_map = {k: float(v['Ciclo_compra']) for k, v in capa_faixas.items()}
+    rec_max_map = {k: float(v['Rec_max']) for k, v in capa_faixas.items()}
 
-    # Sugestão de compra (dias)
-    sug_list = []
-    for idx, r in res.iterrows():
-        pp = r['Ponto de pedido']
-        if pp == "ok":
-            sug_list.append(0.0)
-        else:
-            fx = r['Faixa de compra']
-            cob = r['Cobertura mínima (dias)']
-            dsv = float(r['Dias de saldo virtual'])
-            dias_cob = capa_faixas[fx]['Dias_cob']
-            ciclo = capa_faixas[fx]['Ciclo_compra']
-            val = math.ceil(cob - dsv + dias_cob + ciclo)
-            sug_list.append(max(0.0, float(val)))
-    res['Sugestão de compra (dias)'] = sug_list
+    fc_series = res['Faixa de compra']
+    dias_cob_arr = fc_series.map(dias_cob_map).fillna(0.0).values
+    ciclo_arr = fc_series.map(ciclo_map).fillna(0.0).values
+    rec_max_arr = fc_series.map(rec_max_map).fillna(1.0).values
+    rec_max_safe = np.where(rec_max_arr == 0, 1.0, rec_max_arr)
 
-    # Compra com ajuste (dias)
-    comp_aj_list = []
-    for idx, r in res.iterrows():
-        sug = r['Sugestão de compra (dias)']
-        if sug == 0:
-            comp_aj_list.append(0.0)
-        else:
-            cob = r['Cobertura mínima (dias)']
-            dsv = float(r['Dias de saldo virtual'])
-            fx = r['Faixa de compra']
-            if cob - dsv > 7:
-                rec_max = capa_faixas[fx]['Rec_max']
-                ciclo = capa_faixas[fx]['Ciclo_compra']
-                dias_cob = capa_faixas[fx]['Dias_cob']
-                val = math.ceil((cob - dsv) / rec_max) + ciclo + dias_cob
-                comp_aj_list.append(float(val))
-            else:
-                comp_aj_list.append(sug)
-    res['Compra com ajuste (dias)'] = comp_aj_list
+    val_sug = np.ceil(cob - dsv_float + dias_cob_arr + ciclo_arr)
+    sug_arr = np.where(res['Ponto de pedido'] == "ok", 0.0, np.maximum(0.0, val_sug))
+    res['Sugestão de compra (dias)'] = sug_arr
+
+    # Compra com ajuste (dias) (Vetorizado)
+    cond_aj = (sug_arr != 0) & ((cob - dsv_float) > 7)
+    val_aj = np.ceil((cob - dsv_float) / rec_max_safe) + ciclo_arr + dias_cob_arr
+    comp_aj = np.where(sug_arr == 0, 0.0, np.where(cond_aj, val_aj, sug_arr))
+    res['Compra com ajuste (dias)'] = comp_aj
 
     # QTD COMPRA
-    res['QTD COMPRA'] = res['Compra com ajuste (dias)'] * res['Cons diário']
+    res['QTD COMPRA'] = (res['Compra com ajuste (dias)'] * res['Cons diário']).round(3)
 
-    # Decisão de compra
-    dec_list = []
-    for idx, r in res.iterrows():
-        qtd = r['QTD COMPRA']
-        l_min = r['Lote min.']
-        l_mult = r['Lote mult.']
-        if qtd <= 0:
-            dec_list.append(0.0)
-        elif qtd < l_min:
-            dec_list.append(float(l_min))
-        else:
-            val = l_min + math.ceil((qtd - l_min) / l_mult) * l_mult
-            dec_list.append(float(val))
-    res['Decisão de compra'] = dec_list
+    # Decisão de compra & VALOR-COMPRA (Vetorizado)
+    qtd = res['QTD COMPRA'].values
+    l_min_val = res['Lote min.'].values
+    l_mult_val = res['Lote mult.'].values
+    l_mult_safe = np.where(l_mult_val == 0, 1.0, l_mult_val)
 
-    # VALOR-COMPRA
-    res['VALOR-COMPRA'] = res['Decisão de compra'] * res['Valor unitário']
+    cond_dec_zero = qtd <= 0
+    cond_dec_lmin = qtd < l_min_val
+    val_mult = l_min_val + np.ceil((qtd - l_min_val) / l_mult_safe) * l_mult_safe
 
+    dec_compra = np.select([cond_dec_zero, cond_dec_lmin], [0.0, l_min_val], default=val_mult)
+    res['Decisão de compra'] = dec_compra
+    res['VALOR-COMPRA'] = (dec_compra * res['Valor unitário'].values).round(3)
 
+    numeric_cols = res.select_dtypes(include=[np.number]).columns
+    res[numeric_cols] = res[numeric_cols].round(3)
 
     return res

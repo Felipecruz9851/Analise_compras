@@ -13,6 +13,10 @@ export default function Header({
   onToggleSidebar,
   showMetrics = true,
   onToggleMetrics,
+  has30d = false,
+  edicoesCount = 0,
+  onAplicar30dEmMassa,
+  onRestaurarTodasEdicoes,
 }) {
   const [loading, setLoading] = useState(false);
   const [exportsModalOpen, setExportsModalOpen] = useState(false);
@@ -180,6 +184,32 @@ export default function Header({
               filter_alt_off
             </span>
             Limpar Filtros
+          </button>
+        )}
+
+        {totalItens > 0 && has30d && onAplicar30dEmMassa && (
+          <button
+            onClick={onAplicar30dEmMassa}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center gap-1"
+            title="Aplicar a sugestão de cálculo de 30 dias em todas as decisões de compra"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[15px]">bolt</span>
+            <span>Aplicar 30d</span>
+          </button>
+        )}
+
+        {totalItens > 0 && edicoesCount > 0 && onRestaurarTodasEdicoes && (
+          <button
+            onClick={onRestaurarTodasEdicoes}
+            disabled={loading}
+            className="border border-border text-text-secondary hover:text-error hover:border-error/40 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center gap-1"
+            title={`Restaurar ${edicoesCount} decisões para o cálculo base original`}
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[15px]">undo</span>
+            <span>Restaurar ({edicoesCount})</span>
           </button>
         )}
 
