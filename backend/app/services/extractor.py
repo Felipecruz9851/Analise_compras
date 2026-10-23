@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
-from typing import List, Dict
+from typing import List, Dict, Optional
 from pathlib import Path
 from datetime import datetime
 from queue import Queue
@@ -9,7 +9,7 @@ import threading
 import json
 from time import perf_counter
 
-from app.settings import FAMILIAS, LOCAIS, TEMPOS_FILE, DATA_DIR, BASE_DIR
+from app.settings import FAMILIAS, TODAS_FAMILIAS, LOCAIS, TEMPOS_FILE, DATA_DIR, BASE_DIR
 
 
 def _extract_table(html: str) -> pd.DataFrame:
@@ -113,12 +113,15 @@ class Extractor:
     # GERAÇÃO DE TAREFAS
     # ----------------------------
 
-    def gerar_tarefas(self, analise: str) -> List[Dict]:
-
-        if analise not in FAMILIAS:
-            raise ValueError(f"Análise não suportada: {analise}")
-
-        familias = FAMILIAS[analise].split(",")
+    def gerar_tarefas(self, analise: Optional[str] = "Geral") -> List[Dict]:
+        """
+        Gera as tarefas de extração unificada:
+        1. Coleta apontamentos do 4º mês anterior se o arquivo CSV ainda não existir.
+        2. Extrai Pontualidade Fornecedor (conf) para TODAS as famílias.
+        3. Extrai Apoio de Compras (apoio) para TODAS as famílias (com apenas_30='S' e exibir_baixa='S').
+        4. Coleta todos os dados de necessidade (Ordens atrasadas por local, consumo por local, estoque L e estoque R).
+        """
+        familias = TODAS_FAMILIAS if TODAS_FAMILIAS else [f.strip() for f in FAMILIAS.get("Geral", "").split(",") if f.strip()]
 
         tarefas = []
 
@@ -130,9 +133,7 @@ class Extractor:
         ano = data.year
         arquivo_apont = DATA_DIR / f"apont-{ano}-{mes:02d}.csv"
 
-        if arquivo_apont.exists():
-            pass
-        else:
+        if not arquivo_apont.exists():
             for i in range(1, 32):
                 tarefas.append(
                     {
@@ -161,6 +162,7 @@ class Extractor:
                     }
                 )
 
+        # 1. Pontualidade Fornecedor (conf) para todas as famílias
         for familia in familias:
             tarefas.append(
                 {
@@ -179,6 +181,7 @@ class Extractor:
                 }
             )
 
+        # 2. Apoio de compras para todas as famílias
         for familia in familias:
             tarefas.append(
                 {
@@ -198,91 +201,71 @@ class Extractor:
                     "grupo": "apoio_compras",
                 }
             )
-        if analise == "compra por necessidade":
-            for familia in familias:
-                tarefas.append(
-                    {
-                        "nome": f"apoio_compras_{familia}",
-                        "method": "POST",
-                        "url": self.APOIO,
-                        "data": {
-                            "cod_empresa": "11",
-                            "familia": familia,
-                            "grupo": "",
-                            "local": "",
-                            "ordem": "cod_item",
-                            "inativ": "S",
-                            # "apenas_30": "S",
-                        },
-                        "timeout": (5, 600),
-                        "grupo": "apoio_compras",
-                    }
-                )
-        else:
-            pass
-        if analise == "compra por necessidade":
-            for local in LOCAIS:
-                tarefas.append(
-                    {
-                        "nome": f"ordens_{local}",
-                        "method": "POST",
-                        "url": self.ORDENS,
-                        "data": {
-                            "cod_empresa": "11",
-                            "local[]": local,
-                            "inicio": "2000-01-01",
-                            "fim": "2050-12-31",
-                        },
-                        "timeout": (5, 600),
-                        "grupo": "ordens",
-                    }
-                )
 
-            for local in LOCAIS:
-                tarefas.append(
-                    {
-                        "nome": f"cons{local}",
-                        "method": "POST",
-                        "url": self.CONS,
-                        "data": {
-                            "cod_empresa": "11",
-                            "local[]": local,
-                            "dati": "2000-01-01",
-                            "datf": "2050-12-31",
-                        },
-                        "timeout": (5, 600),
-                        "grupo": "cons",
-                    }
-                )
+        # 3. Dados de necessidade (Ordens atrasadas por local, consumo por local, estoque L e R)
+        for local in LOCAIS:
             tarefas.append(
                 {
-                    "nome": "estoque",
+                    "nome": f"ordens_{local}",
                     "method": "POST",
-                    "url": self.ESTOQUE,
+                    "url": self.ORDENS,
                     "data": {
                         "cod_empresa": "11",
-                        "situacao": "L",
-                        "relatorio": "R",
+                        "local[]": local,
+                        "inicio": "2000-01-01",
+                        "fim": "2050-12-31",
                     },
                     "timeout": (5, 600),
-                    "grupo": "estoque",
+                    "grupo": "ordens",
                 }
             )
 
+        for local in LOCAIS:
             tarefas.append(
                 {
-                    "nome": "estoque_R",
+                    "nome": f"cons{local}",
                     "method": "POST",
-                    "url": self.ESTOQUE,
+                    "url": self.CONS,
                     "data": {
                         "cod_empresa": "11",
-                        "situacao": "R",
-                        "relatorio": "R",
+                        "local[]": local,
+                        "dati": "2000-01-01",
+                        "datf": "2050-12-31",
                     },
                     "timeout": (5, 600),
-                    "grupo": "estoque_R",
+                    "grupo": "cons",
                 }
             )
+
+        tarefas.append(
+            {
+                "nome": "estoque",
+                "method": "POST",
+                "url": self.ESTOQUE,
+                "data": {
+                    "cod_empresa": "11",
+                    "situacao": "L",
+                    "relatorio": "R",
+                },
+                "timeout": (5, 600),
+                "grupo": "estoque",
+            }
+        )
+
+        tarefas.append(
+            {
+                "nome": "estoque_R",
+                "method": "POST",
+                "url": self.ESTOQUE,
+                "data": {
+                    "cod_empresa": "11",
+                    "situacao": "R",
+                    "relatorio": "R",
+                },
+                "timeout": (5, 600),
+                "grupo": "estoque_R",
+            }
+        )
 
         return tarefas
 
@@ -444,7 +427,7 @@ class Extractor:
     # PIPELINE COMPLETO
     # ----------------------------
 
-    def executar(self, analise: str):
+    def executar(self, analise: Optional[str] = "Geral"):
         # Valida as credenciais antes de enfileirar as tarefas
         self.login()
 

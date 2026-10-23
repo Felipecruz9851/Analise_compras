@@ -41,17 +41,29 @@ FERIADOS_BRASIL = carregar_feriados()
 
 ANALISES = [
     "compra por necessidade",
-    # "ABR - ACE",
-    # "FND - FER",
     "Geral",
+    "ABR - ACE",
+    "FND - FER",
+    "LAM - LBO",
+    "FIB",
+    "REV",
+    "CHI",
+    "MIN",
 ]
 
 FAMILIAS = {
     "compra por necessidade": "FNC,VSN,VRG,NEC,IDA",
-    "ABR - ACE": "ACE,ARM,CRD,DBR,FEC,GIR,PEZ,PUX,RDZ,ABR,AVI,COL,EMB,EPM,ETI,FOR,LNH,MAN,PRF,VPE",
+    "ABR - ACE": "EPM,EMB,PRF, COL, AVI, ABR, LNH, ETI, FOR, MAN, VPE, GAS, ACE, FEC, DBR, ARM, CRD, PUX, RDZ, PEZ",
     "FND - FER": "FND,FER",
+    "LAM - LBO": "LAM,LBO",
+    "FIB": "FIB",
+    "REV": "REV",
+    "CHI": "CHI",
+    "MIN": "MIN",
     "Geral": "MMC,LBO,REV,MIN,FEC,ACE,FER,LAM,FND,EPM,EMB,DBR,AVI,PRF,COL,FNC,VPE,CST,MAN,ABR,ARM,CRD,CSD,VSN,FOR,VRG,LNH,FIB,NEC,ETI,PUX,PEZ,RDZ,GIR,GAS,MIC,IDA,CHI",
 }
+
+TODAS_FAMILIAS = [f.strip() for f in FAMILIAS["Geral"].split(",") if f.strip()]
 
 LOCAIS = {
     "COLCHOES",

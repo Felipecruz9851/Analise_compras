@@ -18,15 +18,19 @@ from app.settings import ANALISES, SNAPSHOTS_DIR, DATA_DIR, CSV_DIR, BASE_DIR
 
 
 def atualizar_snapshots(username="", password=""):
-    for analise in ANALISES:
-        dfs = coletar_dados(username, password, analise)
-        if not dfs:
-            print(f"Erro: Dados não atualizados para {analise}. O sistema retornou uma extração vazia.")
-            continue
-        dest = SNAPSHOTS_DIR / f"snapshot_{analise}.pkl"
-        with open(dest, "wb") as f:
-            pickle.dump(dfs, f)
-        print(f"Snapshot salvo em {dest}.")
+    dfs = coletar_dados(username, password, "Geral")
+    if not dfs:
+        print("Erro: Dados não atualizados. O sistema retornou uma extração vazia.")
+        return
+    dest_geral = SNAPSHOTS_DIR / "snapshot_Geral.pkl"
+    with open(dest_geral, "wb") as f:
+        pickle.dump(dfs, f)
+    print(f"Snapshot master salvo em {dest_geral}.")
+
+    dest_nec = SNAPSHOTS_DIR / "snapshot_compra por necessidade.pkl"
+    with open(dest_nec, "wb") as f:
+        pickle.dump(dfs, f)
+    print(f"Snapshot salvo em {dest_nec}.")
 
 
 def gerar_apoio():

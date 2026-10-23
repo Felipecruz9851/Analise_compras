@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from app.services.analise_estoque import detectar_meses, processar_analise_compras
 from app.services.processor import calc_data, sanitizar_dataframe
-from app.settings import BASE_DIR, DATA_DIR, carregar_feriados, prazo_por_representante
+from app.settings import BASE_DIR, DATA_DIR, FAMILIAS, carregar_feriados, prazo_por_representante
 from dateutil.relativedelta import relativedelta
 from pandas.tseries.offsets import CustomBusinessDay
 
@@ -614,27 +614,70 @@ def geral(dfs):
     return df
 
 
+def filtrar_dfs_por_analise(analise: str, dfs: dict) -> dict:
+    """
+    Filtra o dicionário dfs para as famílias pertencentes ao grupo/análise especificado.
+    Se a análise for 'Geral' ou não tiver famílias mapeadas em FAMILIAS, retorna os dfs completos.
+    """
+    if not dfs or "apoio_compras" not in dfs:
+        return dfs
+
+    familias_str = FAMILIAS.get(analise)
+    if not familias_str or analise == "Geral":
+        return dfs
+
+    familias = set(f.strip() for f in familias_str.split(",") if f.strip())
+    if not familias:
+        return dfs
+
+    dfs_filtrado = dfs.copy()
+
+    # Filtra apoio_compras pela coluna 'Família'
+    df_apoio = dfs["apoio_compras"]
+    col_fam = None
+    for cand in ["Família", "Familia", "FAM"]:
+        if cand in df_apoio.columns:
+            col_fam = cand
+            break
+
+    if col_fam:
+        dfs_filtrado["apoio_compras"] = df_apoio[
+            df_apoio[col_fam].astype(str).str.strip().isin(familias)
+        ].copy()
+
+    # Filtra conf se contiver coluna de Família
+    if "conf" in dfs and dfs["conf"] is not None:
+        df_conf = dfs["conf"]
+        for cand in ["Família", "Familia", "FAM"]:
+            if cand in df_conf.columns:
+                dfs_filtrado["conf"] = df_conf[
+                    df_conf[cand].astype(str).str.strip().isin(familias)
+                ].copy()
+                break
+
+    return dfs_filtrado
+
+
 def calcular(analise, dfs):
     """
-    Recebe o dicionário dfs = {"apoio_compras": df}
-    e retorna UM ÚNICO DataFrame (para o pipeline gerar o JSON)
+    Recebe o dicionário dfs coletado (apoio_compras para todas as famílias, necessidade, etc.).
+    Filtra as famílias pertencentes ao grupo/análise selecionado e calcula:
+    - 'compra por necessidade': executa motor MRP compra_necessidade
+    - Qualquer outro grupo ('ABR - ACE', 'FND - FER', 'LAM - LBO', 'FIB', 'REV', 'CHI', 'MIN', 'Geral', etc.):
+      executa o motor geral
     """
-
     if not dfs or dfs.get("apoio_compras") is None:
         raise ValueError(
             "Dados incompletos ou vazios retornados pela extração (grupo 'apoio_compras' ausente). Verifique as credenciais ou a conexão com o sistema PCP."
         )
 
+    dfs_grupo = filtrar_dfs_por_analise(analise, dfs)
+
     if analise == "compra por necessidade":
-        analise_compra = compra_necessidade(dfs)
-    elif analise == "ABR - ACE":
-        analise_compra = abr_ace(dfs)
-    elif analise == "FND - FER":
-        analise_compra = fnd_fer(dfs)
-    elif analise == "Geral":
-        analise_compra = geral(dfs)
+        analise_compra = compra_necessidade(dfs_grupo)
     else:
-        raise NotImplementedError(f"Análise '{analise}' ainda não implementada")
+        analise_compra = geral(dfs_grupo)
+
     return analise_compra
 
 

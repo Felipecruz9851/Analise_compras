@@ -449,26 +449,30 @@ def gerar_pickles(session, payload=None):
 
     start = perf_counter()
     snapshots = []
-    for analise in settings.ANALISES:
-        try:
-            dfs = coletar_dados(username, password, analise)
-        except RuntimeError as e:
-            if "credenciais inválidas" in str(e).lower() or "login falhou" in str(e).lower():
-                return {"erro": "Senha incorreta ou usuário inválido no sistema PCP."}
-            return {"erro": str(e)}
-        except Exception as e:
-            return {"erro": f"Erro inesperado: {str(e)}"}
+    try:
+        # Extração unificada otimizada: coleta dados para necessidade e apoio de compras para todas as famílias
+        dfs = coletar_dados(username, password, "Geral")
+    except RuntimeError as e:
+        if "credenciais inválidas" in str(e).lower() or "login falhou" in str(e).lower():
+            return {"erro": "Senha incorreta ou usuário inválido no sistema PCP."}
+        return {"erro": str(e)}
+    except Exception as e:
+        return {"erro": f"Erro inesperado: {str(e)}"}
 
-        if not dfs:
-            return {"erro": "Erro: Dados não atualizados. O sistema retornou uma extração vazia."}
+    if not dfs:
+        return {"erro": "Erro: Dados não atualizados. O sistema retornou uma extração vazia."}
 
-        fname = settings.SNAPSHOTS_DIR / f"snapshot_{analise}.pkl"
-        if fname.exists():
-            fname.unlink()
+    # Salva o master snapshot (snapshot_Geral.pkl)
+    fname_master = settings.SNAPSHOTS_DIR / "snapshot_Geral.pkl"
+    with open(fname_master, "wb") as f:
+        pickle.dump(dfs, f)
+    snapshots.append(fname_master.name)
 
-        with open(fname, "wb") as f:
-            pickle.dump(dfs, f)
-        snapshots.append(fname.name)
+    # Salva snapshot_compra por necessidade.pkl para total compatibilidade retroativa
+    fname_nec = settings.SNAPSHOTS_DIR / "snapshot_compra por necessidade.pkl"
+    with open(fname_nec, "wb") as f:
+        pickle.dump(dfs, f)
+    snapshots.append(fname_nec.name)
 
     elapsed = perf_counter() - start
     return {"status": "ok", "gerados": snapshots, "elapsed_sec": elapsed}

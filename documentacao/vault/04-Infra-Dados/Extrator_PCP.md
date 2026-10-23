@@ -2,17 +2,23 @@
 modulo: "Extrator_PCP"
 tipo: "infra"
 linguagem: "python"
-data_atualizacao: 2026-10-14
-tags: [codigo, infra, python, scraping, multi-threading, requests]
+data_atualizacao: 2026-10-23
+tags: [codigo, infra, python, scraping, multi-threading, requests, extracao-unificada]
 ---
 
-# Módulo: Extrator_PCP (backend/app/services/extractor.py)
+# Módulo: Extrator_PCP (`backend/app/services/extractor.py`)
 
 **Responsabilidade:** Motor de scraping concorrente de alta velocidade localizado em `backend/app/services/extractor.py`. Conecta-se à intranet corporativa (servidor PHP/Apache), gerencia autenticação individual por thread para evitar conflitos de sessão (`PHPSESSID`), distribui tarefas de coleta em pool de até 20 workers e extrai tabelas HTML diretamente para DataFrames Pandas.
 
+## Arquitetura de Extração Unificada
+A partir da otimização de 2026-10-23, o extrator **não roda separadamente por análise**. Em uma única execução paralela centralizada:
+1. **Dados de Necessidade (MRP):** Coleta Ordens atrasadas (`ordens`), Consumo (`cons`) para todos os 51 locais industriais (`LOCAIS`), Estoque Liberado (`estoque` L), Estoque Rejeitado (`estoque_R` R) e histórico de apontamentos (`apont`).
+2. **Apoio de Compras & Pontualidade para TODAS as Famílias:** Coleta `apoio_compras` e `conf` para todas as 38 famílias cadastradas (`TODAS_FAMILIAS`).
+3. **Cálculo Desacoplado por Grupo:** A filtragem das famílias do grupo selecionado é realizada sob demanda em memória na etapa de cálculo (`purchase_logic.py:filtrar_dfs_por_analise`), eliminando re-extrações e logins redundantes.
+
 ## Principais Funções / Métodos
 * `login()`: Executa handshake HTTP de autenticação com o formulário do PCP e valida o cookie de sessão.
-* `gerar_tarefas(analise)`: Constrói a lista de requisições necessárias (`apoio_compras`, `ordens`, `cons`, `estoque`, `conf`, `apont`) com base nas famílias e locais de fabricação.
+* `gerar_tarefas(analise="Geral")`: Constrói a lista unificada de requisições (`apoio_compras` e `conf` para todas as 38 famílias, `ordens`, `cons`, `estoque`, `estoque_R`, `apont`).
 * `executar_paralelo(tarefas, max_workers=20)`: Gerencia a fila thread-safe (`queue.Queue`) e orquestra o pool de threads com cálculo de média móvel de tempo persistido em `settings.TEMPOS_FILE` (`backend/data/tempos_execucao.json`).
 * `_extract_table(html)`: Parser tolerante em BeautifulSoup para converter tags `<table>` em DataFrames Pandas.
 * `salvar_html(conteudo, nome_base)`: Persiste arquivos HTML de diagnóstico em `settings.DATA_DIR / "saida_html"`.
