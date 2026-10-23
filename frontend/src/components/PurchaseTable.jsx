@@ -193,13 +193,13 @@ export default function PurchaseTable({
                 return (
                   <th
                     key={col}
-                    className={`relative py-2.5 px-3 font-semibold border-b border-blue-200 bg-blue-50/90 text-blue-900 select-none shadow-xs ${
+                    className={`relative py-2.5 px-3 font-semibold border-b border-border border-l border-slate-300/80 bg-slate-100/90 text-text-main select-none shadow-xs ${
                       isCenter ? "text-center" : "text-left"
                     }`}
                   >
                     <div className={`flex items-center gap-1 ${isCenter ? "justify-center" : "justify-between"}`}>
-                      <span className="flex items-center gap-1 font-bold text-xs text-blue-900" title={col}>
-                        <span className="material-symbols-outlined text-[14px] text-blue-600">
+                      <span className="flex items-center gap-1 font-semibold text-xs text-text-main" title={col}>
+                        <span className="material-symbols-outlined text-[14px] text-slate-500">
                           history_toggle_off
                         </span>
                         {col}
@@ -213,7 +213,7 @@ export default function PurchaseTable({
                             [baseColName]: false,
                           }));
                         }}
-                        className="text-blue-500 hover:text-red-500 p-0.5 rounded hover:bg-blue-100 transition-colors"
+                        className="text-text-secondary hover:text-error p-0.5 rounded hover:bg-black/5 transition-colors"
                         title="Fechar comparativo 30 dias"
                       >
                         <span className="material-symbols-outlined text-[14px]">close</span>
@@ -271,10 +271,10 @@ export default function PurchaseTable({
                             [col]: !prev[col],
                           }));
                         }}
-                        className={`px-1.5 py-0.5 text-[10px] rounded font-bold transition-all ml-1 shrink-0 flex items-center gap-0.5 shadow-xs ${
+                        className={`px-1.5 py-0.5 text-[10px] rounded font-semibold transition-all ml-1 shrink-0 flex items-center gap-0.5 shadow-xs ${
                           isExpandida
-                            ? "bg-blue-600 text-white"
-                            : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            ? "bg-slate-800 hover:bg-slate-900 text-white border border-slate-800"
+                            : "bg-white/90 hover:bg-slate-100 text-text-secondary hover:text-text-main border border-border"
                         }`}
                         title={
                           isExpandida
@@ -381,6 +381,8 @@ export default function PurchaseTable({
                   <input type="checkbox" className="accent-primary" />
                 </td>
                 {colunasFinais.map((col) => {
+                  const isCenter = ehColunaCentralizada(col);
+
                   if (col === "Gráfico") {
                     const valores = colunasMes.map((m) =>
                       parseNumeroBR(linha[m]),
@@ -424,7 +426,7 @@ export default function PurchaseTable({
                       return (
                         <td
                           key={col}
-                          className="py-1 px-3 text-center bg-blue-50/50 text-blue-900 font-bold border-l border-blue-200/60"
+                          className="py-1 px-3 text-center bg-slate-50/70 text-text-main font-semibold border-l border-slate-200"
                         >
                           <div className="flex items-center justify-center gap-1.5">
                             <span className="font-mono text-sm">{num30.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</span>
@@ -435,7 +437,7 @@ export default function PurchaseTable({
                                   e.stopPropagation();
                                   onSaveEdition(rowId, num30);
                                 }}
-                                className="px-1.5 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold flex items-center gap-0.5 shadow-xs transition-colors"
+                                className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-[10px] font-medium flex items-center gap-0.5 shadow-xs transition-colors"
                                 title={`Copiar ${num30} para Decisão de Compra`}
                               >
                                 <span className="material-symbols-outlined text-[12px]">
@@ -452,11 +454,11 @@ export default function PurchaseTable({
                     return (
                       <td
                         key={col}
-                        className={`py-1 px-3 bg-blue-50/30 text-blue-950 font-medium truncate max-w-[200px] border-l border-blue-100 ${
+                        className={`py-1 px-3 bg-slate-50/50 text-text-main font-normal truncate max-w-[200px] border-l border-slate-200 ${
                           isCenter
                             ? "text-center"
                             : isCurrency
-                              ? "text-right font-bold text-blue-800"
+                              ? "text-right font-semibold text-text-main"
                               : "text-left"
                         }`}
                         title={String(linha[chave30] ?? "")}
@@ -524,7 +526,7 @@ export default function PurchaseTable({
                             <div className="flex items-center justify-center gap-1 text-[10px] text-text-secondary">
                               <span>
                                 30d:{" "}
-                                <strong className="text-blue-700 font-mono">
+                                <strong className="text-text-main font-semibold font-mono">
                                   {val30.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
                                 </strong>
                               </span>
@@ -534,7 +536,7 @@ export default function PurchaseTable({
                                   e.preventDefault();
                                   onSaveEdition(rowId, val30);
                                 }}
-                                className="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-0.5"
+                                className="text-text-secondary hover:text-primary font-medium hover:underline flex items-center gap-0.5 transition-colors"
                                 title={`Copiar sugestão de 30 dias (${val30})`}
                               >
                                 <span className="material-symbols-outlined text-[11px]">
@@ -604,7 +606,6 @@ export default function PurchaseTable({
                     );
                   }
 
-                  const isCenter = ehColunaCentralizada(col);
                   return (
                     <td
                       key={col}

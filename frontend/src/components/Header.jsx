@@ -191,7 +191,7 @@ export default function Header({
           <button
             onClick={onAplicar30dEmMassa}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center gap-1"
+            className="bg-slate-800 hover:bg-slate-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center gap-1"
             title="Aplicar a sugestão de cálculo de 30 dias em todas as decisões de compra"
             type="button"
           >
